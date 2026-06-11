@@ -7,7 +7,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-export default function Hero({ onStart, setIsDemo, onDemo }) {
+export default function Hero({ onStart, onDemo }) {
   return (
     <motion.section
       key="home"
@@ -50,11 +50,7 @@ export default function Hero({ onStart, setIsDemo, onDemo }) {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
           <button
-            onClick={()=>{
-                onStart
-                setIsDemo(false)
-                }
-            }
+            onClick={onStart}
             className="w-full sm:w-auto px-8 py-4 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold rounded-2xl shadow-lg shadow-[#2563EB]/10 hover:shadow-[#2563EB]/20 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2 group text-base cursor-pointer"
           >
             Start Partner Entry

@@ -31,18 +31,20 @@ export default function WorkspaceCanvas({
           </div>
         </div>
 
-        <button
-          onClick={onExport}
-          disabled={isExporting || isDemo}
-          className="self-start md:self-auto h-9 px-4 bg-white border border-[#DBEAFE] hover:border-[#2563EB] hover:bg-[#EFF6FF] rounded-xl transition font-bold text-xs flex items-center gap-1.5 text-[#2563EB] cursor-pointer"
-        >
-          {isExporting ? (
-            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-          ) : (
-            <Download className="w-3.5 h-3.5" />
-          )}
-          <span>Download PDF</span>
-        </button>
+        {!isDemo && (
+          <button
+            onClick={onExport}
+            disabled={isExporting}
+            className="self-start md:self-auto h-9 px-4 bg-white border border-[#DBEAFE] hover:border-[#2563EB] hover:bg-[#EFF6FF] rounded-xl transition font-bold text-xs flex items-center gap-1.5 text-[#2563EB] cursor-pointer"
+          >
+            {isExporting ? (
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Download className="w-3.5 h-3.5" />
+            )}
+            <span>Download PDF</span>
+          </button>
+        )}
       </div>
 
       {/* Document pages */}
@@ -53,6 +55,7 @@ export default function WorkspaceCanvas({
         previewRef1={previewRef1}
         previewRef2={previewRef2}
         previewRef3={previewRef3}
+        isDemo={isDemo}
       />
 
       <div className="h-10 shrink-0" />

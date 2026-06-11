@@ -273,8 +273,141 @@ export function Step3({
   );
 }
 
-// ─── Step 4 ──────────────────────────────────────────────────────────────────
-export function Step4({ secondParty, setSecondParty, onClearError }) {
+// ─── Step 4 (Agreement Settings) ─────────────────────────────────────────────
+export function Step4({ docSettings, setDocSettings }) {
+  const numericSetter = (key, min, max) => (e) => {
+    const val = Math.min(
+      max,
+      Math.max(min, parseInt(e.target.value) || min)
+    );
+    setDocSettings((p) => ({ ...p, [key]: val }));
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6"
+    >
+      <StepHeader
+        title="Section 4: Agreement Parameters"
+        desc="Specify signing date, equity share allocation percentage, probation period, and notice period days."
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="col-span-1 md:col-span-2">
+          <Field label="Signing Date *">
+            <IconInput
+              icon={Calendar}
+              type="text"
+              placeholder="e.g. June 10, 2026"
+              value={docSettings.date}
+              onChange={(e) =>
+                setDocSettings((p) => ({ ...p, date: e.target.value }))
+              }
+            />
+          </Field>
+        </div>
+
+        <div className="p-4 bg-[#F8FAFC] border border-[#DBEAFE] rounded-2xl flex flex-col gap-2">
+          <div className="flex justify-between items-center">
+            <label className="text-xs font-semibold text-[#334155] uppercase tracking-wide">
+              Equity Share Allocation (%)
+            </label>
+            <span className="text-sm text-[#2563EB] font-extrabold bg-[#EFF6FF] px-2 py-0.5 border border-[#DBEAFE] rounded-md">
+              {docSettings.equityShare}%
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="range"
+              min="1"
+              max="100"
+              value={docSettings.equityShare}
+              onChange={numericSetter("equityShare", 1, 100)}
+              className="flex-1 accent-[#2563EB] cursor-pointer"
+            />
+            <input
+              type="number"
+              min="1"
+              max="100"
+              value={docSettings.equityShare}
+              onChange={numericSetter("equityShare", 1, 100)}
+              className="w-[60px] text-center bg-white border border-[#DBEAFE] rounded-xl py-1.5 text-[#0F172A] text-xs font-bold focus:outline-none focus:border-[#2563EB]"
+            />
+          </div>
+          <p className="text-[10px] text-[#64748B] italic">
+            Configures partner equity share percentages.
+          </p>
+        </div>
+
+        <div className="p-4 bg-[#F8FAFC] border border-[#DBEAFE] rounded-2xl flex flex-col gap-2">
+          <div className="flex justify-between items-center">
+            <label className="text-xs font-semibold text-[#334155] uppercase tracking-wide">
+              Minimum Probation Period (Months)
+            </label>
+            <span className="text-sm text-[#2563EB] font-extrabold bg-[#EFF6FF] px-2 py-0.5 border border-[#DBEAFE] rounded-md">
+              {docSettings.minimumServicePeriod} Months
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="range"
+              min="1"
+              max="24"
+              value={docSettings.minimumServicePeriod}
+              onChange={numericSetter("minimumServicePeriod", 1, 24)}
+              className="flex-1 accent-[#2563EB] cursor-pointer"
+            />
+            <input
+              type="number"
+              min="1"
+              max="24"
+              value={docSettings.minimumServicePeriod}
+              onChange={numericSetter("minimumServicePeriod", 1, 24)}
+              className="w-[60px] text-center bg-white border border-[#DBEAFE] rounded-xl py-1.5 text-[#0F172A] text-xs font-bold focus:outline-none focus:border-[#2563EB]"
+            />
+          </div>
+          <p className="text-[10px] text-[#64748B] italic">
+            Minimum timeline before partner is equity-eligible.
+          </p>
+        </div>
+
+        <div className="p-4 bg-[#F8FAFC] border border-[#DBEAFE] rounded-2xl flex flex-col gap-2 col-span-1 md:col-span-2">
+          <div className="flex justify-between items-center">
+            <label className="text-xs font-semibold text-[#334155] uppercase tracking-wide">
+              Notice Period Duration (Days)
+            </label>
+            <span className="text-sm text-[#2563EB] font-extrabold bg-[#EFF6FF] px-2 py-0.5 border border-[#DBEAFE] rounded-md">
+              {docSettings.noticePeriod} Days
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="range"
+              min="1"
+              max="90"
+              value={docSettings.noticePeriod}
+              onChange={numericSetter("noticePeriod", 1, 90)}
+              className="flex-1 accent-[#2563EB] cursor-pointer"
+            />
+            <input
+              type="number"
+              min="1"
+              max="90"
+              value={docSettings.noticePeriod}
+              onChange={numericSetter("noticePeriod", 1, 90)}
+              className="w-[60px] text-center bg-white border border-[#DBEAFE] rounded-xl py-1.5 text-[#0F172A] text-xs font-bold focus:outline-none focus:border-[#2563EB]"
+            />
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Step 5 (Signature & Signoff) ───────────────────────────────────────────
+export function Step5({ secondParty, setSecondParty, onClearError }) {
   const handleUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;

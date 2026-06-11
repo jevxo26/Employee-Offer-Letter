@@ -30,19 +30,20 @@ function TextArea({ label, value, onChange, rows = 2 }) {
   );
 }
 
-function SliderField({ label, value, onChange, min, max, hint }) {
+function SliderField({ label, value, suffix = "", onChange, min, max, hint }) {
+  const numVal = Number(value) || 0;
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex justify-between items-center">
         <label className="text-[11px] font-bold text-[#334155] uppercase tracking-wider">{label}</label>
-        <span className="text-xs text-[#2563EB] font-extrabold">{value}</span>
+        <span className="text-xs text-[#2563EB] font-extrabold">{numVal}{suffix}</span>
       </div>
       <div className="flex items-center gap-3">
         <input
           type="range"
           min={min}
           max={max}
-          value={value}
+          value={numVal}
           onChange={onChange}
           className="flex-1 accent-[#2563EB] cursor-pointer"
         />
@@ -50,7 +51,7 @@ function SliderField({ label, value, onChange, min, max, hint }) {
           type="number"
           min={min}
           max={max}
-          value={value}
+          value={numVal}
           onChange={onChange}
           className="w-[60px] text-center bg-[#F1F5F9] border border-[#DBEAFE] rounded-lg py-1 text-[#0F172A] text-xs font-bold"
         />
@@ -79,8 +80,9 @@ function SettingsTab({ docSettings, setDocSettings }) {
       </div>
 
       <SliderField
-        label={`Equity Share Allocation`}
-        value={`${docSettings.equityShare}%`}
+        label="Equity Share Allocation"
+        value={docSettings.equityShare}
+        suffix="%"
         min={1}
         max={100}
         onChange={numericSetter('equityShare', 1, 100)}
@@ -89,7 +91,8 @@ function SettingsTab({ docSettings, setDocSettings }) {
 
       <SliderField
         label="Minimum Probation Period"
-        value={`${docSettings.minimumServicePeriod} Months`}
+        value={docSettings.minimumServicePeriod}
+        suffix=" Months"
         min={1}
         max={24}
         onChange={numericSetter('minimumServicePeriod', 1, 24)}
@@ -98,7 +101,8 @@ function SettingsTab({ docSettings, setDocSettings }) {
 
       <SliderField
         label="Notice Period Days"
-        value={`${docSettings.noticePeriod} Days`}
+        value={docSettings.noticePeriod}
+        suffix=" Days"
         min={1}
         max={90}
         onChange={numericSetter('noticePeriod', 1, 90)}
@@ -215,20 +219,26 @@ export default function WorkspaceSidebar({
 
       {/* Export footer */}
       <div className="p-6 bg-[#F8FAFC] border-t border-[#DBEAFE] space-y-3 shrink-0">
-        <button
-          onClick={onExport}
-          disabled={isExporting || isDemo}
-          className="w-full py-4 px-6 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-[#64748B]/40 disabled:cursor-not-allowed font-bold text-white text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-[#2563EB]/10 hover:shadow-[#2563EB]/25 cursor-pointer"
-        >
-          {isExporting ? (
-            <><RefreshCw className="w-5 h-5 animate-spin" /> Generating Document (Page 1 of 3)</>
-          ) : (
-            <><Download className="w-5 h-5" /> Export Signed PDF (3 Pages)</>
-          )}
-        </button>
+        {isDemo ? (
+          <div className="w-full py-4 px-6 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold rounded-2xl text-center">
+            PDF Export Disabled in Demo Mode
+          </div>
+        ) : (
+          <button
+            onClick={onExport}
+            disabled={isExporting}
+            className="w-full py-4 px-6 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-[#64748B]/40 disabled:cursor-not-allowed font-bold text-white text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-[#2563EB]/10 hover:shadow-[#2563EB]/25 cursor-pointer"
+          >
+            {isExporting ? (
+              <><RefreshCw className="w-5 h-5 animate-spin" /> Generating Document (Page 1 of 2)</>
+            ) : (
+              <><Download className="w-5 h-5" /> Export Signed PDF (2 Pages)</>
+            )}
+          </button>
+        )}
         <div className="flex justify-between text-[11px] text-[#64748B] px-1 font-semibold">
           <span>A4 dimensions output</span>
-          <span>3 pages automatic layout</span>
+          <span>{isDemo ? "1 page" : "2 pages"} automatic layout</span>
         </div>
       </div>
     </div>

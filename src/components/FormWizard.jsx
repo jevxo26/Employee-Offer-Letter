@@ -1,14 +1,15 @@
 import { motion } from "motion/react";
 import { FileText, ChevronLeft, ChevronRight, Check } from "lucide-react";
-import { Step1, Step2, Step3, Step4 } from "./WizardSteps";
+import { Step1, Step2, Step3, Step4, Step5 } from "./WizardSteps";
 
 const STEP_LABELS = [
   "1. Personal info",
   "2. Fam relation",
   "3. Contacts",
-  "4. Signature",
+  "4. Agreement",
+  "5. Signature",
 ];
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 export default function FormWizard({
   activeStep,
@@ -20,6 +21,8 @@ export default function FormWizard({
   onClearError,
   onNext,
   onPrev,
+  docSettings,
+  setDocSettings,
 }) {
   return (
     <motion.section
@@ -93,6 +96,12 @@ export default function FormWizard({
         )}
         {activeStep === 4 && (
           <Step4
+            docSettings={docSettings}
+            setDocSettings={setDocSettings}
+          />
+        )}
+        {activeStep === 5 && (
+          <Step5
             secondParty={secondParty}
             setSecondParty={setSecondParty}
             onClearError={onClearError}

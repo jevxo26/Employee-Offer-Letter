@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Mail, RefreshCw } from "lucide-react";
 import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 
 import JevxoLogo from "./components/JevxoLogo";
 import FormWizard from "./components/FormWizard";
@@ -63,11 +63,13 @@ const DEFAULT_DOC_SETTINGS = {
   noticePeriod: 15,
 };
 
-const TOTAL_STEPS = 4;
+import Login from "./components/Login";
+
+const TOTAL_STEPS = 5;
 
 // ─── App ─────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [appState, setAppState] = useState("home"); // 'home' | 'form' | 'workspace'
+  const [appState, setAppState] = useState("home"); // 'home' | 'login' | 'form' | 'workspace'
   const [activeStep, setActiveStep] = useState(1);
   const [isDemo, setIsDemo] = useState(false);
 
@@ -82,7 +84,7 @@ export default function App() {
 
   const previewRef1 = useRef(null);
   const previewRef2 = useRef(null);
-  const previewRef3 = useRef(null);
+  const previewRef3 = useRef(null); // Keep ref definition to avoid syntax/reference errors, although we will not use it for A4 export when 2 pages.
 
   // ── Validation ──────────────────────────────────────────────────────────────
   const validateStep = () => {
@@ -102,6 +104,12 @@ export default function App() {
       if (!p.presentAddress.trim()) return "Present Address is required.";
       if (!p.permanentAddress.trim()) return "Permanent Address is required.";
     } else if (activeStep === 4) {
+      if (!docSettings.date.trim()) return "Signing Date is required.";
+      if (!docSettings.equityShare) return "Equity Share is required.";
+      if (docSettings.equityShare < 1 || docSettings.equityShare > 100) return "Equity Share must be between 1% and 100%.";
+      if (!docSettings.minimumServicePeriod) return "Minimum Service Period is required.";
+      if (!docSettings.noticePeriod) return "Notice Period is required.";
+    } else if (activeStep === 5) {
       if (!p.signatureImg)
         return "A signature image or pad drawing is required to complete the agreement.";
     }
@@ -148,7 +156,6 @@ export default function App() {
       const pages = [
         previewRef1.current,
         previewRef2.current,
-        previewRef3.current,
       ];
 
       for (let i = 0; i < pages.length; i++) {
@@ -157,10 +164,8 @@ export default function App() {
           scale: 2.5,
           useCORS: true,
           logging: false,
-          allowTaint: true,
+          allowTaint: false,
           backgroundColor: "#ffffff",
-          width: 793,
-          height: 1122,
         });
         pdf.addImage(
           canvas.toDataURL("image/jpeg", 0.95),
@@ -175,14 +180,11 @@ export default function App() {
         if (i < pages.length - 1) pdf.addPage();
       }
 
-      const cleanName = (secondParty.fullName || "Partner_Agreement").replace(
-        /\s+/g,
-        "_",
-      );
-      pdf.save(`JEVXO_Appointment_And_Partnership_Agreement_${cleanName}.pdf`);
+      const partnerName = secondParty.fullName ? secondParty.fullName.trim() : "Partner";
+      pdf.save(`${partnerName} - Appointment Letter.pdf`);
     } catch (err) {
       console.error("PDF export error:", err);
-      alert("We had an issue generating your PDF. Please try again.");
+      alert("We had an issue generating your PDF: " + err.message + "\nStack: " + err.stack);
     } finally {
       setIsExporting(false);
     }
@@ -231,13 +233,27 @@ export default function App() {
           {appState === "home" && (
             <Hero
               key="home"
-              onStart={() => setAppState("form")}
+              onStart={() => {
+                setIsDemo(false);
+                setAppState("login");
+              }}
               onDemo={() => {
                 setSecondParty(SAMPLE_SECOND_PARTY);
                 setSameAddress(false);
                 setAppState("form");
                 setIsDemo(true);
               }}
+            />
+          )}
+
+          {appState === "login" && (
+            <Login
+              key="login"
+              onLoginSuccess={() => {
+                setAppState("form");
+                setActiveStep(1);
+              }}
+              onBackToHome={() => setAppState("home")}
             />
           )}
 
@@ -253,6 +269,8 @@ export default function App() {
               onClearError={() => setValidationError("")}
               onNext={handleNext}
               onPrev={handlePrev}
+              docSettings={docSettings}
+              setDocSettings={setDocSettings}
             />
           )}
 
@@ -276,6 +294,7 @@ export default function App() {
                 setFirstParty={setFirstParty}
                 isExporting={isExporting}
                 onExport={handleExportPDF}
+                isDemo={isDemo}
               />
               <WorkspaceCanvas
                 firstParty={firstParty}
@@ -286,6 +305,7 @@ export default function App() {
                 previewRef3={previewRef3}
                 isExporting={isExporting}
                 onExport={handleExportPDF}
+                isDemo={isDemo}
               />
             </motion.section>
           )}
