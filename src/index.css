@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  
+  /* JEVXO Centered Corporate Blue Palette */
+  --color-primary: #2563EB;
+  --color-primary-hover: #1D4ED8;
+  --color-primary-dark: #1E3A8A;
+  --color-primary-light: #EFF6FF;
+  --color-primary-border: #DBEAFE;
+  --color-brand-accent: #06B6D4;
+  --color-brand-bg: #F8FAFC;
+  --color-brand-card: #FFFFFF;
+  --color-brand-text: #0F172A;
+}
+
+/* Beautiful custom transitions and styling for modern web aesthetic */
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+

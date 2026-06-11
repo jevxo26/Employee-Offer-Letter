@@ -1,0 +1,6 @@
+{
+  "name": "JEVXO Document Builder",
+  "description": "An automated system to generate and export professional Appointment Letters and Partnership Agreements as high-quality PDFs based on second-party data entry.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
