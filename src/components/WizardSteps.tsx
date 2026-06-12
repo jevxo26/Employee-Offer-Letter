@@ -1,3 +1,6 @@
+"use client";
+
+import React from "react";
 import { motion } from "motion/react";
 import {
   User,
@@ -8,11 +11,18 @@ import {
   MapPin,
   Check,
   Upload,
+  Mail,
 } from "lucide-react";
 import SignaturePad from "./SignaturePad";
+import { FirstParty, SecondParty, DocSettings } from "../types";
 
 // ─── Shared field wrapper ────────────────────────────────────────────────────
-function Field({ label, children }) {
+interface FieldProps {
+  label: string;
+  children: React.ReactNode;
+}
+
+function Field({ label, children }: FieldProps) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-xs font-semibold text-[#334155] uppercase tracking-wide">
@@ -23,7 +33,11 @@ function Field({ label, children }) {
   );
 }
 
-function IconInput({ icon: Icon, ...props }) {
+interface IconInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+function IconInput({ icon: Icon, ...props }: IconInputProps) {
   return (
     <div className="relative">
       <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
@@ -36,7 +50,12 @@ function IconInput({ icon: Icon, ...props }) {
 }
 
 // ─── Step 1 ──────────────────────────────────────────────────────────────────
-export function Step1({ secondParty, setSecondParty }) {
+export interface Step1Props {
+  secondParty: SecondParty;
+  setSecondParty: React.Dispatch<React.SetStateAction<SecondParty>>;
+}
+
+export function Step1({ secondParty, setSecondParty }: Step1Props) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -106,7 +125,12 @@ export function Step1({ secondParty, setSecondParty }) {
 }
 
 // ─── Step 2 ──────────────────────────────────────────────────────────────────
-export function Step2({ secondParty, setSecondParty }) {
+export interface Step2Props {
+  secondParty: SecondParty;
+  setSecondParty: React.Dispatch<React.SetStateAction<SecondParty>>;
+}
+
+export function Step2({ secondParty, setSecondParty }: Step2Props) {
   const relations = ["Father", "Mother", "Husband", "Guardian"];
   return (
     <motion.div
@@ -172,12 +196,19 @@ export function Step2({ secondParty, setSecondParty }) {
 }
 
 // ─── Step 3 ──────────────────────────────────────────────────────────────────
+export interface Step3Props {
+  secondParty: SecondParty;
+  setSecondParty: React.Dispatch<React.SetStateAction<SecondParty>>;
+  sameAddress: boolean;
+  onAddressToggle: (checked: boolean) => void;
+}
+
 export function Step3({
   secondParty,
   setSecondParty,
   sameAddress,
   onAddressToggle,
-}) {
+}: Step3Props) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -189,20 +220,37 @@ export function Step3({
         desc="Verify current telephone lines and housing documentation addresses."
       />
 
-      <Field label="Candidate Mobile Number *">
-        <IconInput
-          icon={Phone}
-          type="text"
-          placeholder="e.g. 01558984151"
-          value={secondParty.mobileNumber}
-          onChange={(e) =>
-            setSecondParty((p) => ({
-              ...p,
-              mobileNumber: e.target.value.replace(/[^\d+]/g, ""),
-            }))
-          }
-        />
-      </Field>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <Field label="Candidate Mobile Number *">
+          <IconInput
+            icon={Phone}
+            type="text"
+            placeholder="e.g. 01558984151"
+            value={secondParty.mobileNumber}
+            onChange={(e) =>
+              setSecondParty((p) => ({
+                ...p,
+                mobileNumber: e.target.value.replace(/[^\d+]/g, ""),
+              }))
+            }
+          />
+        </Field>
+
+        <Field label="Candidate Email Address *">
+          <IconInput
+            icon={Mail}
+            type="email"
+            placeholder="e.g. candidate@gmail.com"
+            value={secondParty.email || ""}
+            onChange={(e) =>
+              setSecondParty((p) => ({
+                ...p,
+                email: e.target.value,
+              }))
+            }
+          />
+        </Field>
+      </div>
 
       <Field label="Present Address *">
         <div className="relative">
@@ -274,8 +322,15 @@ export function Step3({
 }
 
 // ─── Step 4 (Agreement Settings) ─────────────────────────────────────────────
-export function Step4({ docSettings, setDocSettings }) {
-  const numericSetter = (key, min, max) => (e) => {
+export interface Step4Props {
+  docSettings: DocSettings;
+  setDocSettings: React.Dispatch<React.SetStateAction<DocSettings>>;
+}
+
+export function Step4({ docSettings, setDocSettings }: Step4Props) {
+  const numericSetter = (key: keyof DocSettings, min: number, max: number) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const val = Math.min(
       max,
       Math.max(min, parseInt(e.target.value) || min)
@@ -407,14 +462,22 @@ export function Step4({ docSettings, setDocSettings }) {
 }
 
 // ─── Step 5 (Signature & Signoff) ───────────────────────────────────────────
-export function Step5({ secondParty, setSecondParty, onClearError }) {
-  const handleUpload = (e) => {
+export interface Step5Props {
+  firstParty: FirstParty;
+  setFirstParty: React.Dispatch<React.SetStateAction<FirstParty>>;
+  onClearError: () => void;
+}
+
+export function Step5({ firstParty, setFirstParty, onClearError }: Step5Props) {
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
       onClearError();
-      setSecondParty((p) => ({ ...p, signatureImg: reader.result }));
+      if (typeof reader.result === "string") {
+        setFirstParty((p) => ({ ...p, signatureImg: reader.result as string }));
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -426,17 +489,17 @@ export function Step5({ secondParty, setSecondParty, onClearError }) {
       className="space-y-6"
     >
       <StepHeader
-        title="Section 4: Authorizations & Signoff"
-        desc="Authorize agreement documents using an official handwritten stroke asset."
+        title="Section 5: Founder & CEO Authorization"
+        desc="Authorize the agreement document using your official signature as the Company Founder / CEO."
       />
 
       <SignaturePad
         onSave={(dataUrl) => {
           onClearError();
-          setSecondParty((p) => ({ ...p, signatureImg: dataUrl }));
+          setFirstParty((p) => ({ ...p, signatureImg: dataUrl }));
         }}
-        onClear={() => setSecondParty((p) => ({ ...p, signatureImg: "" }))}
-        savedImage={secondParty.signatureImg}
+        onClear={() => setFirstParty((p) => ({ ...p, signatureImg: "" }))}
+        savedImage={firstParty.signatureImg}
       />
 
       <div className="flex items-center gap-4 my-2 text-[#64748B] text-xs font-bold uppercase tracking-wider">
@@ -466,12 +529,12 @@ export function Step5({ secondParty, setSecondParty, onClearError }) {
           </p>
         </div>
 
-        {secondParty.signatureImg && (
+        {firstParty.signatureImg && (
           <div className="mt-4 p-4 bg-[#F8FAFC] border border-[#DBEAFE] rounded-2xl flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white border border-[#DBEAFE] rounded-xl shrink-0">
                 <img
-                  src={secondParty.signatureImg}
+                  src={firstParty.signatureImg}
                   alt="Signature Preview"
                   className="w-12 h-8 object-contain bg-white rounded-md"
                 />
@@ -488,7 +551,7 @@ export function Step5({ secondParty, setSecondParty, onClearError }) {
             <button
               type="button"
               onClick={() =>
-                setSecondParty((p) => ({ ...p, signatureImg: "" }))
+                setFirstParty((p) => ({ ...p, signatureImg: "" }))
               }
               className="text-xs text-rose-600 hover:text-rose-500 font-semibold px-2 py-1 cursor-pointer"
             >
@@ -502,7 +565,12 @@ export function Step5({ secondParty, setSecondParty, onClearError }) {
 }
 
 // ─── Shared ──────────────────────────────────────────────────────────────────
-function StepHeader({ title, desc }) {
+interface StepHeaderProps {
+  title: string;
+  desc: string;
+}
+
+function StepHeader({ title, desc }: StepHeaderProps) {
   return (
     <div className="border-b border-[#DBEAFE] pb-2 mb-4">
       <h3 className="text-[#0F172A] font-bold text-base">{title}</h3>

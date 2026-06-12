@@ -1,20 +1,42 @@
+"use client";
+
+import React from "react";
 import { motion } from "motion/react";
 import { FileText, ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { Step1, Step2, Step3, Step4, Step5 } from "./WizardSteps";
+import { FirstParty, SecondParty, DocSettings } from "../types";
 
 const STEP_LABELS = [
-  "1. Personal info",
-  "2. Fam relation",
-  "3. Contacts",
-  "4. Agreement",
+  "1. Identity",
+  "2. Family",
+  "3. Residence",
+  "4. Terms",
   "5. Signature",
 ];
 const TOTAL_STEPS = 5;
+
+interface FormWizardProps {
+  activeStep: number;
+  secondParty: SecondParty;
+  setSecondParty: React.Dispatch<React.SetStateAction<SecondParty>>;
+  firstParty: FirstParty;
+  setFirstParty: React.Dispatch<React.SetStateAction<FirstParty>>;
+  sameAddress: boolean;
+  onAddressToggle: (checked: boolean) => void;
+  validationError: string;
+  onClearError: () => void;
+  onNext: () => void;
+  onPrev: () => void;
+  docSettings: DocSettings;
+  setDocSettings: React.Dispatch<React.SetStateAction<DocSettings>>;
+}
 
 export default function FormWizard({
   activeStep,
   secondParty,
   setSecondParty,
+  firstParty,
+  setFirstParty,
   sameAddress,
   onAddressToggle,
   validationError,
@@ -23,7 +45,7 @@ export default function FormWizard({
   onPrev,
   docSettings,
   setDocSettings,
-}) {
+}: FormWizardProps) {
   return (
     <motion.section
       key="form"
@@ -58,7 +80,7 @@ export default function FormWizard({
         </div>
 
         {/* Step labels */}
-        <div className="grid grid-cols-4 text-center mt-2.5 text-[10px] md:text-xs font-semibold uppercase tracking-wider text-[#64748B]">
+        <div className="grid grid-cols-5 text-center mt-2.5 text-[10px] md:text-xs font-semibold uppercase tracking-wider text-[#64748B]">
           {STEP_LABELS.map((label, idx) => (
             <span
               key={label}
@@ -102,8 +124,8 @@ export default function FormWizard({
         )}
         {activeStep === 5 && (
           <Step5
-            secondParty={secondParty}
-            setSecondParty={setSecondParty}
+            firstParty={firstParty}
+            setFirstParty={setFirstParty}
             onClearError={onClearError}
           />
         )}

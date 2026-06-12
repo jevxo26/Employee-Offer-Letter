@@ -373,8 +373,8 @@ const AppointmentLetterPreview = ({
                           className="max-h-11 max-w-[170px] object-contain block opacity-95 transition-all duration-300"
                         />
                       ) : (
-                        <div className="text-rose-500 font-bold tracking-wide animate-pulse text-[8.5px] bg-rose-50 px-2 py-0.5 border border-rose-200 rounded uppercase">
-                          Needs Signature *
+                        <div className="text-amber-600 font-bold tracking-wide animate-pulse text-[8.5px] bg-amber-50 px-2 py-0.5 border border-amber-200 rounded uppercase">
+                          Awaiting Partner Sign *
                         </div>
                       )}
                     </div>
@@ -385,8 +385,16 @@ const AppointmentLetterPreview = ({
 
                   {/* Founder First Party Signature */}
                   <div className="relative">
-                    <div className="absolute -top-7 left-4 h-8 w-48 flex items-end justify-start pointer-events-none select-none">
-                      {founderSignatureSvg}
+                    <div className="absolute -top-12 left-4 h-12 w-48 flex items-end justify-start pointer-events-none select-none">
+                      {firstParty.signatureImg ? (
+                        <img
+                          src={firstParty.signatureImg}
+                          alt="Founder Signature"
+                          className="max-h-11 max-w-[170px] object-contain block opacity-95 transition-all duration-300"
+                        />
+                      ) : (
+                        founderSignatureSvg
+                      )}
                     </div>
                     <div className="text-slate-800 font-bold text-[11px] border-t border-slate-400 border-dashed pt-1.5">
                       Signature & Date (Founder, JEVXO)

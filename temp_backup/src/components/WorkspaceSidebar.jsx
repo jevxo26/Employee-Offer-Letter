@@ -1,4 +1,4 @@
-import { Settings, User, BookOpen, Download, RefreshCw } from 'lucide-react';
+import { Settings, User, BookOpen, Download, RefreshCw, Mail } from 'lucide-react';
 
 // ─── Small reusable input primitives ─────────────────────────────────────────
 function TextInput({ label, value, onChange, ...rest }) {
@@ -171,7 +171,8 @@ export default function WorkspaceSidebar({
   setFirstParty,
   isExporting,
   onExport,
-  isDemo
+  isDemo,
+  onSendOffer
 }) {
   return (
     <div className="w-full xl:w-[420px] bg-[#F8FAFC] border-r border-[#DBEAFE] flex flex-col justify-between overflow-y-auto shrink-0">
@@ -224,17 +225,25 @@ export default function WorkspaceSidebar({
             PDF Export Disabled in Demo Mode
           </div>
         ) : (
-          <button
-            onClick={onExport}
-            disabled={isExporting}
-            className="w-full py-4 px-6 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-[#64748B]/40 disabled:cursor-not-allowed font-bold text-white text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-[#2563EB]/10 hover:shadow-[#2563EB]/25 cursor-pointer"
-          >
-            {isExporting ? (
-              <><RefreshCw className="w-5 h-5 animate-spin" /> Generating Document (Page 1 of 2)</>
-            ) : (
-              <><Download className="w-5 h-5" /> Export Signed PDF (2 Pages)</>
-            )}
-          </button>
+          <div className="flex flex-col gap-2.5">
+            <button
+              onClick={onSendOffer}
+              className="w-full py-3.5 px-6 bg-[#2563EB] hover:bg-[#1D4ED8] font-bold text-white text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-[#2563EB]/10 hover:shadow-[#2563EB]/25 cursor-pointer"
+            >
+              <Mail className="w-4 h-4" /> Send Offer to Candidate
+            </button>
+            <button
+              onClick={onExport}
+              disabled={isExporting}
+              className="w-full py-2.5 px-6 border border-[#DBEAFE] hover:border-[#2563EB] hover:bg-[#EFF6FF] text-[#2563EB] disabled:bg-[#64748B]/40 disabled:cursor-not-allowed font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition cursor-pointer"
+            >
+              {isExporting ? (
+                <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Generating Draft...</>
+              ) : (
+                <><Download className="w-3.5 h-3.5" /> Download CEO-Signed Draft</>
+              )}
+            </button>
+          </div>
         )}
         <div className="flex justify-between text-[11px] text-[#64748B] px-1 font-semibold">
           <span>A4 dimensions output</span>
