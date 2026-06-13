@@ -23,6 +23,7 @@ export interface SecondParty {
   dob: string;
   nidNumber: string;
   position: string;
+  bloodGroup: string;
   signatureImg: string;
 }
 
@@ -33,4 +34,25 @@ export interface DocSettings {
   noticePeriod: number;
 }
 
-export type AppState = 'home' | 'login' | 'form' | 'workspace' | 'candidatePortal';
+export interface EmployeeCard {
+  fullName: string;
+  position: string;
+  employeeId: string;
+  bloodGroup: string;
+  department: string;
+  photoUrl: string;
+  issueDate: string;
+  expiryDate: string;
+}
+
+/** Which document types the HR is generating in this session */
+export type DocType = 'appointment' | 'idCard' | 'both';
+
+export type AppState =
+  | 'home'
+  | 'login'
+  | 'docTypeSelect'
+  | 'form'
+  | 'workspace'
+  | 'candidatePortal'
+  | 'idCard';

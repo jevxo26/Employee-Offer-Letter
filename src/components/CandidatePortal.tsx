@@ -17,6 +17,8 @@ interface CandidatePortalProps {
   previewRef1: React.RefObject<HTMLDivElement | null>;
   previewRef2: React.RefObject<HTMLDivElement | null>;
   previewRef3: React.RefObject<HTMLDivElement | null>;
+  previewRef4: React.RefObject<HTMLDivElement | null>;
+  previewRef5: React.RefObject<HTMLDivElement | null>;
 }
 
 export default function CandidatePortal({
@@ -30,6 +32,8 @@ export default function CandidatePortal({
   previewRef1,
   previewRef2,
   previewRef3,
+  previewRef4,
+  previewRef5,
 }: CandidatePortalProps) {
   return (
     <motion.section
@@ -55,6 +59,8 @@ export default function CandidatePortal({
         previewRef1={previewRef1}
         previewRef2={previewRef2}
         previewRef3={previewRef3}
+        previewRef4={previewRef4}
+        previewRef5={previewRef5}
         isExporting={isExporting}
         onExport={onExport}
         isDemo={false}

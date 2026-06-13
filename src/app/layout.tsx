@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "JEVXO — Document Automation & Offer Portal",
-  description: "Automated offer letter and partnership agreement generator for JEVXO CEO and candidates.",
+  title: "JEVXO — HR Document Engine",
+  description: "Automated offer letter, partnership agreement and employee ID card generator for JEVXO HR.",
 };
 
 export default function RootLayout({
@@ -13,6 +13,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full antialiased">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,700;1,800;1,900&family=Oswald:wght@700&family=Orbitron:wght@500;700;900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-[#F8FAFC]">
         {children}
       </body>

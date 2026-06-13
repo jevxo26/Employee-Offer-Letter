@@ -1,482 +1,606 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
+import React from "react";
 import JevxoLogo from "./JevxoLogo";
-import { numberToWords } from "../utils/numberToWords";
+import XLogo from "../../assets/x-logo.jpg";
+import Image from "next/image";
 import { FirstParty, SecondParty, DocSettings } from "../types";
 
-interface AppointmentLetterPreviewProps {
+interface DocumentPreviewProps {
   firstParty: FirstParty;
   secondParty: SecondParty;
   settings: DocSettings;
-  previewRef1: React.RefObject<HTMLDivElement | null>;
-  previewRef2: React.RefObject<HTMLDivElement | null>;
-  previewRef3: React.RefObject<HTMLDivElement | null>;
-  isDemo: boolean;
+  layoutMode?: "comfortable" | "compact";
+  accentColor?: string;
+  previewRef1?: React.RefObject<HTMLDivElement | null>;
+  previewRef2?: React.RefObject<HTMLDivElement | null>;
+  previewRef3?: React.RefObject<HTMLDivElement | null>;
+  previewRef4?: React.RefObject<HTMLDivElement | null>;
+  previewRef5?: React.RefObject<HTMLDivElement | null>;
+  isDemo?: boolean;
 }
 
-export default function AppointmentLetterPreview({
+export default function DocumentPreview({
   firstParty,
   secondParty,
   settings,
-  previewRef1,
-  previewRef2,
-  previewRef3,
-  isDemo,
-}: AppointmentLetterPreviewProps) {
-  const getMonthsText = (months: number) => {
-    const word = numberToWords(months);
-    return `${word} (${months})`;
+  layoutMode = "comfortable",
+}: DocumentPreviewProps) {
+  // Transform form data into document-ready format
+  const safeData = {
+    documentId: "JEVXO-2026-DOC-001",
+    date: settings.date || new Date().toLocaleDateString(),
+    tagline: "INNOVATING BEYOND BOUNDARIES",
+    companyName: firstParty.companyName || "JEVXO",
+    companyRepName: firstParty.representedBy || "N/A",
+    companyRepRole: firstParty.role || "Founder",
+    companyCurrentAddress: firstParty.currentAddress || "Address not provided",
+    companyPermanentAddress:
+      firstParty.permanentAddress || "Address not provided",
+    companyMobile: firstParty.mobileNumber || "+880-XXX-XXXXXX",
+    companyNid: firstParty.nidNumber || "N/A",
+    partnerName: secondParty.fullName || "Partner Name",
+    partnerFatherName: secondParty.guardianName || "Father Name",
+    partnerPresentAddress: secondParty.presentAddress || "Address not provided",
+    partnerPermanentAddress:
+      secondParty.permanentAddress || "Address not provided",
+    partnerNid: secondParty.nidNumber || "N/A",
+    partnerMobile: secondParty.mobileNumber || "+880-XXX-XXXXXX",
+    partnerFatherMobile: secondParty.guardianMobile || "+880-XXX-XXXXXX",
+    partnerPosition: secondParty.position || "Position",
+    equityShare: settings.equityShare ? `${settings.equityShare}%` : "0%",
+    minServicePeriod: settings.minimumServicePeriod
+      ? `${settings.minimumServicePeriod} months`
+      : "6 months",
+    noticePeriodDays: settings.noticePeriod ? `${settings.noticePeriod}` : "30",
+    companyEmail: firstParty.email || "info@jevxo.com",
+    companyWebsite: firstParty.website || "www.jevxo.com",
+    companyContact: firstParty.mobileNumber || "+880-XXX-JEVXO",
   };
-
-  const getDaysText = (days: number) => {
-    const word = numberToWords(days);
-    return `${word} (${days})`;
-  };
-
-  // State to track if the browser window has focus (used to prevent screenshots by blurring)
-  const [isWindowFocused, setIsWindowFocused] = useState(true);
-
-  useEffect(() => {
-    if (!isDemo) return;
-
-    const handleFocus = () => setIsWindowFocused(true);
-    const handleBlur = () => setIsWindowFocused(false);
-
-    // Prevent PrintScreen, Save, Print and Copy hotkeys
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        (e.ctrlKey && (e.key === "p" || e.key === "s" || e.key === "c")) ||
-        e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && e.key === "I") ||
-        e.key === "PrintScreen"
-      ) {
-        e.preventDefault();
-        alert("Action disabled in demo preview mode for privacy and document protection.");
-      }
-    };
-
-    const handleCopy = (e: ClipboardEvent) => {
-      e.preventDefault();
-    };
-
-    window.addEventListener("focus", handleFocus);
-    window.addEventListener("blur", handleBlur);
-    window.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("copy", handleCopy);
-
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-      window.removeEventListener("blur", handleBlur);
-      window.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("copy", handleCopy);
-    };
-  }, [isDemo]);
-
-  const founderSignatureSvg = (
-    <svg
-      viewBox="0 0 160 50"
-      className="w-28 h-8 text-[#2D2A26] opacity-95 select-none pointer-events-none transform -rotate-2 -translate-y-1"
-    >
-      <path
-        d="M 10,25 C 30,10 50,5 65,15 C 80,25 45,45 60,35 C 75,25 90,15 110,20 C 130,25 140,15 150,12"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-      <circle cx="65" cy="15" r="2" fill="currentColor" />
-      <path
-        d="M 55,25 Q 70,5 90,30"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
-
-  // Apply blur effect to the outer wrapper when window loses focus in demo mode
-  const blurClass = isDemo && !isWindowFocused ? "blur-[12px] grayscale-[50%] transition-all duration-300 pointer-events-none" : "transition-all duration-300";
 
   return (
     <div
-      className={`flex flex-col items-center gap-6 w-full overflow-y-auto max-h-[85vh] p-4 bg-white/40 rounded-2xl border border-[#EBE5DE] scrollbar-thin scrollbar-thumb-slate-200 ${isDemo ? "select-none" : ""}`}
-      id="preview_scrollable_deck"
-      onContextMenu={isDemo ? (e) => e.preventDefault() : undefined}
-      onDragStart={isDemo ? (e) => e.preventDefault() : undefined}
-      style={isDemo ? {
-        userSelect: "none",
-        WebkitUserSelect: "none",
-        msUserSelect: "none",
-        MozUserSelect: "none",
-      } : {}}
+      id="document-preview-container"
+      className="w-full flex flex-col gap-8 print:gap-0 select-text"
     >
-      {/* Wrapper that handles client-side blur in demo mode */}
-      <div className={blurClass}>
-        {/* PAGE 1 */}
-        <div
-          ref={previewRef1}
-          id="jevxo_p1"
-          className="relative w-[793px] h-[1122px] bg-white text-slate-900 px-14 py-10 flex flex-col justify-between shadow-2xl rounded-sm shrink-0 overflow-hidden text-[12.5px] leading-[1.4]"
-          style={{ fontFamily: '"Inter", sans-serif' }}
-        >
-          {/* Background Watermark */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-[0.035] pointer-events-none select-none z-0">
-            <div className="transform -rotate-12 scale-[2.2]">
-              <JevxoLogo size="lg" />
-            </div>
-          </div>
+      {/* ==================== PAGE 1 ==================== */}
+      <div
+        id="document-page-1"
+        className="relative bg-white text-slate-800 shadow-2xl p-10 md:p-14 w-full flex flex-col justify-between overflow-hidden border border-slate-100 print:border-none print:shadow-none print:p-0"
+        style={{
+          boxSizing: "border-box",
+          aspectRatio: layoutMode === "comfortable" ? "1 / 1.414" : "auto",
+          minHeight: "297mm", // A4 height standard fallback
+        }}
+      >
+        {/* Subtle decorative geometric overlay corner */}
+        <div className="absolute top-0 right-0 w-40 h-1 bg-gradient-to-l from-indigo-600 via-sky-500 to-transparent print:hidden" />
 
-          {/* Demo Watermark Overlay */}
-          {isDemo && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-30 opacity-[0.06]">
-              <div className="transform -rotate-45 text-slate-900 font-extrabold text-5xl tracking-widest uppercase border-8 border-slate-900 p-6 whitespace-nowrap">
-                JEVXO DEMO ONLY
+        {/* Watermark from XLogo component */}
+        <Image
+          src={XLogo}
+          alt="Watermark"
+          width={520}
+          height={520}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0 opacity-25"
+        />
+
+        <div className="z-10 flex flex-col flex-grow">
+          {/* Header Layout */}
+          <header
+            id="page-header"
+            className="flex justify-between items-start border-b-2 border-slate-900 pb-5 mb-6 relative"
+          >
+            <div className="flex flex-col">
+              <JevxoLogo
+                size={46}
+                showText={true}
+                showTagline={true}
+                tagline="A subscription based business ecosystem"
+              />
+            </div>
+            <div className="flex flex-col items-end text-right font-sans">
+              <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">
+                Agreement Document
+              </span>
+              <div className="bg-slate-900 text-white text-xs px-3 py-1 font-mono font-semibold tracking-wider rounded">
+                Ref: {safeData.documentId}
               </div>
+              <span className="text-[11px] font-medium text-slate-500 mt-1.5 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full inline-block"></span>
+                Date: {safeData.date}
+              </span>
             </div>
-          )}
 
-          {/* Top-Left Corner Geometric Accent */}
-          <div className="absolute top-0 left-0 w-full h-[155px] pointer-events-none z-10 overflow-hidden">
-            <div className="absolute top-0 left-0 w-[420px] h-[35px] bg-[#2563EB] transform -skew-x-30 origin-top-left shadow-lg"></div>
-            <div className="absolute top-0 left-0 w-[200px] h-[45px] bg-[#3B82F6] transform -skew-x-30 origin-top-left opacity-90"></div>
-            <div
-              className="absolute top-0 left-0 w-[140px] h-[140px] rounded-full blur-2xl opacity-15 -translate-x-12 -translate-y-12"
-              style={{ backgroundImage: "linear-gradient(to bottom right, #4f46e5, #3b82f6)" }}
-            ></div>
-            <div className="absolute top-0 right-0 w-[150px] h-[10px] bg-cyan-400 transform -skew-x-45 origin-top-right"></div>
-            <div className="absolute top-[8px] right-0 w-[90px] h-[6px] bg-[#2563EB] opacity-60 transform -skew-x-45 origin-top-right"></div>
-          </div>
+            {/* Tech line indicator under header */}
+            <div className="absolute -bottom-[2px] left-0 w-24 h-[2px] bg-gradient-to-r from-indigo-500 to-sky-400"></div>
+          </header>
 
-          <div className="relative z-20 flex flex-col items-center pt-6">
-            <JevxoLogo size="md" />
-            <div
-              className="w-full h-[2px] mt-3.5"
-              style={{ backgroundImage: "linear-gradient(to right, transparent, #2563eb, transparent)" }}
-            ></div>
-            <h1
-              className="text-center font-extrabold text-[#1E3A8A] tracking-wider text-[17px] mt-4 select-text uppercase"
-              style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}
-            >
-              Letter Of Appointment & Partnership Agreement
+          {/* Document Title */}
+          <div id="doc-title-container" className="text-center my-6">
+            <h1 className="font-sans font-black text-[26px] tracking-tight text-slate-900 uppercase">
+              Letter of Appointment
             </h1>
-          </div>
-
-          <div className="relative z-20 flex flex-col gap-5 select-text mt-2">
-            <div className="flex justify-between items-center text-slate-500 text-[11px] font-bold tracking-wider">
-              <span>REF: JEVXO/PA/{new Date(settings.date).getFullYear() || "2026"}/092</span>
-              <span className="text-slate-800">Date: {settings.date}</span>
-            </div>
-
-            {/* Side-by-side cards */}
-            <div className="grid grid-cols-2 gap-5">
-              {/* First Party (Company) */}
-              <div className="p-4 bg-slate-50/50 border border-slate-100 rounded-2xl flex flex-col justify-between">
-                <div>
-                  <h3 className="text-[11.5px] font-extrabold text-[#2563EB] uppercase tracking-wider mb-3 pb-1 border-b border-[#2563EB]/15">
-                    First Party (Company)
-                  </h3>
-                  <div className="space-y-2 text-[11px]">
-                    <div className="flex flex-col border-b border-slate-100 pb-1">
-                      <span className="text-slate-400 font-semibold uppercase text-[9px]">Company Name</span>
-                      <span className="font-bold text-slate-800 mt-0.5">{firstParty.companyName}</span>
-                    </div>
-                    <div className="flex flex-col border-b border-slate-100 pb-1">
-                      <span className="text-slate-400 font-semibold uppercase text-[9px]">Represented By</span>
-                      <span className="font-bold text-slate-800 mt-0.5">{firstParty.representedBy} ({firstParty.role})</span>
-                    </div>
-                    <div className="flex flex-col border-b border-slate-100 pb-1">
-                      <span className="text-slate-400 font-semibold uppercase text-[9px]">Office Address</span>
-                      <span className="font-bold text-slate-800 mt-0.5 line-clamp-1">{firstParty.currentAddress}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-slate-400 font-semibold uppercase text-[9px]">NID / Corporate Registration</span>
-                      <span className="font-bold text-slate-800 mt-0.5">{firstParty.nidNumber}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Second Party (Partner) */}
-              <div className="p-4 bg-slate-50/50 border border-slate-100 rounded-2xl flex flex-col justify-between">
-                <div>
-                  <h3 className="text-[11.5px] font-extrabold text-[#2563EB] uppercase tracking-wider mb-3 pb-1 border-b border-[#2563EB]/15">
-                    Second Party (Partner)
-                  </h3>
-                  <div className="space-y-2 text-[11px]">
-                    <div className="flex flex-col border-b border-slate-100 pb-1">
-                      <span className="text-slate-400 font-semibold uppercase text-[9px]">Full Name</span>
-                      <span className="font-bold text-slate-800 mt-0.5">{secondParty.fullName || "____________________"}</span>
-                    </div>
-                    <div className="flex flex-col border-b border-slate-100 pb-1">
-                      <span className="text-slate-400 font-semibold uppercase text-[9px]">{secondParty.guardianRelation}'s Name</span>
-                      <span className="font-bold text-slate-800 mt-0.5">{secondParty.guardianName || "____________________"}</span>
-                    </div>
-                    <div className="flex flex-col border-b border-slate-100 pb-1">
-                      <span className="text-slate-400 font-semibold uppercase text-[9px]">Permanent Address</span>
-                      <span className="font-bold text-slate-800 mt-0.5 line-clamp-1">{secondParty.permanentAddress || "____________________"}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-slate-400 font-semibold uppercase text-[9px]">Assigned Role Position</span>
-                      <span className="font-extrabold text-[#2563EB] mt-0.5">{secondParty.position || "____________________"}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Role Description */}
-            <div className="space-y-1.5 mt-1">
-              <h4 className="text-[11px] font-bold text-[#1E3A8A] uppercase tracking-wider flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]"></span>
-                Role & Ownership Mindset
-              </h4>
-              <p className="text-slate-600 text-justify text-[11.5px] leading-relaxed">
-                You are hereby appointed as the <strong className="font-bold text-slate-900">{secondParty.position || "[Position]"}</strong> of <strong className="font-bold text-slate-900">{firstParty.companyName}</strong>. Please note that JEVXO is not a conventional corporate workplace; it operates under a <strong className="font-bold text-[#2563EB]">partnership-based model</strong>. As such, you are not merely an employee but a valued <strong className="font-bold text-slate-900">Partner</strong> of the organization. In this role, you are expected to demonstrate an <strong className="font-bold text-slate-900">ownership mindset</strong>, take active responsibility for the company's growth, and consistently uphold the highest standards of professional ethics, accountability, and integrity.
-              </p>
-            </div>
-
-            {/* Probation Clause */}
-            <div className="space-y-1.5">
-              <h4 className="text-[11px] font-bold text-[#1E3A8A] uppercase tracking-wider flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]"></span>
-                Minimum Service Period & Vesting
-              </h4>
-              <p className="text-slate-600 text-justify text-[11.5px] leading-relaxed">
-                To become eligible for partnership equity and core developer benefits, you must successfully perform your assigned duties within the company for a minimum probation period of <strong className="font-bold text-slate-900">{getMonthsText(settings.minimumServicePeriod)} months</strong>. During this duration, performance reviews will be conducted regularly to assess alignment with JEVXO's culture and milestones.
-              </p>
+            <div className="flex items-center justify-center gap-2 mt-1">
+              <div className="h-[1px] w-8 bg-slate-300"></div>
+              <h2 className="font-sans text-xs font-bold tracking-[0.25em] text-indigo-600 uppercase">
+                &amp; Partnership Agreement
+              </h2>
+              <div className="h-[1px] w-8 bg-slate-300"></div>
             </div>
           </div>
 
-          {/* Footer Bar */}
-          <div className="relative z-20 border-t border-slate-200 pt-3 flex justify-between items-center text-[10.5px] text-slate-500 font-medium select-text">
-            <div className="flex gap-4">
-              <span className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-[#2563EB] rounded-full"></span>
-                {firstParty.mobileNumber}
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-[#2563EB] rounded-full"></span>
-                {firstParty.email}
-              </span>
-            </div>
-            <div>
-              <span className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-[#2563EB] rounded-full"></span>
-                {firstParty.website}
-              </span>
-            </div>
+          {/* Parties Introduction */}
+          <div
+            id="parties-description"
+            className="text-[14px] text-slate-600 mb-6 leading-relaxed font-sans border-l-2 border-slate-200 pl-4 py-1 italic"
+          >
+            This Appointment Letter and Partnership Agreement is declared and
+            entered into on{" "}
+            <strong className="text-slate-800 font-semibold">
+              {safeData.date}
+            </strong>{" "}
+            by and between the following parties:
+          </div>
+
+          {/* TWO PARTY GRIDS (Professional Grid Placement with Clean Alignment) */}
+          <div
+            id="parties-grids"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"
+          >
+            {/* First Party Card */}
             <div
-              className="absolute -bottom-12 -right-14 w-[160px] h-[70px] transform skew-y-12 origin-bottom-right opacity-85 pointer-events-none"
-              style={{ backgroundImage: "linear-gradient(to top left, #4338ca, #3b82f6)" }}
-            ></div>
-            <div className="absolute -bottom-12 -left-14 w-[80px] h-[35px] bg-[#3B82F6] transform -skew-y-12 origin-bottom-left opacity-35 pointer-events-none"></div>
+              id="first-party-card"
+              className="bg-slate-50/50 border border-slate-100 rounded-lg p-5 flex flex-col justify-between shadow-sm relative overflow-hidden backdrop-blur-xs"
+            >
+              <div className="absolute top-0 left-0 w-12 h-[3px] bg-indigo-500"></div>
+              <div>
+                <span className="text-[12px] uppercase tracking-wider font-extrabold text-indigo-600 font-mono block mb-1">
+                  First Party (Company)
+                </span>
+                <h3 className="font-sans font-extrabold text-slate-900 text-[18px] mb-3 border-b border-slate-200/60 pb-1.5">
+                  {safeData.companyName}
+                </h3>
+
+                <div className="space-y-2 text-[14px]">
+                  <div className="grid grid-cols-3 gap-1">
+                    <span className="text-slate-400 font-medium">Rep. By:</span>
+                    <span className="col-span-2 text-slate-800 font-semibold">
+                      {safeData.companyRepName}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1">
+                    <span className="text-slate-400 font-medium">Role:</span>
+                    <span className="col-span-2 text-slate-700">
+                      {safeData.companyRepRole}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1">
+                    <span className="text-slate-400 font-medium">NID:</span>
+                    <span className="col-span-2 text-slate-700 font-mono">
+                      {safeData.companyNid}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1">
+                    <span className="text-slate-400 font-medium">Mobile:</span>
+                    <span className="col-span-2 text-slate-700 font-mono">
+                      {safeData.companyMobile}
+                    </span>
+                  </div>
+                  <div className="mt-2 border-t border-slate-200/40 pt-2">
+                    <span className="text-[10px] text-slate-400 font-semibold uppercase block mb-0.5">
+                      Current Address
+                    </span>
+                    <span className="text-slate-700 text-[11px] leading-tight block">
+                      {safeData.companyCurrentAddress}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Second Party Card */}
+            <div
+              id="second-party-card"
+              className="bg-slate-50/50 border border-slate-100 rounded-lg p-5 flex flex-col justify-between shadow-sm relative overflow-hidden backdrop-blur-xs"
+            >
+              <div className="absolute top-0 left-0 w-12 h-[3px] bg-sky-500"></div>
+              <div>
+                <span className="text-[12px] uppercase tracking-wider font-extrabold text-sky-600 font-mono block mb-1">
+                  Second Party (Partner)
+                </span>
+                <h3 className="font-sans font-extrabold text-slate-900 text-[18px] mb-3 border-b border-slate-200/60 pb-1.5">
+                  {safeData.partnerName}
+                </h3>
+
+                <div className="space-y-2 text-[14px]">
+                  <div className="grid grid-cols-3 gap-1">
+                    <span className="text-slate-400 font-medium font-sans">
+                      Father Name:
+                    </span>
+                    <span className="col-span-2 text-slate-800 font-semibold">
+                      {safeData.partnerFatherName}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1">
+                    <span className="text-slate-400 font-medium">
+                      Position:
+                    </span>
+                    <span className="col-span-2 text-indigo-700 font-bold">
+                      {safeData.partnerPosition}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1">
+                    <span className="text-slate-400 font-medium">NID:</span>
+                    <span className="col-span-2 text-slate-700 font-mono">
+                      {safeData.partnerNid}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1">
+                    <span className="text-slate-400 font-medium">Mobile:</span>
+                    <span className="col-span-2 text-slate-700 font-mono">
+                      {safeData.partnerMobile}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1">
+                    <span className="text-slate-400 font-medium">
+                      Father Mob:
+                    </span>
+                    <span className="col-span-2 text-slate-700 font-mono">
+                      {safeData.partnerFatherMobile}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+
+          {/* SECTION 1: Role & Ownership Mindset */}
+          <section id="section-role-ownership" className="mb-6 z-10">
+            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-2 flex items-center gap-2">
+              <span className="bg-indigo-100 text-indigo-800 text-[12px] font-mono px-1.5 py-0.5 rounded">
+                01
+              </span>
+              Role &amp; Ownership Mindset
+            </h4>
+            <div className="text-[14px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-4 rounded-md shadow-2xs">
+              <p className="mb-2">
+                You are hereby appointed as the{" "}
+                <strong className="text-slate-900 font-semibold">
+                  {safeData.partnerPosition}
+                </strong>{" "}
+                of{" "}
+                <strong className="text-slate-900 font-semibold">
+                  {safeData.companyName}
+                </strong>
+                .
+              </p>
+              <p className="text-slate-600">
+                Please note that{" "}
+                <strong className="text-slate-800 font-medium">
+                  {safeData.companyName}
+                </strong>{" "}
+                is not a conventional workplace; it operates under a
+                partnership-based model. As such, you are not merely an employee
+                but a valued Partner of the organization. In this role, you are
+                expected to demonstrate an ownership mindset, take
+                responsibility for the company's growth and success and
+                consistently uphold the highest standards of professionalism,
+                integrity and accountability. As a Partner, your contributions
+                should reflect the commitment, dedication, and strategic
+                thinking of a business owner, working collaboratively to achieve{" "}
+                <strong className="text-slate-800 font-medium">
+                  {safeData.companyName}
+                </strong>
+                's long-term vision, objectives and sustainable growth.
+              </p>
+            </div>
+          </section>
+
+          {/* SECTION 2: Equity & Share Distribution */}
+          <section id="section-equity-distribution" className="mb-4 z-10">
+            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-2 flex items-center gap-2">
+              <span className="bg-indigo-100 text-indigo-800 text-[12px] font-mono px-1.5 py-0.5 rounded">
+                02
+              </span>
+              Equity &amp; Share Distribution
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-sans text-[14px]">
+              <div className="bg-emerald-50/30 border border-emerald-100/60 rounded-md p-3">
+                <span className="text-[14px] uppercase font-bold text-emerald-800 block mb-1">
+                  Partnership Equity
+                </span>
+                <span className="text-2xl font-black text-emerald-700 tracking-tight block mb-1">
+                  {safeData.equityShare}
+                </span>
+                <p className="text-[10px] text-slate-500 leading-tight">
+                  Agreed permanent equity share
+                </p>
+              </div>
+              <div className="bg-indigo-50/30 border border-indigo-100/60 rounded-md p-3 col-span-2">
+                <span className="text-[14px] uppercase font-bold text-indigo-800 block mb-1">
+                  Minimum Service Period
+                </span>
+                <p className="text-slate-700 leading-relaxed">
+                  To become eligible for partnership equity, you must
+                  successfully perform your responsibilities within the company
+                  for a minimum period of{" "}
+                  <strong className="text-indigo-900 font-bold">
+                    {safeData.minServicePeriod}
+                  </strong>
+                  .
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-3 text-[14px] text-slate-600 leading-relaxed text-justify bg-white/50 border border-slate-100 p-4 rounded-md shadow-2xs">
+              <p className="mb-2">
+                <strong className="text-slate-800 font-semibold block mb-0.5">
+                  Equity Allocation Agreement:
+                </strong>
+                The allocation of the agreed{" "}
+                <strong className="text-indigo-600 font-bold">
+                  {safeData.equityShare}
+                </strong>{" "}
+                equity share shall be executed through a separate legally
+                binding agreement. This agreement will clearly define the
+                ownership structure, rights, responsibilities, vesting
+                conditions and all other relevant terms and conditions
+                associated with the equity.
+              </p>
+              <p>
+                <strong className="text-slate-800 font-semibold block mb-0.5">
+                  Equity Continuity:
+                </strong>
+                Once granted, the equity share shall remain valid and effective
+                in accordance with the company's applicable policies,
+                shareholder agreements and the terms outlined in the relevant
+                legal documentation. The ownership and retention of such equity
+                shall be subject to compliance with those terms and conditions.
+              </p>
+            </div>
+          </section>
         </div>
+
+        {/* Footer Page 1 */}
+        <footer
+          id="page-1-footer"
+          className="mt-8 pt-4 border-t border-slate-100 text-[14px] text-slate-400 font-mono flex justify-between items-center z-10"
+        >
+          <div className="flex gap-4">
+            <span>
+              Email:{" "}
+              <strong className="text-slate-600 font-semibold">
+                {safeData.companyEmail}
+              </strong>
+            </span>
+            <span className="hidden sm:inline">|</span>
+            <span className="hidden sm:inline">
+              Web:{" "}
+              <strong className="text-slate-600 font-semibold">
+                {safeData.companyWebsite}
+              </strong>
+            </span>
+          </div>
+          <div>Page 1 of 2</div>
+        </footer>
       </div>
 
-      {/* PAGE 2 (Hidden in Demo Preview) */}
-      {!isDemo && (
-        <div className={blurClass}>
-          {/* PAGE 2 */}
-          <div
-            ref={previewRef2}
-            id="jevxo_p2"
-            className="relative w-[793px] h-[1122px] bg-white text-slate-900 px-14 py-10 flex flex-col justify-between shadow-2xl rounded-sm shrink-0 overflow-hidden text-[12.5px] leading-[1.38]"
-            style={{ fontFamily: '"Inter", sans-serif' }}
+      {/* PAGE BREAK (Force break when printing, comfortable layout spacing screen) */}
+      <div className="print:break-after-page print:h-0 print:m-0 print:p-0 my-4" />
+
+      {/* ==================== PAGE 2 ==================== */}
+      <div
+        id="document-page-2"
+        className="relative bg-white text-slate-800 shadow-2xl p-10 md:p-14 w-full flex flex-col justify-between overflow-hidden border border-slate-100 print:border-none print:shadow-none print:p-0"
+        style={{
+          boxSizing: "border-box",
+          aspectRatio: layoutMode === "comfortable" ? "1 / 1.414" : "auto",
+          minHeight: "297mm", // A4 height standard fallback
+        }}
+      >
+        {/* Subtle decorative geometric overlay corner */}
+        <div className="absolute top-0 right-0 w-40 h-1 bg-gradient-to-l from-sky-600 via-indigo-500 to-transparent print:hidden" />
+
+        {/* Watermark from XLogo component */}
+        <Image
+          src={XLogo}
+          alt="Watermark"
+          width={520}
+          height={520}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0 opacity-25"
+        />
+
+        <div className="z-10 flex flex-col flex-grow">
+          {/* Sibling Header for consistency across printed pages */}
+          <header
+            id="page-header-2"
+            className="flex justify-between items-start border-b border-slate-200 pb-3 mb-8"
           >
-            {/* Background Watermark */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-[0.035] pointer-events-none select-none z-0">
-              <div className="transform -rotate-12 scale-[2.2]">
-                <JevxoLogo size="lg" />
-              </div>
+            <span className="font-sans text-xs font-bold tracking-wider text-slate-500">
+              JEVXO PARTNERSHIP DEED &amp; POLICY
+            </span>
+            <div className="text-right text-[10px] font-mono text-slate-400">
+              Ref: {safeData.documentId} | Date: {safeData.date}
             </div>
+          </header>
 
-            {/* Top-Left Corner Geometric Accent */}
-            <div className="absolute top-0 left-0 w-full h-[155px] pointer-events-none z-10 overflow-hidden">
-              <div className="absolute top-0 left-0 w-[420px] h-[35px] bg-[#2563EB] transform -skew-x-30 origin-top-left shadow-lg"></div>
-              <div className="absolute top-0 left-0 w-[200px] h-[45px] bg-[#3B82F6] transform -skew-x-30 origin-top-left opacity-90"></div>
-              <div
-                className="absolute top-0 left-0 w-[140px] h-[140px] rounded-full blur-2xl opacity-15 -translate-x-12 -translate-y-12"
-                style={{ backgroundImage: "linear-gradient(to bottom right, #4f46e5, #3b82f6)" }}
-              ></div>
-              <div className="absolute top-0 right-0 w-[150px] h-[10px] bg-cyan-400 transform -skew-x-45 origin-top-right"></div>
-              <div className="absolute top-[8px] right-0 w-[90px] h-[6px] bg-[#2563EB] opacity-60 transform -skew-x-45 origin-top-right"></div>
-            </div>
-
-            <div className="relative z-20 flex flex-col pt-6">
-              <div className="flex justify-center">
-                <JevxoLogo size="md" />
-              </div>
-              <div className="w-full h-[1.5px] bg-slate-100 mt-2"></div>
-            </div>
-
-            <div className="relative z-20 flex flex-col gap-3 select-text mt-2">
-              {/* Equity Allocation Agreement */}
-              <div className="space-y-0.5">
-                <h2 className="font-bold text-[#1E3A8A] text-[13.5px] uppercase tracking-wide">
-                  Equity Allocation Agreement
-                </h2>
-                <p className="text-slate-600 text-justify text-[11.5px] leading-relaxed">
-                  The allocation of the agreed <strong className="font-bold text-slate-800">{settings.equityShare}% equity share</strong> shall be executed through a separate legally binding agreement. This agreement will clearly define the ownership structure, rights, responsibilities, vesting conditions, and all other relevant terms and conditions associated with the equity.
-                </p>
-              </div>
-
-              {/* Equity Continuity */}
-              <div className="space-y-0.5">
-                <h2 className="font-bold text-[#1E3A8A] text-[13.5px] uppercase tracking-wide">
-                  Equity Continuity
-                </h2>
-                <p className="text-slate-600 text-justify text-[11.5px] leading-relaxed">
-                  Once granted, the equity share shall remain valid and effective in accordance with the company's applicable policies, shareholder agreements, and the terms outlined in the relevant legal documentation. The ownership and retention of such equity shall be subject to compliance with those terms and conditions.
-                </p>
-              </div>
-
-              {/* Place of Work (Remote Work Policy) */}
-              <div className="space-y-0.5">
-                <h2 className="font-bold text-[#1E3A8A] text-[13.5px] uppercase tracking-wide">
-                  Place of Work (Remote Work Policy)
-                </h2>
-                <p className="text-slate-600 text-justify text-[11.5px] leading-relaxed">
-                  At present, all duties and responsibilities under this agreement shall be performed on a remote basis. The Company reserves the right to transition operations to a physical office environment when it reaches a sustainable and profitable stage. In such circumstances, the Partner shall be notified in advance through an official written notice.
-                </p>
-              </div>
-
-              {/* Confidentiality & NDA */}
-              <div className="space-y-0.5">
-                <h2 className="font-bold text-[#1E3A8A] text-[13.5px] uppercase tracking-wide">
-                  Confidentiality & Non-Disclosure (NDA)
-                </h2>
-                <p className="text-slate-600 text-justify text-[11.5px] leading-relaxed">
-                  All company-related information, including source code, client data, business strategies, and financial records, shall be treated as strictly confidential. The Partner agrees not to disclose, share, or misuse any confidential information without prior written authorization. Unauthorized disclosure shall be considered a material breach and may result in legal actions and claims for damages.
-                </p>
-              </div>
-
-              {/* Termination & Resignation */}
-              <div className="space-y-0.5">
-                <h2 className="font-bold text-[#1E3A8A] text-[13.5px] uppercase tracking-wide">
-                  Termination & Resignation
-                </h2>
-                <p className="text-slate-600 text-justify text-[11.5px] leading-relaxed">
-                  Either Party may terminate this agreement by providing the other Party with a minimum of <strong className="font-bold text-slate-800">{getDaysText(settings.noticePeriod)} days'</strong> prior written notice. However, the Company reserves the right to implement immediate termination without notice in cases involving fraud, gross misconduct, breach of confidentiality, gross negligence, or unethical behavior. Upon termination, all Company owned properties and documents must be returned.
-                </p>
-              </div>
-
-              {/* Acceptance Section & Signatures */}
-              <div className="pt-3 border-t border-slate-100 space-y-3">
-                <h2 className="font-bold text-[#1E3A8A] text-[13.5px] uppercase tracking-wide">
-                  Signatures & Acceptance
-                </h2>
-                
-                <div className="p-3 bg-[#2563EB]/5 border border-[#2563EB]/10 rounded-2xl">
-                  <p className="text-slate-700 text-justify text-[11px] leading-relaxed">
-                    I, <strong className="font-bold text-slate-900">{secondParty.fullName || "[Second Party Name]"}</strong>, hereby acknowledge that I have read, understood, and agreed to all the terms and conditions set forth in this Appointment Letter and Partnership Policy of <strong className="font-bold text-[#2563EB]">{firstParty.companyName}</strong>. I further undertake to comply with and uphold all obligations and policies contained herein.
-                  </p>
-                </div>
-
-                {/* Compact elegant signatures */}
-                <div className="grid grid-cols-2 gap-x-10 pt-8 pl-1">
-                  {/* Second Party Signature Holder */}
-                  <div className="relative">
-                    <div className="absolute -top-12 left-4 h-12 w-48 flex items-end justify-start pointer-events-none select-none">
-                      {secondParty.signatureImg ? (
-                        <img
-                          src={secondParty.signatureImg}
-                          alt="Second Party Signature"
-                          className="max-h-11 max-w-[170px] object-contain block opacity-95 transition-all duration-300"
-                        />
-                      ) : (
-                        <div className="text-amber-600 font-bold tracking-wide animate-pulse text-[8.5px] bg-amber-50 px-2 py-0.5 border border-amber-200 rounded uppercase">
-                          Awaiting Partner Sign *
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-slate-800 font-bold text-[11px] border-t border-slate-400 border-dashed pt-1.5">
-                      Signature & Date (Second Party / Partner)
-                    </div>
-                  </div>
-
-                  {/* Founder First Party Signature */}
-                  <div className="relative">
-                    <div className="absolute -top-12 left-4 h-12 w-48 flex items-end justify-start pointer-events-none select-none">
-                      {firstParty.signatureImg ? (
-                        <img
-                          src={firstParty.signatureImg}
-                          alt="Founder Signature"
-                          className="max-h-11 max-w-[170px] object-contain block opacity-95 transition-all duration-300"
-                        />
-                      ) : (
-                        founderSignatureSvg
-                      )}
-                    </div>
-                    <div className="text-slate-800 font-bold text-[11px] border-t border-slate-400 border-dashed pt-1.5">
-                      Signature & Date (Founder, JEVXO)
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer Bar */}
-            <div className="relative z-20 border-t border-slate-200 pt-3 flex justify-between items-center text-[10.5px] text-slate-500 font-medium select-text">
-              <div className="flex gap-4">
-                <span className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-[#2563EB] rounded-full"></span>
-                  {firstParty.mobileNumber}
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-[#2563EB] rounded-full"></span>
-                  {firstParty.email}
-                </span>
-              </div>
-              <div>
-                <span className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-[#2563EB] rounded-full"></span>
-                  {firstParty.website}
-                </span>
-              </div>
-              <div
-                className="absolute -bottom-12 -right-14 w-[160px] h-[70px] transform skew-y-12 origin-bottom-right opacity-85 pointer-events-none"
-                style={{ backgroundImage: "linear-gradient(to top left, #4338ca, #3b82f6)" }}
-              ></div>
-              <div className="absolute -bottom-12 -left-14 w-[80px] h-[35px] bg-[#3B82F6] transform -skew-y-12 origin-bottom-left opacity-35 pointer-events-none"></div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Demo Mode Notice Box */}
-      {isDemo && (
-        <div className="w-[793px] mt-4 p-5 bg-blue-50 border border-blue-200 rounded-2xl flex items-start gap-3 shadow-md relative z-10">
-          <div className="p-2 bg-blue-100 rounded-xl text-[#2563EB] shrink-0">
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 15v2m0-6v2m0-6h.01M12 2a10 10 0 110 20 10 10 0 010-20z"
-              />
-            </svg>
-          </div>
-          <div>
-            <h4 className="text-sm font-bold text-[#1E3A8A]">
-              Demo Preview Mode Active
+          {/* SECTION 3: Place of Work (Remote Work Policy) */}
+          <section id="section-place-of-work" className="mb-6 z-10">
+            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-2 flex items-center gap-2">
+              <span className="bg-indigo-100 text-indigo-800 text-[12px] font-mono px-1.5 py-0.5 rounded">
+                03
+              </span>
+              Place of Work (Remote Work Policy)
             </h4>
-            <p className="text-xs text-[#334155] mt-1 leading-relaxed">
-              For privacy and intellectual property reasons, exporting, downloading,
-              copying, and screenshotting are disabled in this demo environment. Additionally,
-              only Page 1 is visible, and subsequent pages are restricted. Please authenticate
-              via the founder's portal using the main "Start Partner Entry" option to access
-              the full multi-page agreement generation and signature workflows.
+            <div className="text-[14px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-4 rounded-md shadow-2xs">
+              <p className="mb-2">
+                At present, all duties and responsibilities under this agreement
+                shall be performed on a{" "}
+                <strong className="text-indigo-600 font-semibold">
+                  remote basis
+                </strong>
+                .
+              </p>
+              <p className="text-slate-600">
+                The Company reserves the right to transition operations to a
+                physical office environment when it reaches a sustainable and
+                profitable stage. In such circumstances, the Partner shall be
+                notified in advance through an official written notice and
+                reasonable arrangements shall be made for the transition.
+              </p>
+            </div>
+          </section>
+
+          {/* SECTION 4: Confidentiality & NDA */}
+          <section id="section-confidentiality-nda" className="mb-6 z-10">
+            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-2 flex items-center gap-2">
+              <span className="bg-indigo-100 text-indigo-800 text-[12px] font-mono px-1.5 py-0.5 rounded">
+                04
+              </span>
+              Confidentiality &amp; Non-Disclosure Agreement (NDA)
+            </h4>
+            <div className="text-[14px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-4 rounded-md shadow-2xs">
+              <p className="mb-2 text-slate-800 font-medium">
+                All company-related information, including but not limited to
+                projects, source code, client data, business strategies,
+                financial information, intellectual property, and future plans,
+                shall be treated as strictly confidential.
+              </p>
+              <p className="text-slate-600 mb-2">
+                The Partner agrees not to disclose, share, reproduce, distribute
+                or misuse any confidential information without prior written
+                authorization from the Company. Any unauthorized disclosure or
+                misuse of confidential information shall be considered a
+                material breach of this agreement and may result in legal
+                action, claims for damages and other remedies available under
+                applicable law.
+              </p>
+              <p className="text-slate-600 font-medium italic border-t border-slate-100 pt-2 text-[11px]">
+                This confidentiality obligation shall remain in effect during
+                the term of this agreement and continue even after the
+                termination of the partnership relationship.
+              </p>
+            </div>
+          </section>
+
+          {/* SECTION 5: Termination & Resignation */}
+          <section id="section-termination-resignation" className="mb-8 z-10">
+            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-2 flex items-center gap-2">
+              <span className="bg-indigo-100 text-indigo-800 text-[12px] font-mono px-1.5 py-0.5 rounded">
+                05
+              </span>
+              Termination &amp; Resignation Policy
+            </h4>
+            <div className="text-[14px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-4 rounded-md shadow-2xs">
+              <p className="mb-2">
+                Either Party may terminate this agreement by providing the other
+                Party with a minimum of{" "}
+                <strong className="text-red-600 font-semibold">
+                  {safeData.noticePeriodDays} days'
+                </strong>{" "}
+                prior written notice.
+              </p>
+              <p className="text-slate-600 mb-2">
+                However, the Company reserves the right to implement{" "}
+                <strong className="text-red-700 font-semibold">
+                  immediate termination without notice
+                </strong>{" "}
+                in cases involving fraud, misconduct, breach of confidentiality,
+                gross negligence, unethical behavior, violation of company
+                policies or any action that causes significant harm to the
+                Company's interests, reputation or operations.
+              </p>
+              <p className="text-slate-500">
+                Upon termination, both Parties shall fulfill any outstanding
+                obligations and return any Company-owned property, documents,
+                credentials or confidential information in their possession.
+              </p>
+            </div>
+          </section>
+
+          {/* SIGNATURES & ACCEPTANCE DETAILS */}
+          <section
+            id="signatures-acceptance"
+            className="mt-auto pt-6 border-t border-slate-200 z-10"
+          >
+            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-slate-900 mb-3">
+              Acceptance &amp; Executory Signatures
+            </h4>
+            <p className="text-[14px] text-slate-600 leading-relaxed font-sans mb-6 bg-white/50 p-4 rounded-md border border-slate-100 text-justify">
+              I,{" "}
+              <strong className="text-slate-800 font-bold">
+                {safeData.partnerName}
+              </strong>
+              , hereby acknowledge that I have read, understood and agreed to
+              all the terms and conditions set forth in this Appointment Letter
+              and Partnership Policy of{" "}
+              <strong className="text-slate-800 font-bold">
+                {safeData.companyName}
+              </strong>
+              . I further undertake to comply with and uphold all obligations,
+              responsibilities and policies contained herein.
             </p>
-          </div>
+
+            <div className="grid grid-cols-2 gap-12 pt-10 font-sans text-[14px]">
+              {/* Partner Signature */}
+              <div className="flex flex-col">
+                <div className="mt-6 pt-2 font-semibold text-slate-800 text-center">
+                  ..............................................................................
+                </div>
+                <div className="text-center font-bold text-slate-900 mt-1">
+                  {safeData.partnerName}
+                </div>
+                <div className="text-[12px] text-slate-500 text-center">
+                  Partner (Second Party)
+                </div>
+                <div className="text-[10px] text-slate-400 text-center mt-0.5">
+                  Date: ________________________
+                </div>
+              </div>
+
+              {/* Founder Signature */}
+              <div className="flex flex-col">
+                <div className="mt-6 pt-2 font-semibold text-slate-800 text-center">
+                  ..............................................................................
+                </div>
+                <div className="text-center font-bold text-slate-900 mt-1">
+                  {safeData.companyRepName}
+                </div>
+                <div className="text-[12px] text-slate-500 text-center">
+                  {safeData.companyRepRole}, {safeData.companyName}
+                </div>
+                <div className="text-[10px] text-slate-400 text-center mt-0.5">
+                  Date: ________________________
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
-      )}
+
+        {/* Global Footer Page 2 */}
+        <footer
+          id="page-2-footer"
+          className="mt-14 pt-4 border-t border-slate-900 text-[14px] text-slate-500 font-mono flex flex-col gap-2 z-10"
+        >
+          <div className="flex justify-between items-center text-slate-400 py-1 border-b border-slate-100">
+            <span>
+              Doc Engine:{" "}
+              <strong className="text-indigo-600">JEVXO DocBuilder v1.4</strong>
+            </span>
+            <span>Ref: {safeData.documentId}</span>
+            <span>Page 2 of 2</span>
+          </div>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 text-[12px] text-slate-400">
+            <div>JEVXO Corporation • Bangladesh Silicon Innovation Labs</div>
+            <div className="flex gap-3">
+              <span>Web: {safeData.companyWebsite}</span>
+              <span>•</span>
+              <span>Email: {safeData.companyEmail}</span>
+              <span>•</span>
+              <span>Contact: {safeData.companyContact}</span>
+            </div>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 }

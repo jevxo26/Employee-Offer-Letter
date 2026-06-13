@@ -179,6 +179,19 @@ function SecondPartyTab({ secondParty, setSecondParty }: SecondPartyTabProps) {
 
       <TextArea label="Present Address" value={secondParty.presentAddress} onChange={set("presentAddress")} />
       <TextArea label="Permanent Address" value={secondParty.permanentAddress} onChange={set("permanentAddress")} />
+
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-semibold text-[#334155] uppercase tracking-wide">Blood Group</label>
+        <select
+          value={secondParty.bloodGroup || "A+"}
+          onChange={set("bloodGroup")}
+          className="w-full bg-[#F1F5F9] border border-[#DBEAFE] rounded-lg py-2 px-2 text-xs text-[#0F172A] font-semibold focus:outline-none focus:border-[#2563EB]"
+        >
+          {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bg) => (
+            <option key={bg} value={bg}>{bg}</option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }

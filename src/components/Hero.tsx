@@ -42,16 +42,15 @@ export default function Hero({ onStart, onDemo }: HeroProps) {
               Automate Your
             </span>{" "}
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] via-[#3B82F6] to-[#06B6D4] font-black">
-              Partnership & Appointment
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] via-[#7C3AED] to-[#06B6D4] font-black">
+              HR Document
             </span>{" "}
-            Documents
+            Workflows
           </h1>
           <p className="text-[#334155] max-w-2xl mx-auto text-base md:text-lg leading-relaxed">
-            Empower JEVXO's onboarding process with high-fidelity legal document
-            generation. Seamlessly enter second-party details to instantly
-            compile, sign, preview, and download your exportable Partner
-            Agreements as pristine PDFs.
+            Generate partnership agreements, appointment letters, and employee ID
+            cards — all from a single intelligent HR platform. Capture partner
+            details, attach signatures, and export print-ready documents in seconds.
           </p>
         </div>
 
@@ -60,7 +59,7 @@ export default function Hero({ onStart, onDemo }: HeroProps) {
             onClick={onStart}
             className="w-full sm:w-auto px-8 py-4 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold rounded-2xl shadow-lg shadow-[#2563EB]/10 hover:shadow-[#2563EB]/20 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2 group text-base cursor-pointer"
           >
-            Start Partner Entry
+            Build Partner/Employee Docs
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
           </button>
           <button
