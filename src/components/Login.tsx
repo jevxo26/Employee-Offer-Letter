@@ -16,36 +16,30 @@ export default function Login({ onLoginSuccess, onBackToHome }: LoginProps) {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError("");
 
-    // Simple validation: email structure & password length >= 6
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
+const response = await fetch("/api/login", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    email,
+    password,
+  }),
+});
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
-      return;
-    }
+const data = await response.json();
 
-    setIsSubmitting(true);
+if (!response.ok) {
+  setError(data.message);
+  return;
+}
 
-    // Simulate network authentication latency for premium feel
-    setTimeout(() => {
-      setIsSubmitting(false);
-      onLoginSuccess();
-    }, 800);
-  };
-
-  const handleDemoFill = () => {
-    setEmail("founder@jevxo.com");
-    setPassword("founder123");
-    setError("");
-  };
+onLoginSuccess();
+};
 
   return (
     <motion.section
@@ -128,20 +122,6 @@ export default function Login({ onLoginSuccess, onBackToHome }: LoginProps) {
             {!isSubmitting && <ArrowRight className="w-4 h-4" />}
           </button>
         </form>
-
-        {/* Credentials shortcut helper */}
-        <div className="border-t border-[#EFF6FF] pt-4 text-center">
-          <p className="text-[11px] text-[#64748B]">
-            Testing? Click below to prefill demo portal credentials.
-          </p>
-          <button
-            type="button"
-            onClick={handleDemoFill}
-            className="mt-2 text-xs font-bold text-[#2563EB] hover:text-[#1D4ED8] transition cursor-pointer"
-          >
-            Use founder@jevxo.com
-          </button>
-        </div>
 
         <div className="text-center">
           <button

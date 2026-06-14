@@ -1,36 +1,285 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JEVXO Automated Appointment Letter & Partnership Agreement System
 
-## Getting Started
+A modern HR automation platform developed for JEVXO to streamline partner onboarding, appointment letter generation, partnership agreements, digital signatures, employee ID card generation, PDF export, and email-based document delivery.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Overview
+
+The JEVXO Automated Documentation System enables founders and administrators to generate legally structured onboarding documents, collect digital signatures, and distribute agreements electronically through a secure workflow.
+
+The platform eliminates manual document preparation and provides a scalable onboarding process for future partners, employees, and stakeholders.
+
+---
+
+## Core Features
+
+### Appointment Letter Generation
+
+Generate professional appointment letters dynamically using partner information.
+
+Supported Fields:
+
+* Partner Name
+* Position / Role
+* Date of Birth
+* National ID
+* Mobile Number
+* Email Address
+* Present Address
+* Permanent Address
+* Guardian Information
+* Equity Percentage
+* Probation Period
+* Notice Period
+
+---
+
+### Partnership Agreement Generation
+
+Automatically generate partnership agreements with dynamic company and partner information.
+
+---
+
+### Digital Signature Workflow
+
+#### Founder Signature
+
+Supports:
+
+* Draw Signature
+* Upload Signature Image
+
+Stored as:
+
+```javascript
+firstParty.signatureImg
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+#### Partner Signature
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Partners can digitally sign agreements through a dedicated candidate portal.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Stored as:
 
-## Learn More
+```javascript
+secondParty.signatureImg
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### PDF Generation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Generate production-ready A4 PDFs using:
 
-## Deploy on Vercel
+* jsPDF
+* html2canvas-pro
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Features:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+* Multi-page document rendering
+* Watermark support
+* Dynamic signatures
+* Corporate document formatting
+* High-resolution export
+
+---
+
+### Employee ID Card Generator
+
+Generate employee ID cards directly from onboarding information.
+
+Front Side:
+
+* Employee Photo
+* Employee Name
+* Position
+* Blood Group
+* Employee ID
+* Employee Verification QR
+
+Back Side:
+
+* Company Information
+* Verification QR
+* Important Information
+
+Export Formats:
+
+* PDF
+* PNG
+
+---
+
+### Candidate Portal
+
+Secure onboarding experience for candidates.
+
+Features:
+
+* No login required
+* Personalized invitation links
+* View appointment documents
+* Sign agreements digitally
+* Download countersigned PDF
+
+URL Structure:
+
+```txt
+/?candidateView={token}
+```
+
+---
+
+### Email Delivery System
+
+Integrated with Resend Email API.
+
+Capabilities:
+
+* Direct document invitation emails
+* Personalized onboarding links
+* Automated candidate communication
+* Company-branded email delivery
+
+Supported Sender:
+
+```txt
+info@jevxo.com
+```
+
+Fallback Sender:
+
+```txt
+onboarding@resend.dev
+```
+
+---
+
+## Technology Stack
+
+### Frontend
+
+* Next.js
+* TypeScript
+* Tailwind CSS v4
+
+### UI & Animations
+
+* Lucide React
+* Framer Motion
+
+### Document Generation
+
+* jsPDF
+* html2canvas-pro
+
+### Email Service
+
+* Resend API
+
+### QR Generation
+
+* qrcode.react
+
+---
+
+## Workflow
+
+### Founder Workflow
+
+```txt
+Login
+    ↓
+Fill Partner Information
+    ↓
+Configure Agreement Terms
+    ↓
+Attach Founder Signature
+    ↓
+Generate Documents
+    ↓
+Send Offer Email
+```
+
+---
+
+### Candidate Workflow
+
+```txt
+Receive Email
+    ↓
+Open Invitation Link
+    ↓
+Review Documents
+    ↓
+Provide Signature
+    ↓
+Download Signed PDF
+```
+
+---
+
+## Local Storage Strategy
+
+Document data is temporarily stored using:
+
+```txt
+jevxo_offer_{id}
+```
+
+Stored Data:
+
+* First Party Information
+* Second Party Information
+* Document Settings
+* Signature Assets
+
+---
+
+## Security Notes
+
+* Founder workspace is login protected.
+* Candidate access is token based.
+* Sensitive API keys should be stored in environment variables.
+* Production deployment should use secure backend APIs instead of exposing secret keys in frontend code.
+
+---
+
+## Future Roadmap
+
+### Phase 2
+
+* Database Integration
+* Employee Management Dashboard
+* Verification Portal
+* Automated Employee IDs
+* Offer Tracking System
+* HR Analytics
+
+### Phase 3
+
+* Multi-Company Support
+* E-Signature Audit Logs
+* Partner Performance Tracking
+* Equity Management Dashboard
+* Document Versioning
+
+---
+
+## Developed For
+
+JEVXO
+
+- A global subscription-based digital business ecosystem.
+
+Official Email:
+[info@jevxo.com](mailto:info@jevxo.com)
+
+---
+
+## License
+
+Internal Proprietary Software
+
+This software is developed exclusively for JEVXO and is not intended for public redistribution without authorization.

@@ -7,7 +7,7 @@ const OFFERS_DIR = path.join(process.cwd(), "data", "offers");
 
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY);
-const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
+const BASE_URL = process.env.BASE_URL;
 
 export async function POST(request: Request) {
   try {

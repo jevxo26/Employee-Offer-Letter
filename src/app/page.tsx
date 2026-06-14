@@ -188,24 +188,48 @@ export default function Home() {
     }));
   };
 
-  const handleSendOffer = async () => {
-    const id = Math.random().toString(36).substring(2, 11);
-    const stateToSave = { firstParty, secondParty, docSettings };
-    localStorage.setItem("jevxo_offer_" + id, JSON.stringify(stateToSave));
+const handleSendOffer = async () => {
+  const id = Math.random().toString(36).substring(2, 11);
+  const stateToSave = { firstParty, secondParty, docSettings };
+
+  // Save to localStorage
+  localStorage.setItem("jevxo_offer_" + id, JSON.stringify(stateToSave));
+
+  // Save to Backend with retry
+  let saved = false;
+  for (let i = 0; i < 3; i++) {
     try {
-      await fetch("/api/offers", {
+      const res = await fetch("/api/offers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ offerId: id, firstParty, secondParty, docSettings }),
+        body: JSON.stringify({
+          offerId: id,
+          firstParty,
+          secondParty,
+          docSettings,
+        }),
       });
-    } catch (err) {
-      console.error("Failed to save offer to backend:", err);
+
+      if (res.ok) {
+        saved = true;
+        break;
+      }
+    } catch (e) {
+      console.error("Save attempt failed", e);
     }
-    const link = `${window.location.origin}${window.location.pathname}?candidateView=${id}`;
-    setCandidateLink(link);
-    setOfferId(id);
-    setEmailModalOpen(true);
-  };
+    await new Promise((r) => setTimeout(r, 300)); // small delay
+  }
+
+  if (!saved) {
+    alert("Failed to save offer. Please try again.");
+    return;
+  }
+
+  const link = `${window.location.origin}${window.location.pathname}?candidateView=${id}`;
+  setCandidateLink(link);
+  setOfferId(id);
+  setEmailModalOpen(true);
+};
 
   // ── Validation ──────────────────────────────────────────────────────────────
   const validateStep = () => {
