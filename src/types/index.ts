@@ -2,6 +2,8 @@ export interface FirstParty {
   companyName: string;
   representedBy: string;
   role: string;
+  ceoName?: string;
+  ceoMobile?: string;
   currentAddress: string;
   permanentAddress: string;
   mobileNumber: string;
