@@ -35,7 +35,7 @@ const DEFAULT_FIRST_PARTY: FirstParty = {
 
 const DEFAULT_SECOND_PARTY: SecondParty = {
   partnerId: "JVX-PT-26-001",
-  partnerIdSerial: "JVX-PT-26-001-SERIAL",
+  partnerIdSerial: "001",
   fullName: "Jhon Doe",
   email: "jhon@example.com",
   guardianName: "Jhon Doe Sr.",
