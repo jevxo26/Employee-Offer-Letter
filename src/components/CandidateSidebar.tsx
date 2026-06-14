@@ -231,10 +231,8 @@ export default function CandidateSidebar({
             )}
           </div>
         </div>
-      </div>
-
       {/* Action footer */}
-      <div className="p-6 bg-[#F8FAFC] border-t border-[#DBEAFE] space-y-3 shrink-0">
+      <div className="p-6 bg-[#F8FAFC] border-t border-[#DBEAFE] space-y-3 shrink-0 mb-12">
         <button
           onClick={handleActionClick}
           disabled={isExporting}
@@ -256,6 +254,8 @@ export default function CandidateSidebar({
           <span>Dual signatures included</span>
         </div>
       </div>
+      </div>
+
     </div>
   );
 }

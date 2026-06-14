@@ -110,9 +110,6 @@ export default function Home() {
   // Refs for jsPDF/html2canvas page captures (documents)
   const previewRef1 = useRef<HTMLDivElement>(null);
   const previewRef2 = useRef<HTMLDivElement>(null);
-  const previewRef3 = useRef<HTMLDivElement>(null);
-  const previewRef4 = useRef<HTMLDivElement>(null);
-  const previewRef5 = useRef<HTMLDivElement>(null);
 
   // Client-side date and search query param initialization
   useEffect(() => {
@@ -273,9 +270,6 @@ export default function Home() {
       const pages = [
         previewRef1.current,
         previewRef2.current,
-        previewRef3.current,
-        previewRef4.current,
-        previewRef5.current
       ].filter((el) => el && el.style.display !== "none");
       for (let i = 0; i < pages.length; i++) {
         const canvas = await html2canvas(pages[i] as HTMLElement, {
@@ -347,16 +341,24 @@ export default function Home() {
           {appState === "workspace" && (
             <span className="hidden md:flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full bg-[#EFF6FF] text-[#1E3A8A] border border-[#DBEAFE]">
               {docType === "both" ? (
-                <><FileText className="w-3 h-3" /><CreditCard className="w-3 h-3" /> Docs + ID Card</>
+                <>
+                  <FileText className="w-3 h-3" />
+                  <CreditCard className="w-3 h-3" /> Docs + ID Card
+                </>
               ) : (
-                <><FileText className="w-3 h-3" /> Appointment Letter</>
+                <>
+                  <FileText className="w-3 h-3" /> Appointment Letter
+                </>
               )}
             </span>
           )}
 
           {appState === "workspace" && (
             <button
-              onClick={() => { setAppState("form"); setActiveStep(1); }}
+              onClick={() => {
+                setAppState("form");
+                setActiveStep(1);
+              }}
               className="text-xs font-semibold px-4 py-2 border border-[#DBEAFE] hover:border-[#2563EB] hover:bg-[#F8FAFC] text-[#334155] rounded-xl transition flex items-center gap-1.5 cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Start Over
@@ -438,18 +440,14 @@ export default function Home() {
               onSendOffer={handleSendOffer}
               previewRef1={previewRef1}
               previewRef2={previewRef2}
-              previewRef3={previewRef3}
-              previewRef4={previewRef4}
-              previewRef5={previewRef5}
               docType={docType}
               employeeCard={employeeCard}
               setEmployeeCard={setEmployeeCard}
+              className="sticky top-0 h-fit"
             />
           )}
 
-          {appState === "idCard" && (
-            <IdCardWorkspace key="idCard" />
-          )}
+          {appState === "idCard" && <IdCardWorkspace key="idCard" />}
 
           {appState === "candidatePortal" && (
             <CandidatePortal
@@ -462,9 +460,7 @@ export default function Home() {
               offerId={offerId}
               previewRef1={previewRef1}
               previewRef2={previewRef2}
-              previewRef3={previewRef3}
-              previewRef4={previewRef4}
-              previewRef5={previewRef5}
+              className="sticky top-0 h-fit"
             />
           )}
         </AnimatePresence>

@@ -11,9 +11,6 @@ interface WorkspaceCanvasProps {
   settings: DocSettings;
   previewRef1: React.RefObject<HTMLDivElement | null>;
   previewRef2: React.RefObject<HTMLDivElement | null>;
-  previewRef3: React.RefObject<HTMLDivElement | null>;
-  previewRef4: React.RefObject<HTMLDivElement | null>;
-  previewRef5: React.RefObject<HTMLDivElement | null>;
   isExporting: boolean;
   onExport: () => void;
   isDemo: boolean;
@@ -25,9 +22,6 @@ export default function WorkspaceCanvas({
   settings,
   previewRef1,
   previewRef2,
-  previewRef3,
-  previewRef4,
-  previewRef5,
   isExporting,
   onExport,
   isDemo,
@@ -74,9 +68,6 @@ export default function WorkspaceCanvas({
         settings={settings}
         previewRef1={previewRef1}
         previewRef2={previewRef2}
-        previewRef3={previewRef3}
-        previewRef4={previewRef4}
-        previewRef5={previewRef5}
         isDemo={isDemo}
       />
 

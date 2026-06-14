@@ -22,9 +22,6 @@ interface CeoWorkspaceProps {
   onSendOffer: () => void;
   previewRef1: React.RefObject<HTMLDivElement | null>;
   previewRef2: React.RefObject<HTMLDivElement | null>;
-  previewRef3: React.RefObject<HTMLDivElement | null>;
-  previewRef4: React.RefObject<HTMLDivElement | null>;
-  previewRef5: React.RefObject<HTMLDivElement | null>;
   docType: DocType;
   employeeCard: EmployeeCard;
   setEmployeeCard: React.Dispatch<React.SetStateAction<EmployeeCard>>;
@@ -45,9 +42,6 @@ export default function CeoWorkspace({
   onSendOffer,
   previewRef1,
   previewRef2,
-  previewRef3,
-  previewRef4,
-  previewRef5,
   docType,
   employeeCard,
   setEmployeeCard,
@@ -62,10 +56,10 @@ export default function CeoWorkspace({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="flex-1 flex flex-col w-full h-[calc(100vh-77px)] overflow-hidden"
+        className="flex-1 flex flex-col w-full relative h-screen"
       >
         {/* Tab bar */}
-        <div className="flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-6 gap-0">
+        <div className="sticky top-20 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-6">
           {[
             { id: "settings", label: "📄 Appointment Docs" },
             { id: "idCard", label: "🪪 Employee ID Card" },
@@ -85,32 +79,33 @@ export default function CeoWorkspace({
         </div>
 
         {/* Content */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex relative min-h-0 overflow-visible">
           {!isIdCardTab ? (
             <>
-              <WorkspaceSidebar
-                activeTab={activeWorkspaceTab}
-                setActiveTab={setActiveWorkspaceTab}
-                docSettings={docSettings}
-                setDocSettings={setDocSettings}
-                secondParty={secondParty}
-                setSecondParty={setSecondParty}
-                firstParty={firstParty}
-                setFirstParty={setFirstParty}
-                isExporting={isExporting}
-                onExport={onExport}
-                isDemo={isDemo}
-                onSendOffer={onSendOffer}
-              />
+              <div className="sticky top-30 h-screen">
+                <div className="h-[calc(100vh-50px)] overflow-y-auto pr-2">
+                  <WorkspaceSidebar
+                    activeTab={activeWorkspaceTab}
+                    setActiveTab={setActiveWorkspaceTab}
+                    docSettings={docSettings}
+                    setDocSettings={setDocSettings}
+                    secondParty={secondParty}
+                    setSecondParty={setSecondParty}
+                    firstParty={firstParty}
+                    setFirstParty={setFirstParty}
+                    isExporting={isExporting}
+                    onExport={onExport}
+                    isDemo={isDemo}
+                    onSendOffer={onSendOffer}
+                  />
+                </div>
+              </div>
               <WorkspaceCanvas
                 firstParty={firstParty}
                 secondParty={secondParty}
                 settings={docSettings}
                 previewRef1={previewRef1}
                 previewRef2={previewRef2}
-                previewRef3={previewRef3}
-                previewRef4={previewRef4}
-                previewRef5={previewRef5}
                 isExporting={isExporting}
                 onExport={onExport}
                 isDemo={isDemo}
@@ -142,8 +137,9 @@ export default function CeoWorkspace({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 flex flex-col xl:flex-row w-full h-[calc(100vh-77px)] overflow-hidden"
+      className="flex-1 relative h-screen flex flex-col xl:flex-row w-full"
     >
+      <div className="sticky top-20 h-screen">
       <WorkspaceSidebar
         activeTab={activeWorkspaceTab}
         setActiveTab={setActiveWorkspaceTab}
@@ -158,15 +154,13 @@ export default function CeoWorkspace({
         isDemo={isDemo}
         onSendOffer={onSendOffer}
       />
+      </div>
       <WorkspaceCanvas
         firstParty={firstParty}
         secondParty={secondParty}
         settings={docSettings}
         previewRef1={previewRef1}
         previewRef2={previewRef2}
-        previewRef3={previewRef3}
-        previewRef4={previewRef4}
-        previewRef5={previewRef5}
         isExporting={isExporting}
         onExport={onExport}
         isDemo={isDemo}

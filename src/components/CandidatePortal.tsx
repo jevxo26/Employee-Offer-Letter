@@ -16,9 +16,6 @@ interface CandidatePortalProps {
   offerId: string;
   previewRef1: React.RefObject<HTMLDivElement | null>;
   previewRef2: React.RefObject<HTMLDivElement | null>;
-  previewRef3: React.RefObject<HTMLDivElement | null>;
-  previewRef4: React.RefObject<HTMLDivElement | null>;
-  previewRef5: React.RefObject<HTMLDivElement | null>;
 }
 
 export default function CandidatePortal({
@@ -31,9 +28,6 @@ export default function CandidatePortal({
   offerId,
   previewRef1,
   previewRef2,
-  previewRef3,
-  previewRef4,
-  previewRef5,
 }: CandidatePortalProps) {
   return (
     <motion.section
@@ -42,8 +36,9 @@ export default function CandidatePortal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 flex flex-col xl:flex-row w-full h-[calc(100vh-77px)] overflow-hidden"
+      className="flex-1 flex flex-col xl:flex-row w-full relative h-screen"
     >
+      <div className="sticky top-20 h-screen">
       <CandidateSidebar
         firstParty={firstParty}
         secondParty={secondParty}
@@ -52,15 +47,13 @@ export default function CandidatePortal({
         onExport={onExport}
         offerId={offerId}
       />
+      </div>
       <WorkspaceCanvas
         firstParty={firstParty}
         secondParty={secondParty}
         settings={docSettings}
         previewRef1={previewRef1}
         previewRef2={previewRef2}
-        previewRef3={previewRef3}
-        previewRef4={previewRef4}
-        previewRef5={previewRef5}
         isExporting={isExporting}
         onExport={onExport}
         isDemo={false}
