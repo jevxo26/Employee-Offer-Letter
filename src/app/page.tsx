@@ -52,6 +52,8 @@ const DEFAULT_SECOND_PARTY: SecondParty = {
 };
 
 const SAMPLE_SECOND_PARTY: SecondParty = {
+  partnerId: "JVX-PT-26-002",
+  partnerIdSerial: "002",
   fullName: "Md. Golam Rabbi",
   email: "rabbi@gmail.com",
   guardianName: "Md. Abdul Haque",
