@@ -72,7 +72,8 @@ export default function DocumentPreview({
         }}
       >
         {/* Subtle decorative geometric overlay corner */}
-        <div className="absolute top-0 right-0 w-40 h-1 bg-gradient-to-l from-indigo-600 via-sky-500 to-transparent print:hidden" />
+        <div className="absolute top-0 right-0 w-64 h-2 bg-gradient-to-l from-indigo-600 via-sky-500 to-transparent" />
+        <div className="absolute top-2.25 right-0 w-48 h-2 bg-gradient-to-r from-transparent via-indigo-600 to-sky-500" />
 
         {/* Watermark from XLogo component */}
         <Image
@@ -87,7 +88,7 @@ export default function DocumentPreview({
           {/* Header Layout */}
           <header
             id="page-header"
-            className="flex justify-between items-start border-b-2 border-slate-900 pb-5 mb-6 relative"
+            className="flex justify-between items-start border-b-2 border-slate-900 pb-5 mb-2 relative"
           >
             <div className="flex flex-col">
               <JevxoLogo
@@ -96,6 +97,9 @@ export default function DocumentPreview({
                 showTagline={true}
                 tagline="A subscription based business ecosystem"
               />
+              <p className="text-center text-slate-500 text-sm font-medium">
+                A global subscription-based digital business ecosystem
+              </p>
             </div>
             <div className="flex flex-col items-end text-right font-sans">
               <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">
@@ -111,17 +115,17 @@ export default function DocumentPreview({
             </div>
 
             {/* Tech line indicator under header */}
-            <div className="absolute -bottom-[2px] left-0 w-24 h-[2px] bg-gradient-to-r from-indigo-500 to-sky-400"></div>
+            <div className="absolute -bottom-[2px] left-0 w-48 h-[2px] bg-gradient-to-r from-indigo-500 to-sky-400"></div>
           </header>
 
           {/* Document Title */}
-          <div id="doc-title-container" className="text-center my-6">
-            <h1 className="font-sans font-black text-[26px] tracking-tight text-slate-900 uppercase">
+          <div id="doc-title-container" className="text-center my-4">
+            <h1 className="font-sans font-black text-[30px] tracking-wide text-slate-900 uppercase">
               Letter of Appointment
             </h1>
             <div className="flex items-center justify-center gap-2 mt-1">
               <div className="h-[1px] w-8 bg-slate-300"></div>
-              <h2 className="font-sans text-xs font-bold tracking-[0.25em] text-indigo-600 uppercase">
+              <h2 className="font-sans text-[16px] font-bold tracking-[0.25em] text-indigo-600 uppercase">
                 &amp; Partnership Agreement
               </h2>
               <div className="h-[1px] w-8 bg-slate-300"></div>
@@ -131,7 +135,7 @@ export default function DocumentPreview({
           {/* Parties Introduction */}
           <div
             id="parties-description"
-            className="text-[14px] text-slate-600 mb-6 leading-relaxed font-sans border-l-2 border-slate-200 pl-4 py-1 italic"
+            className="text-[14px] text-slate-600 mb-3 leading-relaxed font-sans border-l-2 border-slate-200 pl-4 py-1 italic"
           >
             This Appointment Letter and Partnership Agreement is declared and
             entered into on{" "}
@@ -144,12 +148,12 @@ export default function DocumentPreview({
           {/* TWO PARTY GRIDS (Professional Grid Placement with Clean Alignment) */}
           <div
             id="parties-grids"
-            className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"
           >
             {/* First Party Card */}
             <div
               id="first-party-card"
-              className="bg-slate-50/50 border border-slate-100 rounded-lg p-5 flex flex-col justify-between shadow-sm relative overflow-hidden backdrop-blur-xs"
+              className="bg-slate-50/50 border border-slate-100 rounded-lg p-4 flex flex-col justify-between shadow-sm relative overflow-hidden backdrop-blur-xs"
             >
               <div className="absolute top-0 left-0 w-12 h-[3px] bg-indigo-500"></div>
               <div>
@@ -213,14 +217,6 @@ export default function DocumentPreview({
 
                 <div className="space-y-2 text-[14px]">
                   <div className="grid grid-cols-3 gap-1">
-                    <span className="text-slate-400 font-medium font-sans">
-                      Father Name:
-                    </span>
-                    <span className="col-span-2 text-slate-800 font-semibold">
-                      {safeData.partnerFatherName}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1">
                     <span className="text-slate-400 font-medium">
                       Position:
                     </span>
@@ -241,6 +237,14 @@ export default function DocumentPreview({
                     </span>
                   </div>
                   <div className="grid grid-cols-3 gap-1">
+                    <span className="text-slate-400 font-medium font-sans">
+                      Father Name:
+                    </span>
+                    <span className="col-span-2 text-slate-800 font-semibold">
+                      {safeData.partnerFatherName}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1">
                     <span className="text-slate-400 font-medium">
                       Father Mob:
                     </span>
@@ -248,63 +252,95 @@ export default function DocumentPreview({
                       {safeData.partnerFatherMobile}
                     </span>
                   </div>
+                  <div className="mt-2 border-t border-slate-200/40 pt-2">
+                    <span className="text-[10px] text-slate-400 font-semibold uppercase block mb-0.5">
+                      Current Address
+                    </span>
+                    <span className="text-slate-700 text-[11px] leading-tight block">
+                      {safeData.partnerPresentAddress}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* SECTION 1: Role & Ownership Mindset */}
-          <section id="section-role-ownership" className="mb-6 z-10">
-            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-2 flex items-center gap-2">
+          {/* SECTION 1: Appointment */}
+          <section id="section-appointment" className="mb-5 z-10">
+            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-1 flex items-center gap-2">
               <span className="bg-indigo-100 text-indigo-800 text-[12px] font-mono px-1.5 py-0.5 rounded">
                 01
               </span>
-              Role &amp; Ownership Mindset
+              Appointment
             </h4>
-            <div className="text-[14px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-4 rounded-md shadow-2xs">
-              <p className="mb-2">
-                You are hereby appointed as the{" "}
+            <div className="text-[14px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-4 rounded-md shadow-sm">
+              <p className="mb-2 font-medium">
+                Dear{" "}
+                <strong className="text-slate-900 font-semibold">
+                  {safeData.partnerName}
+                </strong>
+                ,
+              </p>
+              <p className="mb-1">
+                We are pleased to formally appoint you as a{" "}
                 <strong className="text-slate-900 font-semibold">
                   {safeData.partnerPosition}
                 </strong>{" "}
-                of{" "}
+                at{" "}
                 <strong className="text-slate-900 font-semibold">
                   {safeData.companyName}
                 </strong>
                 .
               </p>
+              <p>
+                Your appointment reflects our confidence in your technical
+                abilities, professional integrity, and potential contribution to
+                the long-term growth of the company.
+              </p>
+            </div>
+          </section>
+
+          {/* SECTION 2: Role & Ownership Mindset */}
+          <section id="section-role-ownership" className="mb-5 z-10">
+            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-1 flex items-center gap-2">
+              <span className="bg-indigo-100 text-indigo-800 text-[12px] font-mono px-1.5 py-0.5 rounded">
+                02
+              </span>
+              Professional Responsibilities
+            </h4>
+            <div className="text-[14px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-4 rounded-md shadow-sm">
               <p className="text-slate-600">
-                Please note that{" "}
                 <strong className="text-slate-800 font-medium">
                   {safeData.companyName}
                 </strong>{" "}
                 is not a conventional workplace; it operates under a
                 partnership-based model. As such, you are not merely an employee
-                but a valued Partner of the organization. In this role, you are
-                expected to demonstrate an ownership mindset, take
-                responsibility for the company's growth and success and
-                consistently uphold the highest standards of professionalism,
-                integrity and accountability. As a Partner, your contributions
-                should reflect the commitment, dedication, and strategic
-                thinking of a business owner, working collaboratively to achieve{" "}
-                <strong className="text-slate-800 font-medium">
-                  {safeData.companyName}
-                </strong>
-                's long-term vision, objectives and sustainable growth.
+                but <strong> a valued Partner </strong> of the organization.
+                Accordingly, the Partner is expected to demonstrate an{" "}
+                <strong> ownership mindset </strong>, take responsibility,
+                contribute actively toward the{" "}
+                <strong> Company's growth</strong>, sustainability and long-term
+                objectives while maintaining the{" "}
+                <strong> highest standards of professionalism</strong>,
+                integrity, accountability and <strong> ethical conduct</strong>.{" "}
+                <br />
+                The Partner shall perform assigned duties and responsibilities
+                diligently and in accordance with the Company's policies,
+                operational requirements, and strategic objectives.
               </p>
             </div>
           </section>
 
-          {/* SECTION 2: Equity & Share Distribution */}
+          {/* SECTION 3: Equity & Share Distribution */}
           <section id="section-equity-distribution" className="mb-4 z-10">
-            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-2 flex items-center gap-2">
+            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-1 flex items-center gap-2">
               <span className="bg-indigo-100 text-indigo-800 text-[12px] font-mono px-1.5 py-0.5 rounded">
-                02
+                03
               </span>
               Equity &amp; Share Distribution
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-sans text-[14px]">
-              <div className="bg-emerald-50/30 border border-emerald-100/60 rounded-md p-3">
+              <div className="bg-emerald-50/30 border border-emerald-100/60 shadow-sm rounded-md p-3">
                 <span className="text-[14px] uppercase font-bold text-emerald-800 block mb-1">
                   Partnership Equity
                 </span>
@@ -315,7 +351,7 @@ export default function DocumentPreview({
                   Agreed permanent equity share
                 </p>
               </div>
-              <div className="bg-indigo-50/30 border border-indigo-100/60 rounded-md p-3 col-span-2">
+              <div className="bg-indigo-50/30 border shadow-sm border-indigo-100/60 rounded-md p-3 col-span-2">
                 <span className="text-[14px] uppercase font-bold text-indigo-800 block mb-1">
                   Minimum Service Period
                 </span>
@@ -331,7 +367,7 @@ export default function DocumentPreview({
               </div>
             </div>
 
-            <div className="mt-3 text-[14px] text-slate-600 leading-relaxed text-justify bg-white/50 border border-slate-100 p-4 rounded-md shadow-2xs">
+            <div className="mt-3 text-[14px] text-slate-600 leading-relaxed text-justify bg-white/50 border border-slate-100 p-4 rounded-md shadow-sm">
               <p className="mb-2">
                 <strong className="text-slate-800 font-semibold block mb-0.5">
                   Equity Allocation Agreement:
@@ -340,10 +376,10 @@ export default function DocumentPreview({
                 <strong className="text-indigo-600 font-bold">
                   {safeData.equityShare}
                 </strong>{" "}
-                equity share shall be executed through a separate legally
-                binding agreement. This agreement will clearly define the
-                ownership structure, rights, responsibilities, vesting
-                conditions and all other relevant terms and conditions
+                <strong> equity share </strong> shall be executed through a
+                separate legally binding agreement. This agreement will clearly
+                define the ownership structure, rights, responsibilities,
+                vesting conditions and all other relevant terms and conditions
                 associated with the equity.
               </p>
               <p>
@@ -363,7 +399,7 @@ export default function DocumentPreview({
         {/* Footer Page 1 */}
         <footer
           id="page-1-footer"
-          className="mt-8 pt-4 border-t border-slate-100 text-[14px] text-slate-400 font-mono flex justify-between items-center z-10"
+          className="mt-2 pt-4 border-t border-slate-200 text-[14px] text-slate-400 font-mono flex justify-between items-center z-10"
         >
           <div className="flex gap-4">
             <span>
@@ -382,6 +418,9 @@ export default function DocumentPreview({
           </div>
           <div>Page 1 of 2</div>
         </footer>
+        {/* Subtle decorative geometric overlay corner */}
+        <div className="absolute bottom-0 left-0 w-64 h-2 bg-gradient-to-l from-transparent via-sky-500 to-indigo-600" />
+        <div className="absolute bottom-2.25 left-0 w-48 h-2 bg-gradient-to-r from-sky-500 via-indigo-600 to-transparent" />
       </div>
 
       {/* PAGE BREAK (Force break when printing, comfortable layout spacing screen) */}
@@ -398,7 +437,8 @@ export default function DocumentPreview({
         }}
       >
         {/* Subtle decorative geometric overlay corner */}
-        <div className="absolute top-0 right-0 w-40 h-1 bg-gradient-to-l from-sky-600 via-indigo-500 to-transparent print:hidden" />
+        <div className="absolute top-0 right-0 w-64 h-2 bg-gradient-to-l from-indigo-600 via-sky-500 to-transparent" />
+        <div className="absolute top-2.25 right-0 w-48 h-2 bg-gradient-to-r from-transparent via-indigo-600 to-sky-500" />
 
         {/* Watermark from XLogo component */}
         <Image
@@ -413,7 +453,7 @@ export default function DocumentPreview({
           {/* Sibling Header for consistency across printed pages */}
           <header
             id="page-header-2"
-            className="flex justify-between items-start border-b border-slate-200 pb-3 mb-8"
+            className="flex justify-between items-start border-b border-slate-200 pb-3 mb-6"
           >
             <span className="font-sans text-xs font-bold tracking-wider text-slate-500">
               JEVXO PARTNERSHIP DEED &amp; POLICY
@@ -423,15 +463,15 @@ export default function DocumentPreview({
             </div>
           </header>
 
-          {/* SECTION 3: Place of Work (Remote Work Policy) */}
-          <section id="section-place-of-work" className="mb-6 z-10">
-            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-2 flex items-center gap-2">
+          {/* SECTION 4: Place of Work (Remote Work Policy) */}
+          <section id="section-place-of-work" className="mb-5 z-10">
+            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-1 flex items-center gap-2">
               <span className="bg-indigo-100 text-indigo-800 text-[12px] font-mono px-1.5 py-0.5 rounded">
-                03
+                04
               </span>
               Place of Work (Remote Work Policy)
             </h4>
-            <div className="text-[14px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-4 rounded-md shadow-2xs">
+            <div className="text-[14px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-4 rounded-md shadow-sm">
               <p className="mb-2">
                 At present, all duties and responsibilities under this agreement
                 shall be performed on a{" "}
@@ -450,15 +490,15 @@ export default function DocumentPreview({
             </div>
           </section>
 
-          {/* SECTION 4: Confidentiality & NDA */}
-          <section id="section-confidentiality-nda" className="mb-6 z-10">
-            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-2 flex items-center gap-2">
+          {/* SECTION 5: Confidentiality & NDA */}
+          <section id="section-confidentiality-nda" className="mb-5 z-10">
+            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-1 flex items-center gap-2">
               <span className="bg-indigo-100 text-indigo-800 text-[12px] font-mono px-1.5 py-0.5 rounded">
-                04
+                05
               </span>
               Confidentiality &amp; Non-Disclosure Agreement (NDA)
             </h4>
-            <div className="text-[14px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-4 rounded-md shadow-2xs">
+            <div className="text-[14px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-4 rounded-md shadow-sm">
               <p className="mb-2 text-slate-800 font-medium">
                 All company-related information, including but not limited to
                 projects, source code, client data, business strategies,
@@ -474,7 +514,7 @@ export default function DocumentPreview({
                 action, claims for damages and other remedies available under
                 applicable law.
               </p>
-              <p className="text-slate-600 font-medium italic border-t border-slate-100 pt-2 text-[11px]">
+              <p className="text-slate-600 font-medium italic border-t border-slate-100 pt-2 text-[12.5px]">
                 This confidentiality obligation shall remain in effect during
                 the term of this agreement and continue even after the
                 termination of the partnership relationship.
@@ -482,15 +522,43 @@ export default function DocumentPreview({
             </div>
           </section>
 
-          {/* SECTION 5: Termination & Resignation */}
-          <section id="section-termination-resignation" className="mb-8 z-10">
-            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-2 flex items-center gap-2">
+          {/* SECTION 6: Intellectual Property Ownership */}
+          <section id="section-intellectual-property" className="mb-5 z-10">
+            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-1 flex items-center gap-2">
               <span className="bg-indigo-100 text-indigo-800 text-[12px] font-mono px-1.5 py-0.5 rounded">
-                05
+                06
+              </span>
+              Intellectual Property Ownership
+            </h4>
+            <div className="text-[14px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-4 rounded-md shadow-sm">
+              <p className="mb-3 text-slate-800 font-medium">
+                All source code, software applications, systems, designs,
+                documents, inventions, developments, work products, databases,
+                content, and other intellectual property created, developed, or
+                produced by the Partner in connection with Company activities
+                shall remain the exclusive property of{" "}
+                <strong className="text-indigo-700 font-bold">
+                  {safeData.companyName}
+                </strong>{" "}
+                unless otherwise agreed in writing.
+              </p>
+              <p className="text-slate-600 font-medium italic border-t border-slate-100 pt-2 text-[12.5px]">
+                The Partner shall not claim ownership of Company intellectual
+                property developed during the course of engagement under this
+                Agreement.
+              </p>
+            </div>
+          </section>
+
+          {/* SECTION 7: Termination & Resignation */}
+          <section id="section-termination-resignation" className="mb-8 z-10">
+            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-indigo-600 mb-1 flex items-center gap-2">
+              <span className="bg-indigo-100 text-indigo-800 text-[12px] font-mono px-1.5 py-0.5 rounded">
+                07
               </span>
               Termination &amp; Resignation Policy
             </h4>
-            <div className="text-[14px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-4 rounded-md shadow-2xs">
+            <div className="text-[14px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-4 rounded-md shadow-sm">
               <p className="mb-2">
                 Either Party may terminate this agreement by providing the other
                 Party with a minimum of{" "}
@@ -509,7 +577,7 @@ export default function DocumentPreview({
                 policies or any action that causes significant harm to the
                 Company's interests, reputation or operations.
               </p>
-              <p className="text-slate-500">
+              <p className="text-slate-600">
                 Upon termination, both Parties shall fulfill any outstanding
                 obligations and return any Company-owned property, documents,
                 credentials or confidential information in their possession.
@@ -520,12 +588,12 @@ export default function DocumentPreview({
           {/* SIGNATURES & ACCEPTANCE DETAILS */}
           <section
             id="signatures-acceptance"
-            className="mt-auto pt-6 border-t border-slate-200 z-10"
+            className="mt-auto pt-8 border-t border-slate-200 z-10"
           >
-            <h4 className="font-sans font-bold text-[18px] uppercase tracking-wider text-slate-900 mb-3">
+            <h4 className="font-sans font-bold text-indigo-800 text-[18px] uppercase tracking-wider mb-4">
               Acceptance &amp; Executory Signatures
             </h4>
-            <p className="text-[14px] text-slate-600 leading-relaxed font-sans mb-6 bg-white/50 p-4 rounded-md border border-slate-100 text-justify">
+            <p className="text-[14px] text-slate-600 leading-relaxed font-sans mb-6 bg-white/50 p-4 rounded-md border border-slate-100 shadow-sm text-justify">
               I,{" "}
               <strong className="text-slate-800 font-bold">
                 {safeData.partnerName}
@@ -552,7 +620,7 @@ export default function DocumentPreview({
                 <div className="text-[12px] text-slate-500 text-center">
                   Partner (Second Party)
                 </div>
-                <div className="text-[10px] text-slate-400 text-center mt-0.5">
+                <div className="text-[10px] text-slate-400 text-center mt-2">
                   Date: ________________________
                 </div>
               </div>
@@ -568,7 +636,7 @@ export default function DocumentPreview({
                 <div className="text-[12px] text-slate-500 text-center">
                   {safeData.companyRepRole}, {safeData.companyName}
                 </div>
-                <div className="text-[10px] text-slate-400 text-center mt-0.5">
+                <div className="text-[10px] text-slate-400 text-center mt-2">
                   Date: ________________________
                 </div>
               </div>
@@ -600,6 +668,9 @@ export default function DocumentPreview({
             </div>
           </div>
         </footer>
+        {/* Subtle decorative geometric overlay corner */}
+        <div className="absolute bottom-0 left-0 w-48 h-2 bg-gradient-to-l from-transparent via-sky-500 to-indigo-600" />
+        <div className="absolute bottom-0 right-0 w-48 h-2 bg-gradient-to-r from-transparent via-sky-500 to-indigo-600" />
       </div>
     </div>
   );
