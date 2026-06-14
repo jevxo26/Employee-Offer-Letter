@@ -98,12 +98,7 @@ export default function DocumentPreview({
             className="flex justify-between items-start border-b-2 border-slate-900 pb-5 mb-2 relative"
           >
             <div className="flex flex-col">
-              <JevxoLogo
-                size={46}
-                showText={true}
-                showTagline={true}
-                tagline="A subscription based business ecosystem"
-              />
+              <JevxoLogo/>
               <p className="text-center text-slate-500 text-sm font-medium">
                 A global subscription-based digital business ecosystem
               </p>
