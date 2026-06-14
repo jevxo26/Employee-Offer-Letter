@@ -443,7 +443,6 @@ export default function Home() {
               docType={docType}
               employeeCard={employeeCard}
               setEmployeeCard={setEmployeeCard}
-              className="sticky top-0 h-fit"
             />
           )}
 
@@ -460,7 +459,6 @@ export default function Home() {
               offerId={offerId}
               previewRef1={previewRef1}
               previewRef2={previewRef2}
-              className="sticky top-0 h-fit"
             />
           )}
         </AnimatePresence>
