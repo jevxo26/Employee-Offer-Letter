@@ -233,7 +233,7 @@ export default function EmailPortalModal({
               ) : (
                 <>
                   <Send className="w-4 h-4" />
-                  <span>Send Offer (Resend API)</span>
+                  <span>Send Offer</span>
                 </>
               )}
             </button>

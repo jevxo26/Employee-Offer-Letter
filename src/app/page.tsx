@@ -26,7 +26,7 @@ const DEFAULT_FIRST_PARTY: FirstParty = {
   role: "Founder",  ceoName: "Imtiaz Ahmed Tuhin",
   ceoMobile: "01840017065",  currentAddress: "9th floor, Silicon Tower, Hi-tech park, Rajshahi, Bangladesh",
   permanentAddress: "Gopalpur, Sapahar, Naogaon, Bangladesh.",
-  mobileNumber: "0 1844-532000",
+  mobileNumber: "01844532000",
   nidNumber: "2874935543",
   email: "info@jevxo.com",
   website: "www.jevxo.com",

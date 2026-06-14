@@ -12,9 +12,6 @@ interface DocumentPreviewProps {
   accentColor?: string;
   previewRef1?: React.RefObject<HTMLDivElement | null>;
   previewRef2?: React.RefObject<HTMLDivElement | null>;
-  previewRef3?: React.RefObject<HTMLDivElement | null>;
-  previewRef4?: React.RefObject<HTMLDivElement | null>;
-  previewRef5?: React.RefObject<HTMLDivElement | null>;
   isDemo?: boolean;
 }
 
@@ -23,10 +20,12 @@ export default function DocumentPreview({
   secondParty,
   settings,
   layoutMode = "comfortable",
+  previewRef1,
+  previewRef2,
 }: DocumentPreviewProps) {
-  // Transform form data into document-ready format
+
   const safeData = {
-    documentId: "JEVXO-2026-DOC-001",
+    documentId: settings.refId || "JVX/AGREEMENT/2026/001", // ← Changed
     date: settings.date || new Date().toLocaleDateString(),
     tagline: "INNOVATING BEYOND BOUNDARIES",
     companyName: firstParty.companyName || "JEVXO",
@@ -39,7 +38,10 @@ export default function DocumentPreview({
       firstParty.permanentAddress || "Address not provided",
     companyMobile: firstParty.mobileNumber || "+880-XXX-XXXXXX",
     companyNid: firstParty.nidNumber || "N/A",
+    companySignature: firstParty.signatureImg || "",
+
     partnerName: secondParty.fullName || "Partner Name",
+    partnerId: secondParty.partnerId || "JVX-PT-26-001", // ← Already good
     partnerFatherName: secondParty.guardianName || "Father Name",
     partnerPresentAddress: secondParty.presentAddress || "Address not provided",
     partnerPermanentAddress:
@@ -48,6 +50,8 @@ export default function DocumentPreview({
     partnerMobile: secondParty.mobileNumber || "+880-XXX-XXXXXX",
     partnerFatherMobile: secondParty.guardianMobile || "+880-XXX-XXXXXX",
     partnerPosition: secondParty.position || "Position",
+    partnerSignature: secondParty.signatureImg || "",
+
     equityShare: settings.equityShare ? `${settings.equityShare}%` : "0%",
     minServicePeriod: settings.minimumServicePeriod
       ? `${settings.minimumServicePeriod} months`
@@ -66,6 +70,7 @@ export default function DocumentPreview({
       {/* ==================== PAGE 1 ==================== */}
       <div
         id="document-page-1"
+        ref={previewRef1}
         className="relative bg-white text-slate-800 shadow-2xl p-10 md:p-14 w-full flex flex-col justify-between overflow-hidden border border-slate-100 print:border-none print:shadow-none print:p-0"
         style={{
           boxSizing: "border-box",
@@ -306,7 +311,10 @@ export default function DocumentPreview({
                 <strong className="text-slate-900 font-semibold">
                   {safeData.companyName}
                 </strong>
-                .
+                . Your ID number is{" "}
+                <strong className="text-slate-900 font-semibold">
+                  {safeData.partnerId}
+                </strong>.
               </p>
               <p>
                 Your appointment reflects our confidence in your technical
@@ -445,6 +453,7 @@ export default function DocumentPreview({
       {/* ==================== PAGE 2 ==================== */}
       <div
         id="document-page-2"
+        ref={previewRef2}
         className="relative bg-white text-slate-800 shadow-2xl p-10 md:p-14 w-full flex flex-col justify-between overflow-hidden border border-slate-100 print:border-none print:shadow-none print:p-0"
         style={{
           boxSizing: "border-box",
@@ -627,8 +636,23 @@ export default function DocumentPreview({
             <div className="grid grid-cols-2 gap-12 pt-10 font-sans text-[14px]">
               {/* Partner Signature */}
               <div className="flex flex-col">
-                <div className="mt-6 pt-2 font-semibold text-slate-800 text-center">
-                  ..............................................................................
+                <div className="relative mt-6 pt-2 font-semibold text-slate-800 text-center">
+                  <div className="absolute -top-10 left-40 h-12 w-48 flex items-end justify-start pointer-events-none select-none">
+                    {secondParty.signatureImg ? (
+                      <Image
+                        height={50}
+                        width={100}
+                        src={secondParty.signatureImg}
+                        alt="Second Party Signature"
+                        className="max-h-11 max-w-[170px] object-contain block opacity-95 transition-all duration-300"
+                      />
+                    ) : (
+                      <div className="text-amber-600 font-bold tracking-wide animate-pulse text-[8.5px] bg-amber-50 px-2 py-0.5 border border-amber-200 rounded uppercase">
+                        Awaiting Partner Sign *
+                      </div>
+                    )}
+                  </div>
+                  ...................................................................................
                 </div>
                 <div className="text-center font-bold text-slate-900 mt-1">
                   {safeData.partnerName}
@@ -637,14 +661,25 @@ export default function DocumentPreview({
                   Partner (Second Party)
                 </div>
                 <div className="text-[10px] text-slate-400 text-center mt-2">
-                  Date:
+                  Date: {secondParty.signatureImg ? safeData.date : ""}
                 </div>
               </div>
 
               {/* Founder Signature */}
               <div className="flex flex-col">
-                <div className="mt-6 pt-2 font-semibold text-slate-800 text-center">
-                  ..............................................................................
+                <div className="relative mt-6 pt-2 font-semibold text-slate-800 text-center">
+                  <div className="absolute -top-10 left-40 h-12 w-48 flex items-end justify-start pointer-events-none select-none">
+                    {firstParty.signatureImg ? (
+                      <Image
+                        height={50}
+                        width={100}
+                        src={firstParty.signatureImg}
+                        alt="Founder Signature"
+                        className="max-h-11 max-w-[170px] object-contain block opacity-95 transition-all duration-300"
+                      />
+                    ) : null}
+                  </div>
+                  ...................................................................................
                 </div>
                 <div className="text-center font-bold text-slate-900 mt-1">
                   {safeData.companyRepName}

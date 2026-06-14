@@ -254,15 +254,20 @@ export default function WorkspaceSidebar({
   onSendOffer,
 }: WorkspaceSidebarProps) {
   return (
-    <div className="w-full xl:w-[420px] bg-[#F8FAFC] border-r border-[#DBEAFE] flex flex-col justify-between overflow-y-auto shrink-0">
-      <div className="p-6 space-y-6">
+    <div className="w-full xl:w-[420px] bg-[#F8FAFC] border-r border-[#DBEAFE] flex flex-col h-full overflow-hidden shrink-0">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Header */}
         <div className="space-y-2">
           <span className="text-[10px] bg-[#EFF6FF] border border-[#DBEAFE]/50 text-[#1E3A8A] font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block">
             Agreement ready!
           </span>
-          <h2 className="text-xl font-bold text-[#0F172A]">Document Workspace</h2>
-          <p className="text-[#64748B] text-xs">Fine-tune standard clause parameters with real-time browser preview compilation.</p>
+          <h2 className="text-xl font-bold text-[#0F172A]">
+            Document Workspace
+          </h2>
+          <p className="text-[#64748B] text-xs">
+            Fine-tune standard clause parameters with real-time browser preview
+            compilation.
+          </p>
         </div>
 
         {/* Tab headers */}
@@ -286,13 +291,22 @@ export default function WorkspaceSidebar({
         {/* Tab content */}
         <div className="space-y-5">
           {activeTab === "settings" && (
-            <SettingsTab docSettings={docSettings} setDocSettings={setDocSettings} />
+            <SettingsTab
+              docSettings={docSettings}
+              setDocSettings={setDocSettings}
+            />
           )}
           {activeTab === "secondParty" && (
-            <SecondPartyTab secondParty={secondParty} setSecondParty={setSecondParty} />
+            <SecondPartyTab
+              secondParty={secondParty}
+              setSecondParty={setSecondParty}
+            />
           )}
           {activeTab === "firstParty" && (
-            <FirstPartyTab firstParty={firstParty} setFirstParty={setFirstParty} />
+            <FirstPartyTab
+              firstParty={firstParty}
+              setFirstParty={setFirstParty}
+            />
           )}
         </div>
       </div>
@@ -317,9 +331,14 @@ export default function WorkspaceSidebar({
               className="w-full py-2.5 px-6 border border-[#DBEAFE] hover:border-[#2563EB] hover:bg-[#EFF6FF] text-[#2563EB] disabled:bg-[#64748B]/40 disabled:cursor-not-allowed font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition cursor-pointer"
             >
               {isExporting ? (
-                <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Generating Draft...</>
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Generating
+                  Draft...
+                </>
               ) : (
-                <><Download className="w-3.5 h-3.5" /> Download CEO-Signed Draft</>
+                <>
+                  <Download className="w-3.5 h-3.5" /> Download CEO-Signed Draft
+                </>
               )}
             </button>
           </div>

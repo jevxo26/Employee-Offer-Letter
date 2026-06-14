@@ -372,7 +372,7 @@ export default function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="flex-1 flex flex-col xl:flex-row w-full h-[calc(100vh-77px)] overflow-hidden"
+              className="flex-1 flex h-[calc(100vh-77px)] overflow-hidden"
             >
               <WorkspaceSidebar
                 activeTab={activeWorkspaceTab}
@@ -409,7 +409,7 @@ export default function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="flex-1 flex flex-col xl:flex-row w-full h-[calc(100vh-77px)] overflow-hidden"
+              className="flex-1 flex h-[calc(100vh-77px)] overflow-hidden"
             >
               <CandidateSidebar
                 firstParty={firstParty}

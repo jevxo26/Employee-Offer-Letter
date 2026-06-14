@@ -12,6 +12,7 @@ import {
   Check,
   Upload,
   Mail,
+  Hash,
 } from "lucide-react";
 import SignaturePad from "./SignaturePad";
 import { FirstParty, SecondParty, DocSettings } from "../types";
@@ -344,17 +345,53 @@ export function Step3({
 export interface Step4Props {
   docSettings: DocSettings;
   setDocSettings: React.Dispatch<React.SetStateAction<DocSettings>>;
+  secondParty: SecondParty;
+  setSecondParty: React.Dispatch<React.SetStateAction<SecondParty>>;
 }
 
-export function Step4({ docSettings, setDocSettings }: Step4Props) {
-  const numericSetter = (key: keyof DocSettings, min: number, max: number) => (
-    e: React.ChangeEvent<HTMLInputElement>
+export function Step4({
+  secondParty,
+  setSecondParty,
+  docSettings,
+  setDocSettings,
+}: Step4Props) {
+  const numericSetter =
+    (key: keyof DocSettings, min: number, max: number) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = Math.min(max, Math.max(min, parseInt(e.target.value) || min));
+      setDocSettings((p) => ({ ...p, [key]: val }));
+    };
+
+  // Handle Partner ID Serial Input (Only last 3 digits)
+  const handlePartnerSerialChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const val = Math.min(
-      max,
-      Math.max(min, parseInt(e.target.value) || min)
-    );
-    setDocSettings((p) => ({ ...p, [key]: val }));
+    const serial = e.target.value
+      .replace(/\D/g, "")
+      .slice(0, 3)
+      .padStart(3, "0");
+    const fullId = `JVX-PT-26-${serial}`;
+
+    setSecondParty((prev) => ({
+      ...prev,
+      partnerIdSerial: serial,
+      partnerId: fullId,
+    }));
+  };
+
+  // Handle Document Ref ID Serial Input
+  const handleRefSerialChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const serial = e.target.value
+      .replace(/\D/g, "")
+      .slice(0, 3)
+      .padStart(3, "0");
+    const fullRef = `JVX/AGREEMENT/2026/${serial}`;
+
+    setDocSettings((prev) => ({
+      ...prev,
+      refIdSerial: serial,
+      refId: fullRef, // full reference id
+    }));
   };
 
   return (
@@ -365,7 +402,7 @@ export function Step4({ docSettings, setDocSettings }: Step4Props) {
     >
       <StepHeader
         title="Section 4: Agreement Parameters"
-        desc="Specify signing date, equity share allocation percentage, probation period, and notice period days."
+        desc="Specify signing date and unique identifiers for the partner and document."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -375,12 +412,73 @@ export function Step4({ docSettings, setDocSettings }: Step4Props) {
               icon={Calendar}
               type="text"
               placeholder="e.g. June 10, 2026"
-              value={docSettings.date}
+              value={docSettings.date || ""}
               onChange={(e) =>
                 setDocSettings((p) => ({ ...p, date: e.target.value }))
               }
             />
           </Field>
+        </div>
+
+        {/* === UNIQUE ID SECTION - CLEAN & SIMPLE === */}
+        <div className="col-span-1 md:col-span-2 bg-gradient-to-r from-blue-50/50 to-indigo-50/20 border border-blue-100/60 p-5 rounded-2xl">
+          <div className="mb-4">
+            <span className="text-[11px] font-extrabold text-[#2563EB] uppercase tracking-widest flex items-center gap-1.5">
+              <Hash className="w-3.5 h-3.5" /> UNIQUE IDENTIFIERS
+            </span>
+            <p className="text-[10px] text-slate-500 mt-1">
+              Enter only the last 3 digits. Full IDs will be generated
+              automatically.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-6">
+            {/* Partner ID */}
+            <div className="flex-1">
+              <label className="text-xs font-semibold text-[#334155] uppercase tracking-wide block mb-1.5">
+                Partner ID (Own ID)
+              </label>
+              <div className="flex items-stretch bg-white border border-[#DBEAFE] focus-within:border-[#2563EB] rounded-xl overflow-hidden h-12">
+                <div className="flex items-center px-3 bg-[#F8FAFC] border-r border-[#DBEAFE] text-slate-400 font-bold font-mono text-sm select-none">
+                  JVX-PT-26-
+                </div>
+                <input
+                  type="text"
+                  maxLength={3}
+                  value={secondParty.partnerIdSerial || "001"}
+                  onChange={handlePartnerSerialChange}
+                  className="flex-1 bg-transparent px-4 text-sm font-mono font-black focus:outline-none"
+                  placeholder="001"
+                />
+              </div>
+              <p className="mt-1.5 text-xs text-emerald-600 font-mono font-bold">
+                {secondParty.partnerId || "JVX-PT-26-001"}
+              </p>
+            </div>
+
+            {/* Document Reference ID */}
+            <div className="flex-1">
+              <label className="text-xs font-semibold text-[#334155] uppercase tracking-wide block mb-1.5">
+                Document Reference ID
+              </label>
+              <div className="flex items-stretch bg-white border border-[#DBEAFE] focus-within:border-[#2563EB] rounded-xl overflow-hidden h-12">
+                <div className="flex items-center px-3 bg-[#F8FAFC] border-r border-[#DBEAFE] text-slate-400 font-bold font-mono text-sm select-none">
+                  JVX/AGREEMENT/2026/
+                </div>
+                <input
+                  type="text"
+                  maxLength={3}
+                  value={docSettings.refIdSerial || "001"}
+                  onChange={handleRefSerialChange}
+                  className="flex-1 bg-transparent px-4 text-sm font-mono font-black focus:outline-none"
+                  placeholder="001"
+                />
+              </div>
+              <p className="mt-1.5 text-xs text-emerald-600 font-mono font-bold">
+                {docSettings.refId || "JVX/AGREEMENT/2026/001"}
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="p-4 bg-[#F8FAFC] border border-[#DBEAFE] rounded-2xl flex flex-col gap-2">

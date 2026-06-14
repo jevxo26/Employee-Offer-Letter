@@ -53,7 +53,7 @@ export default function FormWizard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.3 }}
-      className="max-w-3xl mx-auto w-full px-4 py-8 md:py-12"
+      className="max-w-4xl mx-auto w-full px-4 py-8 md:py-12"
     >
       {/* Wizard Header */}
       <div className="mb-8">
@@ -118,6 +118,8 @@ export default function FormWizard({
         )}
         {activeStep === 4 && (
           <Step4
+            secondParty={secondParty}
+            setSecondParty={setSecondParty}
             docSettings={docSettings}
             setDocSettings={setDocSettings}
           />

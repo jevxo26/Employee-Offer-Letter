@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useRef, useState, useEffect } from "react";
 
 interface SignaturePadProps {
@@ -6,7 +8,11 @@ interface SignaturePadProps {
   savedImage: string;
 }
 
-export default function SignaturePad({ onSave, onClear, savedImage }: SignaturePadProps) {
+export default function SignaturePad({
+  onSave,
+  onClear,
+  savedImage,
+}: SignaturePadProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
@@ -41,23 +47,29 @@ export default function SignaturePad({ onSave, onClear, savedImage }: SignatureP
     if (!canvas) return { x: 0, y: 0 };
 
     const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
 
     // Support touch and mouse events
     if (e.touches) {
       if (e.touches.length === 0) return { x: 0, y: 0 };
       return {
-        x: e.touches[0].clientX - rect.left,
-        y: e.touches[0].clientY - rect.top,
+        x: (e.touches[0].clientX - rect.left) * scaleX,
+        y: (e.touches[0].clientY - rect.top) * scaleY,
       };
     } else {
       return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY,
       };
     }
   };
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const startDrawing = (
+    e:
+      | React.MouseEvent<HTMLCanvasElement>
+      | React.TouchEvent<HTMLCanvasElement>,
+  ) => {
     // Prevent scrolling on touch devices
     if (e.cancelable) e.preventDefault();
     const canvas = canvasRef.current;
@@ -73,7 +85,11 @@ export default function SignaturePad({ onSave, onClear, savedImage }: SignatureP
     setHasDrawn(true);
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const draw = (
+    e:
+      | React.MouseEvent<HTMLCanvasElement>
+      | React.TouchEvent<HTMLCanvasElement>,
+  ) => {
     if (!isDrawing) return;
     if (e.cancelable) e.preventDefault();
 

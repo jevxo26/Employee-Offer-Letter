@@ -15,6 +15,8 @@ export interface FirstParty {
 
 export interface SecondParty {
   fullName: string;
+  partnerId: string; // e.g. "JVX-PT-26-001"
+  partnerIdSerial: string;
   email: string;
   guardianName: string;
   guardianRelation: string;
@@ -34,6 +36,8 @@ export interface DocSettings {
   minimumServicePeriod: number;
   equityShare: number;
   noticePeriod: number;
+  refId: string; // e.g. "JVX/AGREEMENT/2026/001"
+  refIdSerial: string;
 }
 
 export interface EmployeeCard {
