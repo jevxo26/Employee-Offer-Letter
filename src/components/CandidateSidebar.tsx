@@ -245,7 +245,7 @@ export default function CandidateSidebar({
             </>
           ) : (
             <>
-              <Download className="w-5 h-5" /> Sign & Download PDF (2 Pages)
+              <Check className="w-5 h-5" /> Confirm & Sign
             </>
           )}
         </button>

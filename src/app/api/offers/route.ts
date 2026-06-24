@@ -1,36 +1,38 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-
-const OFFERS_DIR = path.join(process.cwd(), "data", "offers");
+import dbConnect from "../../../lib/mongodb";
+import Agreement from "../../../models/Agreement";
+import { generateIds } from "../../../lib/idGenerator";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { offerId, firstParty, secondParty, docSettings } = body;
+    const { firstParty, secondParty, docSettings } = body;
 
-    if (!offerId) {
-      return NextResponse.json({ error: "offerId is required." }, { status: 400 });
-    }
+    await dbConnect();
 
-    // Ensure data directory exists
-    if (!fs.existsSync(OFFERS_DIR)) {
-      fs.mkdirSync(OFFERS_DIR, { recursive: true });
-    }
+    const { agreementId, partnerId } = await generateIds();
 
-    const filePath = path.join(OFFERS_DIR, `${offerId}.json`);
-    const offerData = {
+    // The document might already have an offerId from the frontend, but we override it with the real DB generated ID
+    const updatedSecondParty = { ...secondParty, partnerId };
+    const updatedDocSettings = { ...docSettings, refId: agreementId };
+
+    const newAgreement = new Agreement({
+      agreementId,
+      partnerId,
+      status: "PENDING_PARTNER_SIGNATURE",
+      founderSigned: true,
+      partnerSigned: false,
       firstParty,
-      secondParty,
-      docSettings,
-      updatedAt: new Date().toISOString(),
-    };
+      secondParty: updatedSecondParty,
+      docSettings: updatedDocSettings,
+    });
 
-    fs.writeFileSync(filePath, JSON.stringify(offerData, null, 2), "utf-8");
-    console.log(`[Next.js API] Offer saved successfully: ${offerId}`);
-    return NextResponse.json({ success: true });
+    await newAgreement.save();
+
+    console.log(`[Next.js API] Agreement saved successfully: ${agreementId}`);
+    return NextResponse.json({ success: true, agreementId, partnerId });
   } catch (err: any) {
-    console.error("[Next.js API] Error saving offer:", err);
-    return NextResponse.json({ error: "Failed to save offer." }, { status: 500 });
+    console.error("[Next.js API] Error saving agreement:", err);
+    return NextResponse.json({ error: "Failed to save agreement." }, { status: 500 });
   }
 }

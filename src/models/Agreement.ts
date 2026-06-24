@@ -1,0 +1,31 @@
+import mongoose, { Schema, Document } from "mongoose";
+
+export interface IAgreement extends Document {
+  agreementId: string;
+  partnerId: string;
+  status: "PENDING_PARTNER_SIGNATURE" | "FULLY_EXECUTED";
+  founderSigned: boolean;
+  partnerSigned: boolean;
+  signedAt?: Date;
+  
+  firstParty: any;
+  secondParty: any;
+  docSettings: any;
+  pdfData?: string; // base64 string
+}
+
+const AgreementSchema: Schema = new Schema({
+  agreementId: { type: String, required: true, unique: true },
+  partnerId: { type: String, required: true },
+  status: { type: String, default: "PENDING_PARTNER_SIGNATURE" },
+  founderSigned: { type: Boolean, default: true },
+  partnerSigned: { type: Boolean, default: false },
+  signedAt: { type: Date },
+  
+  firstParty: { type: Schema.Types.Mixed, required: true },
+  secondParty: { type: Schema.Types.Mixed, required: true },
+  docSettings: { type: Schema.Types.Mixed, required: true },
+  pdfData: { type: String }
+}, { timestamps: true });
+
+export default mongoose.models.Agreement || mongoose.model<IAgreement>("Agreement", AgreementSchema);

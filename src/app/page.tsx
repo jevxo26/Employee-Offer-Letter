@@ -188,48 +188,49 @@ export default function Home() {
     }));
   };
 
-const handleSendOffer = async () => {
-  const id = Math.random().toString(36).substring(2, 11);
-  const stateToSave = { firstParty, secondParty, docSettings };
+  const handleSendOffer = async () => {
+    // Generate a temporary ID for local storage fallback, but we will use the DB ID for the real link.
+    const tempId = Math.random().toString(36).substring(2, 11);
+    const stateToSave = { firstParty, secondParty, docSettings };
+    localStorage.setItem("jevxo_offer_" + tempId, JSON.stringify(stateToSave));
 
-  // Save to localStorage
-  localStorage.setItem("jevxo_offer_" + id, JSON.stringify(stateToSave));
+    let saved = false;
+    let dbAgreementId = "";
+    
+    for (let i = 0; i < 3; i++) {
+      try {
+        const res = await fetch("/api/offers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstParty,
+            secondParty,
+            docSettings,
+          }),
+        });
 
-  // Save to Backend with retry
-  let saved = false;
-  for (let i = 0; i < 3; i++) {
-    try {
-      const res = await fetch("/api/offers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          offerId: id,
-          firstParty,
-          secondParty,
-          docSettings,
-        }),
-      });
-
-      if (res.ok) {
-        saved = true;
-        break;
+        if (res.ok) {
+          const data = await res.json();
+          dbAgreementId = data.agreementId;
+          saved = true;
+          break;
+        }
+      } catch (e) {
+        console.error("Save attempt failed", e);
       }
-    } catch (e) {
-      console.error("Save attempt failed", e);
+      await new Promise((r) => setTimeout(r, 300));
     }
-    await new Promise((r) => setTimeout(r, 300)); // small delay
-  }
 
-  if (!saved) {
-    alert("Failed to save offer. Please try again.");
-    return;
-  }
+    if (!saved || !dbAgreementId) {
+      alert("Failed to save offer to database. Please try again.");
+      return;
+    }
 
-  const link = `${window.location.origin}${window.location.pathname}?candidateView=${id}`;
-  setCandidateLink(link);
-  setOfferId(id);
-  setEmailModalOpen(true);
-};
+    const link = `${window.location.origin}${window.location.pathname}?candidateView=${dbAgreementId}`;
+    setCandidateLink(link);
+    setOfferId(dbAgreementId);
+    setEmailModalOpen(true);
+  };
 
   // ── Validation ──────────────────────────────────────────────────────────────
   const validateStep = () => {
@@ -306,8 +307,25 @@ const handleSendOffer = async () => {
         pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, 210, 297, undefined, "FAST");
         if (i < pages.length - 1) pdf.addPage();
       }
-      const partnerName = secondParty.fullName ? secondParty.fullName.trim() : "Partner";
-      pdf.save(`${partnerName} - Appointment Letter.pdf`);
+      if (appState === "candidatePortal") {
+        const pdfData = pdf.output("datauristring");
+        const res = await fetch(`/api/offers/${offerId}/sign`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            signatureImg: secondParty.signatureImg,
+            pdfData,
+          }),
+        });
+        if (res.ok) {
+          alert("Signature applied successfully! The fully executed PDF has been emailed to you and the Founder.");
+        } else {
+          alert("Failed to finalize the agreement. Please try again.");
+        }
+      } else {
+        const partnerName = secondParty.fullName ? secondParty.fullName.trim() : "Partner";
+        pdf.save(`${partnerName} - Appointment Letter.pdf`);
+      }
     } catch (err: unknown) {
       const e = err as Error;
       console.error("PDF export error:", e);

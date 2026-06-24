@@ -316,31 +316,12 @@ export default function WorkspaceSidebar({
               PDF Export Disabled in Demo Mode
             </div>
           ) : (
-            <div className="flex flex-col gap-2.5">
               <button
                 onClick={onSendOffer}
                 className="w-full py-3.5 px-6 bg-[#2563EB] hover:bg-[#1D4ED8] font-bold text-white text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-[#2563EB]/10 hover:shadow-[#2563EB]/25 cursor-pointer"
               >
                 <Mail className="w-4 h-4" /> Send Offer to Candidate
               </button>
-              <button
-                onClick={onExport}
-                disabled={isExporting}
-                className="w-full py-2.5 px-6 border border-[#DBEAFE] hover:border-[#2563EB] hover:bg-[#EFF6FF] text-[#2563EB] disabled:bg-[#64748B]/40 disabled:cursor-not-allowed font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition cursor-pointer"
-              >
-                {isExporting ? (
-                  <>
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />{" "}
-                    Generating Draft...
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-3.5 h-3.5" /> Download CEO-Signed
-                    Draft
-                  </>
-                )}
-              </button>
-            </div>
           )}
           <div className="flex justify-between text-[11px] text-[#64748B] px-1 font-semibold">
             <span>A4 dimensions output</span>

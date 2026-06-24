@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-
-const OFFERS_DIR = path.join(process.cwd(), "data", "offers");
+import dbConnect from "../../../../lib/mongodb";
+import Agreement from "../../../../models/Agreement";
 
 export async function GET(
   request: Request,
@@ -10,17 +8,18 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const filePath = path.join(OFFERS_DIR, `${id}.json`);
+    
+    await dbConnect();
+    
+    const agreement = await Agreement.findOne({ agreementId: id });
 
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ error: "Offer not found." }, { status: 404 });
+    if (!agreement) {
+      return NextResponse.json({ error: "Agreement not found." }, { status: 404 });
     }
 
-    const rawData = fs.readFileSync(filePath, "utf-8");
-    const data = JSON.parse(rawData);
-    return NextResponse.json(data);
+    return NextResponse.json(agreement);
   } catch (err: any) {
-    console.error("[Next.js API] Error retrieving offer:", err);
-    return NextResponse.json({ error: "Failed to retrieve offer." }, { status: 500 });
+    console.error("[Next.js API] Error retrieving agreement:", err);
+    return NextResponse.json({ error: "Failed to retrieve agreement." }, { status: 500 });
   }
 }

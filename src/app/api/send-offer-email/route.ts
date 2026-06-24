@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import { Resend } from "resend";
+import dbConnect from "../../../lib/mongodb";
+import Agreement from "../../../models/Agreement";
 
-const OFFERS_DIR = path.join(process.cwd(), "data", "offers");
-
-// Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY);
 const BASE_URL = process.env.BASE_URL;
 
@@ -21,25 +18,18 @@ export async function POST(request: Request) {
       );
     }
 
-    const filePath = path.join(OFFERS_DIR, `${offerId}.json`);
-    if (!fs.existsSync(filePath)) {
+    await dbConnect();
+    const agreement = await Agreement.findOne({ agreementId: offerId });
+
+    if (!agreement) {
       return NextResponse.json({ error: "Offer details not found on server." }, { status: 404 });
     }
 
-    const rawData = fs.readFileSync(filePath, "utf-8");
-    const offerData = JSON.parse(rawData);
+    const { firstParty, secondParty, docSettings } = agreement;
 
-    const firstParty = offerData.firstParty;
-    const secondParty = offerData.secondParty;
-    const docSettings = offerData.docSettings;
-
-    // Build CTA Link
     const ctaLink = `${BASE_URL}/?candidateView=${offerId}`;
-
-    // Sender details
     const sender = fromAddress || "JEVXO <info@jevxo.com>";
 
-    // Build email template HTML
     const emailHtml = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px 20px; border: 1px solid #e2e8f0; border-radius: 20px; background-color: #ffffff; color: #0f172a;">
         <div style="text-align: center; margin-bottom: 25px;">
@@ -51,10 +41,6 @@ export async function POST(request: Request) {
         
         <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
           On behalf of <strong>${firstParty.companyName}</strong>, I am thrilled to extend to you our official offer of partnership for the position of <strong style="color: #2563eb;">${secondParty.position}</strong>.
-        </p>
-        
-        <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
-          At JEVXO, we operate on a partnership-based structure where every team member is expected to lead with an ownership mindset. We are excited about the prospect of you joining us to collaborate on core achievements and drive the company forward.
         </p>
         
         <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px 20px; margin: 20px 0;">
@@ -76,7 +62,7 @@ export async function POST(request: Request) {
         </div>
 
         <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 25px;">
-          Please review the full letter of appointment terms, apply your digital signature, and download your counter-signed PDF contract. You can access your portal directly by clicking the button below:
+          Please review the full letter of appointment terms and apply your digital signature. You can access your portal directly by clicking the button below:
         </p>
 
         <div style="margin: 30px 0; text-align: center;">
@@ -97,7 +83,6 @@ export async function POST(request: Request) {
       </div>
     `;
 
-    // Send email using Resend SDK
     const emailResult = await resend.emails.send({
       from: sender,
       to: [candidateEmail],
