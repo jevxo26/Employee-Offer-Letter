@@ -3,14 +3,15 @@
 import React from "react";
 import { FileText, Download, RefreshCw } from "lucide-react";
 import DocumentPreview from "./DocumentPreview";
+import A4DocumentScaler from "./A4DocumentScaler";
+import { TOTAL_DOCUMENT_PAGES } from "../lib/documentConstants";
 import { FirstParty, SecondParty, DocSettings } from "../types";
 
 interface WorkspaceCanvasProps {
   firstParty: FirstParty;
   secondParty: SecondParty;
   settings: DocSettings;
-  previewRef1: React.RefObject<HTMLDivElement | null>;
-  previewRef2: React.RefObject<HTMLDivElement | null>;
+  previewRefs: React.RefObject<HTMLDivElement | null>[];
   isExporting: boolean;
   onExport: () => void;
   isDemo: boolean;
@@ -20,15 +21,14 @@ export default function WorkspaceCanvas({
   firstParty,
   secondParty,
   settings,
-  previewRef1,
-  previewRef2,
+  previewRefs,
   isExporting,
   onExport,
   isDemo,
 }: WorkspaceCanvasProps) {
   return (
     <div className="flex-1 bg-[#F1F5F9] flex flex-col items-center justify-start p-6 overflow-y-auto">
-      {/* Info ribbon */}
+      {/* Info ribbon
       <div className="w-full max-w-[800px] flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6 p-4 bg-[#EFF6FF]/60 border border-[#DBEAFE] rounded-2xl">
         <div className="flex items-start gap-2.5">
           <div className="p-1.5 bg-[#2563EB]/10 border border-[#2563EB]/25 text-[#2563EB] mt-0.5">
@@ -59,17 +59,20 @@ export default function WorkspaceCanvas({
             <span>Download PDF</span>
           </button>
         )}
-      </div>
+      </div> */}
 
-      {/* Document pages */}
-      <DocumentPreview
-        firstParty={firstParty}
-        secondParty={secondParty}
-        settings={settings}
-        previewRef1={previewRef1}
-        previewRef2={previewRef2}
-        isDemo={isDemo}
-      />
+      {/* Document pages — fixed A4 canvas scaled to viewport */}
+      <div className="w-full max-w-[860px]">
+        <A4DocumentScaler pageCount={TOTAL_DOCUMENT_PAGES}>
+          <DocumentPreview
+            firstParty={firstParty}
+            secondParty={secondParty}
+            settings={settings}
+            previewRefs={previewRefs}
+            isDemo={isDemo}
+          />
+        </A4DocumentScaler>
+      </div>
 
       <div className="h-10 shrink-0" />
     </div>

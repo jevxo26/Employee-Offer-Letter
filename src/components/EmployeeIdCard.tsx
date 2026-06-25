@@ -2,6 +2,7 @@
 
 import React from "react";
 import QRCode from "react-qr-code";
+import { buildVerifyUrl } from "../lib/verifyUrl";
 import { EmployeeCard } from "../types";
 
 // ─── Brand Colors ────────────────────────────────────────────────────────────
@@ -144,7 +145,8 @@ interface FrontProps {
 }
 
 export function IdCardFront({ data, cardRef }: FrontProps) {
-  const qrValue = `JEVXO-EMP-${data.employeeId || "000-000-0001"}`;
+  const verifyId = data.employeeId || "000-000-0001";
+  const qrValue = buildVerifyUrl(verifyId);
   const barValue = data.employeeId || "000-000-0001";
   
   // Format vertical name letters (upright & stacked)
@@ -365,7 +367,8 @@ interface BackProps {
 }
 
 export function IdCardBack({ data, cardRef }: BackProps) {
-  const qrValue = `https://www.jevxo.com/verify?id=${data.employeeId || "000-000-0001"}`;
+  const verifyId = data.employeeId || "000-000-0001";
+  const qrValue = buildVerifyUrl(verifyId);
   const backChars = "JEVXO".split("");
 
   return (

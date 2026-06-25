@@ -5,6 +5,7 @@ import { AnimatePresence } from "motion/react";
 import { Mail, RefreshCw, CreditCard, FileText } from "lucide-react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas-pro";
+import { toast } from "react-toastify";
 
 import JevxoLogo from "../components/JevxoLogo";
 import Hero from "../components/Hero";
@@ -15,6 +16,7 @@ import CeoWorkspace from "../components/CeoWorkspace";
 import CandidatePortal from "../components/CandidatePortal";
 import EmailPortalModal from "../components/EmailPortalModal";
 import IdCardWorkspace from "../components/IdCardWorkspace";
+import AdminDashboard from "../components/AdminDashboard";
 
 import { FirstParty, SecondParty, DocSettings, AppState, DocType, EmployeeCard } from "../types";
 
@@ -71,6 +73,37 @@ const SAMPLE_SECOND_PARTY: SecondParty = {
 
 const TOTAL_STEPS = 5;
 
+function formatDisplayDate(date: Date) {
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+function getDefaultIssueDate() {
+  return formatDisplayDate(new Date());
+}
+
+function getDefaultExpiryDate() {
+  const expiryDate = new Date();
+  expiryDate.setFullYear(expiryDate.getFullYear() + 2);
+  return formatDisplayDate(expiryDate);
+}
+
+function arrayBufferToBase64(buffer: ArrayBuffer) {
+  const bytes = new Uint8Array(buffer);
+  const chunkSize = 0x8000;
+  let binary = "";
+
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    const chunk = bytes.subarray(index, index + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+
+  return btoa(binary);
+}
+
 export default function Home() {
   const [appState, setAppState] = useState<AppState>("home");
   const [docType, setDocType] = useState<DocType>("appointment");
@@ -80,7 +113,7 @@ export default function Home() {
   const [firstParty, setFirstParty] = useState<FirstParty>(DEFAULT_FIRST_PARTY);
   const [secondParty, setSecondParty] = useState<SecondParty>(DEFAULT_SECOND_PARTY);
   const [docSettings, setDocSettings] = useState<DocSettings>({
-    date: "June 13, 2026",
+    date: getDefaultIssueDate(),
     minimumServicePeriod: 4,
     equityShare: 7,
     noticePeriod: 15,
@@ -94,41 +127,54 @@ export default function Home() {
     bloodGroup: "A+",
     department: "",
     photoUrl: "",
-    issueDate: "",
-    expiryDate: "",
+    issueDate: getDefaultIssueDate(),
+    expiryDate: getDefaultExpiryDate(),
   });
 
   const [sameAddress, setSameAddress] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState("settings");
   const [validationError, setValidationError] = useState("");
+  const [isCandidateSigned, setIsCandidateSigned] = useState(false);
+  const [isOfferSent, setIsOfferSent] = useState(false);
 
   const [offerId, setOfferId] = useState("");
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [candidateLink, setCandidateLink] = useState("");
 
-  // Refs for jsPDF/html2canvas page captures (documents)
+  const previewRef0 = useRef<HTMLDivElement>(null);
   const previewRef1 = useRef<HTMLDivElement>(null);
   const previewRef2 = useRef<HTMLDivElement>(null);
+  const previewRef3 = useRef<HTMLDivElement>(null);
+  const previewRef4 = useRef<HTMLDivElement>(null);
+  const previewRefs = [previewRef0, previewRef1, previewRef2, previewRef3, previewRef4];
 
-  // Client-side date and search query param initialization
+  // Initial fetching of ID
   useEffect(() => {
-    const today = new Date().toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-    setDocSettings((prev) => ({ ...prev, date: today }));
-    setEmployeeCard((prev) => ({
-      ...prev,
-      issueDate: today,
-      expiryDate: new Date(new Date().setFullYear(new Date().getFullYear() + 2)).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }),
-    }));
+    async function fetchNextIds() {
+      try {
+        const res = await fetch("/api/check-id?action=next");
+        if (res.ok) {
+          const data = await res.json();
+          setDocSettings((p) => ({
+            ...p,
+            refId: data.agreementId,
+            refIdSerial: data.agreementId.split("-").pop(),
+          }));
+          setSecondParty((p) => ({
+            ...p,
+            partnerId: data.partnerId,
+            partnerIdSerial: data.partnerId.split("-").pop(),
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch next IDs", err);
+      }
+    }
+    fetchNextIds();
+  }, []);
 
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const candidateViewId = params.get("candidateView");
     if (candidateViewId) {
@@ -141,6 +187,7 @@ export default function Home() {
           setFirstParty(data.firstParty);
           setSecondParty(data.secondParty);
           setDocSettings(data.docSettings);
+          setIsCandidateSigned(Boolean(data.partnerSigned || data.status === "FULLY_EXECUTED"));
           setOfferId(candidateViewId);
           setIsDemo(false);
           setAppState("candidatePortal");
@@ -154,6 +201,7 @@ export default function Home() {
               setFirstParty(data.firstParty);
               setSecondParty(data.secondParty);
               setDocSettings(data.docSettings);
+              setIsCandidateSigned(Boolean(data.partnerSigned || data.status === "FULLY_EXECUTED"));
               setOfferId(candidateViewId);
               setIsDemo(false);
               setAppState("candidatePortal");
@@ -168,6 +216,7 @@ export default function Home() {
   // ── When docType selector chooses a type ────────────────────────────────────
   const handleDocTypeSelect = (type: DocType) => {
     setDocType(type);
+    setIsOfferSent(false);
     if (type === "idCard") {
       // Skip the full form wizard, go straight to ID card workspace
       setAppState("idCard");
@@ -206,6 +255,7 @@ export default function Home() {
             firstParty,
             secondParty,
             docSettings,
+            docType,
           }),
         });
 
@@ -271,6 +321,7 @@ export default function Home() {
     if (activeStep < TOTAL_STEPS) {
       setActiveStep((s) => s + 1);
     } else {
+      setIsOfferSent(false);
       syncEmployeeCardFromForm();
       setAppState("workspace");
     }
@@ -288,14 +339,17 @@ export default function Home() {
 
   // ── PDF export ──────────────────────────────────────────────────────────────
   const handleExportPDF = async () => {
-    if (isExporting) return;
+    if (isExporting || (appState === "candidatePortal" && isCandidateSigned)) return;
     setIsExporting(true);
+    document.documentElement.classList.add("a4-exporting");
     try {
       const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
-      const pages = [
-        previewRef1.current,
-        previewRef2.current,
-      ].filter((el) => el && el.style.display !== "none");
+      const pages = previewRefs
+        .map((ref) => ref.current)
+        .filter((el): el is HTMLDivElement => el != null && el.style.display !== "none");
+      if (!pages.length) {
+        throw new Error("No document pages were available for PDF generation.");
+      }
       for (let i = 0; i < pages.length; i++) {
         const canvas = await html2canvas(pages[i] as HTMLElement, {
           scale: 2.5,
@@ -308,7 +362,7 @@ export default function Home() {
         if (i < pages.length - 1) pdf.addPage();
       }
       if (appState === "candidatePortal") {
-        const pdfData = pdf.output("datauristring");
+        const pdfData = arrayBufferToBase64(pdf.output("arraybuffer"));
         const res = await fetch(`/api/offers/${offerId}/sign`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -317,10 +371,15 @@ export default function Home() {
             pdfData,
           }),
         });
+        const data = await res.json().catch(() => null);
         if (res.ok) {
-          alert("Signature applied successfully! The fully executed PDF has been emailed to you and the Founder.");
+          setIsCandidateSigned(true);
+          toast.success(
+            data?.message ||
+              "Signature applied successfully! The fully executed PDF has been emailed to you and the Founder."
+          );
         } else {
-          alert("Failed to finalize the agreement. Please try again.");
+          throw new Error(data?.error || "Failed to finalize the agreement. Please try again.");
         }
       } else {
         const partnerName = secondParty.fullName ? secondParty.fullName.trim() : "Partner";
@@ -329,8 +388,9 @@ export default function Home() {
     } catch (err: unknown) {
       const e = err as Error;
       console.error("PDF export error:", e);
-      alert("We had an issue generating your PDF: " + e.message);
+      toast.error("We had an issue generating your PDF: " + e.message);
     } finally {
+      document.documentElement.classList.remove("a4-exporting");
       setIsExporting(false);
     }
   };
@@ -341,6 +401,7 @@ export default function Home() {
     if (appState === "workspace") return "← Back to Form";
     if (appState === "idCard") return "← Back to Doc Select";
     if (appState === "docTypeSelect") return "← Back to Home";
+    if (appState === "adminDashboard") return "← Back to Doc Select";
     return null;
   };
 
@@ -349,6 +410,7 @@ export default function Home() {
     else if (appState === "workspace") { setAppState("form"); setActiveStep(5); }
     else if (appState === "idCard") { setAppState("docTypeSelect"); }
     else if (appState === "docTypeSelect") { setAppState("home"); }
+    else if (appState === "adminDashboard") { setAppState("docTypeSelect"); }
   };
 
   return (
@@ -444,6 +506,14 @@ export default function Home() {
             <DocTypeSelector
               key="docTypeSelect"
               onSelect={handleDocTypeSelect}
+              onOpenAdmin={() => setAppState("adminDashboard")}
+            />
+          )}
+
+          {appState === "adminDashboard" && (
+            <AdminDashboard
+              key="adminDashboard"
+              onBack={() => setAppState("docTypeSelect")}
             />
           )}
 
@@ -479,9 +549,9 @@ export default function Home() {
               isExporting={isExporting}
               onExport={handleExportPDF}
               isDemo={isDemo}
+              isOfferSent={isOfferSent}
               onSendOffer={handleSendOffer}
-              previewRef1={previewRef1}
-              previewRef2={previewRef2}
+              previewRefs={previewRefs}
               docType={docType}
               employeeCard={employeeCard}
               setEmployeeCard={setEmployeeCard}
@@ -497,10 +567,10 @@ export default function Home() {
               setSecondParty={setSecondParty}
               docSettings={docSettings}
               isExporting={isExporting}
+              isCompleted={isCandidateSigned}
               onExport={handleExportPDF}
               offerId={offerId}
-              previewRef1={previewRef1}
-              previewRef2={previewRef2}
+              previewRefs={previewRefs}
             />
           )}
         </AnimatePresence>
@@ -509,6 +579,7 @@ export default function Home() {
       <EmailPortalModal
         isOpen={emailModalOpen}
         onClose={() => setEmailModalOpen(false)}
+        onSentSuccess={() => setIsOfferSent(true)}
         secondParty={secondParty}
         firstParty={firstParty}
         candidateLink={candidateLink}

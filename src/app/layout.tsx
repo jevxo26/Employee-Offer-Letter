@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "react-toastify/dist/ReactToastify.css";
+import ToastProvider from "../components/ToastProvider";
 
 export const metadata: Metadata = {
   title: "JEVXO — HR Document Engine",
@@ -23,6 +25,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-[#F8FAFC]">
         {children}
+        <ToastProvider />
       </body>
     </html>
   );

@@ -355,6 +355,67 @@ export function Step4({
   docSettings,
   setDocSettings,
 }: Step4Props) {
+  const currentYearStr = new Date().getFullYear().toString().slice(-2);
+  const [partnerWarning, setPartnerWarning] = React.useState("");
+  const [refWarning, setRefWarning] = React.useState("");
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    async function loadNextIds() {
+      try {
+        const res = await fetch("/api/check-id?action=next");
+        if (!res.ok) return;
+
+        const data = await res.json();
+        if (cancelled) return;
+
+        setSecondParty((prev) => ({
+          ...prev,
+          partnerId: data.partnerId,
+          partnerIdSerial: data.partnerId?.split("-").pop() || prev.partnerIdSerial,
+        }));
+        setDocSettings((prev) => ({
+          ...prev,
+          refId: data.agreementId,
+          refIdSerial: data.agreementId?.split("-").pop() || prev.refIdSerial,
+        }));
+      } catch (error) {
+        console.error("Failed to load dynamic IDs", error);
+      }
+    }
+
+    loadNextIds();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [setDocSettings, setSecondParty]);
+
+  React.useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (!secondParty.partnerId) return;
+      try {
+        const res = await fetch(`/api/check-id?action=check&partnerId=${secondParty.partnerId}`);
+        const data = await res.json();
+        setPartnerWarning(data.partnerTaken ? "Warning: This Partner ID is already taken." : "");
+      } catch {}
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [secondParty.partnerId]);
+
+  React.useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (!docSettings.refId) return;
+      try {
+        const res = await fetch(`/api/check-id?action=check&agreementId=${docSettings.refId}`);
+        const data = await res.json();
+        setRefWarning(data.agreementTaken ? "Warning: This Document ID is already taken." : "");
+      } catch {}
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [docSettings.refId]);
+
   const numericSetter =
     (key: keyof DocSettings, min: number, max: number) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -362,7 +423,7 @@ export function Step4({
       setDocSettings((p) => ({ ...p, [key]: val }));
     };
 
-  // Handle Partner ID Serial Input (Only last 3 digits)
+  // Handle Partner ID Serial Input
   const handlePartnerSerialChange = (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -370,7 +431,7 @@ export function Step4({
       .replace(/\D/g, "")
       .slice(0, 3)
       .padStart(3, "0");
-    const fullId = `JVX-PT-26-${serial}`;
+    const fullId = `JVX-PT-${currentYearStr}-${serial}`;
 
     setSecondParty((prev) => ({
       ...prev,
@@ -385,14 +446,15 @@ export function Step4({
       .replace(/\D/g, "")
       .slice(0, 3)
       .padStart(3, "0");
-    const fullRef = `JVX/AGREEMENT/2026/${serial}`;
+    const fullRef = `JVX-AGR-${currentYearStr}-${serial}`;
 
     setDocSettings((prev) => ({
       ...prev,
       refIdSerial: serial,
-      refId: fullRef, // full reference id
+      refId: fullRef,
     }));
   };
+
 
   return (
     <motion.div
@@ -436,47 +498,49 @@ export function Step4({
             {/* Partner ID */}
             <div className="flex-1">
               <label className="text-xs font-semibold text-[#334155] uppercase tracking-wide block mb-1.5">
-                Partner ID (Own ID)
+                Partner ID
               </label>
               <div className="flex items-stretch bg-white border border-[#DBEAFE] focus-within:border-[#2563EB] rounded-xl overflow-hidden h-12">
                 <div className="flex items-center px-3 bg-[#F8FAFC] border-r border-[#DBEAFE] text-slate-400 font-bold font-mono text-sm select-none">
-                  JVX-PT-26-
+                  JVX-PT-{currentYearStr}-
                 </div>
                 <input
                   type="text"
                   maxLength={3}
-                  value={secondParty.partnerIdSerial || "001"}
+                  value={secondParty.partnerIdSerial || ""}
                   onChange={handlePartnerSerialChange}
                   className="flex-1 bg-transparent px-4 text-sm font-mono font-black focus:outline-none"
                   placeholder="001"
                 />
               </div>
               <p className="mt-1.5 text-xs text-emerald-600 font-mono font-bold">
-                {secondParty.partnerId || "JVX-PT-26-001"}
+                {secondParty.partnerId}
               </p>
+              {partnerWarning && <p className="text-[10px] text-rose-600 font-bold mt-1">{partnerWarning}</p>}
             </div>
 
             {/* Document Reference ID */}
             <div className="flex-1">
               <label className="text-xs font-semibold text-[#334155] uppercase tracking-wide block mb-1.5">
-                Document Reference ID
+                Document ID
               </label>
               <div className="flex items-stretch bg-white border border-[#DBEAFE] focus-within:border-[#2563EB] rounded-xl overflow-hidden h-12">
                 <div className="flex items-center px-3 bg-[#F8FAFC] border-r border-[#DBEAFE] text-slate-400 font-bold font-mono text-sm select-none">
-                  JVX/AGREEMENT/2026/
+                  JVX-AGR-{currentYearStr}-
                 </div>
                 <input
                   type="text"
                   maxLength={3}
-                  value={docSettings.refIdSerial || "001"}
+                  value={docSettings.refIdSerial || ""}
                   onChange={handleRefSerialChange}
                   className="flex-1 bg-transparent px-4 text-sm font-mono font-black focus:outline-none"
                   placeholder="001"
                 />
               </div>
               <p className="mt-1.5 text-xs text-emerald-600 font-mono font-bold">
-                {docSettings.refId || "JVX/AGREEMENT/2026/001"}
+                {docSettings.refId}
               </p>
+              {refWarning && <p className="text-[10px] text-rose-600 font-bold mt-1">{refWarning}</p>}
             </div>
           </div>
         </div>

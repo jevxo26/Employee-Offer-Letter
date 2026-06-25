@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IAgreement extends Document {
   agreementId: string;
   partnerId: string;
+  docType: "appointment" | "idCard" | "both";
   status: "PENDING_PARTNER_SIGNATURE" | "FULLY_EXECUTED";
   founderSigned: boolean;
   partnerSigned: boolean;
@@ -17,6 +18,7 @@ export interface IAgreement extends Document {
 const AgreementSchema: Schema = new Schema({
   agreementId: { type: String, required: true, unique: true },
   partnerId: { type: String, required: true },
+  docType: { type: String, default: "appointment" },
   status: { type: String, default: "PENDING_PARTNER_SIGNATURE" },
   founderSigned: { type: Boolean, default: true },
   partnerSigned: { type: Boolean, default: false },
@@ -28,4 +30,4 @@ const AgreementSchema: Schema = new Schema({
   pdfData: { type: String }
 }, { timestamps: true });
 
-export default mongoose.models.Agreement || mongoose.model<IAgreement>("Agreement", AgreementSchema);
+export default mongoose.models.Agreement || mongoose.model<IAgreement>("Agreement", AgreementSchema, "docsAgreement");

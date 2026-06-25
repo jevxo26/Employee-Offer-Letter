@@ -61,4 +61,22 @@ export type AppState =
   | 'form'
   | 'workspace'
   | 'candidatePortal'
-  | 'idCard';
+  | 'idCard'
+  | 'adminDashboard';
+
+export type AgreementStatus = 'PENDING_PARTNER_SIGNATURE' | 'FULLY_EXECUTED';
+
+export interface AgreementSummary {
+  agreementId: string;
+  partnerId: string;
+  docType: DocType;
+  status: AgreementStatus;
+  founderSigned: boolean;
+  partnerSigned: boolean;
+  signedAt?: string;
+  createdAt: string;
+  partnerName: string;
+  partnerEmail: string;
+  companyName: string;
+  position: string;
+}

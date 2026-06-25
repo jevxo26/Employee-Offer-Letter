@@ -7,6 +7,7 @@ import { FirstParty, SecondParty } from "../types";
 interface EmailPortalModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSentSuccess: () => void;
   secondParty: SecondParty;
   firstParty: FirstParty;
   candidateLink: string;
@@ -16,6 +17,7 @@ interface EmailPortalModalProps {
 export default function EmailPortalModal({
   isOpen,
   onClose,
+  onSentSuccess,
   secondParty,
   firstParty,
   candidateLink,
@@ -57,6 +59,7 @@ export default function EmailPortalModal({
 
       if (response.ok) {
         setSent(true);
+        onSentSuccess();
         setTimeout(() => {
           setSent(false);
           onClose();

@@ -236,6 +236,7 @@ interface WorkspaceSidebarProps {
   isExporting: boolean;
   onExport: () => void;
   isDemo: boolean;
+  isOfferSent: boolean;
   onSendOffer: () => void;
 }
 
@@ -251,10 +252,11 @@ export default function WorkspaceSidebar({
   isExporting,
   onExport,
   isDemo,
+  isOfferSent,
   onSendOffer,
 }: WorkspaceSidebarProps) {
   return (
-    <div className="w-full xl:w-[420px] bg-[#F8FAFC] border-r border-[#DBEAFE] flex flex-col h-full overflow-hidden shrink-0">
+    <div className="w-full xl:w-[500px] bg-[#F8FAFC] border-r border-[#DBEAFE] flex flex-col h-full overflow-hidden shrink-0">
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Header */}
         <div className="space-y-2">
@@ -310,7 +312,7 @@ export default function WorkspaceSidebar({
           )}
         </div>
         {/* Export footer */}
-        <div className="p-6 bg-[#F8FAFC] border-t border-[#DBEAFE] space-y-3 shrink-0 mb-12">
+        <div className="p-6 bg-[#F8FAFC] border-t border-[#DBEAFE] space-y-3 shrink-0">
           {isDemo ? (
             <div className="w-full py-4 px-6 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold rounded-2xl text-center">
               PDF Export Disabled in Demo Mode
@@ -318,9 +320,10 @@ export default function WorkspaceSidebar({
           ) : (
               <button
                 onClick={onSendOffer}
-                className="w-full py-3.5 px-6 bg-[#2563EB] hover:bg-[#1D4ED8] font-bold text-white text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-[#2563EB]/10 hover:shadow-[#2563EB]/25 cursor-pointer"
+                disabled={isOfferSent}
+                className="w-full py-3.5 px-6 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-emerald-600 disabled:hover:bg-emerald-600 disabled:cursor-not-allowed font-bold text-white text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-[#2563EB]/10 hover:shadow-[#2563EB]/25 cursor-pointer"
               >
-                <Mail className="w-4 h-4" /> Send Offer to Candidate
+                <Mail className="w-4 h-4" /> {isOfferSent ? "Sent Offer Letter Successfully" : "Send Offer to Candidate"}
               </button>
           )}
           <div className="flex justify-between text-[11px] text-[#64748B] px-1 font-semibold">

@@ -1,24 +1,38 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../../lib/mongodb";
-import Agreement from "../../../models/Agreement";
-import { generateIds } from "../../../lib/idGenerator";
+import {
+  generateAgreementIds,
+  listAgreements,
+  saveAgreement,
+  toAgreementSummary,
+} from "../../../lib/agreementStore";
+
+export async function GET() {
+  try {
+    const agreements = await listAgreements();
+    return NextResponse.json({
+      success: true,
+      agreements: agreements.map(toAgreementSummary),
+    });
+  } catch (err: unknown) {
+    console.error("[Next.js API] Error listing agreements:", err);
+    return NextResponse.json({ error: "Failed to list agreements." }, { status: 500 });
+  }
+}
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { firstParty, secondParty, docSettings } = body;
+    const { firstParty, secondParty, docSettings, docType = "appointment" } = body;
 
-    await dbConnect();
+    const { agreementId, partnerId, storage } = await generateAgreementIds();
 
-    const { agreementId, partnerId } = await generateIds();
-
-    // The document might already have an offerId from the frontend, but we override it with the real DB generated ID
     const updatedSecondParty = { ...secondParty, partnerId };
     const updatedDocSettings = { ...docSettings, refId: agreementId };
 
-    const newAgreement = new Agreement({
+    const { agreement } = await saveAgreement({
       agreementId,
       partnerId,
+      docType,
       status: "PENDING_PARTNER_SIGNATURE",
       founderSigned: true,
       partnerSigned: false,
@@ -27,12 +41,18 @@ export async function POST(request: Request) {
       docSettings: updatedDocSettings,
     });
 
-    await newAgreement.save();
-
-    console.log(`[Next.js API] Agreement saved successfully: ${agreementId}`);
-    return NextResponse.json({ success: true, agreementId, partnerId });
-  } catch (err: any) {
+    console.log(
+      `[Next.js API] Agreement saved (${storage}): ${agreementId}`
+    );
+    return NextResponse.json({ success: true, agreementId, partnerId, storage });
+  } catch (err: unknown) {
     console.error("[Next.js API] Error saving agreement:", err);
-    return NextResponse.json({ error: "Failed to save agreement." }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Failed to save agreement.",
+        details: process.env.NODE_ENV === "development" ? (err as Error).message : undefined,
+      },
+      { status: 500 }
+    );
   }
 }

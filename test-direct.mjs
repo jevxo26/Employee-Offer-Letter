@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
-const uri = "mongodb://jevxo-doc-engine:PEDVns8XMtCZI7BI@ac-3ocihiu-shard-00-00.gh1jtid.mongodb.net:27017,ac-3ocihiu-shard-00-01.gh1jtid.mongodb.net:27017,ac-3ocihiu-shard-00-02.gh1jtid.mongodb.net:27017/jevxo-hr?ssl=true&replicaSet=atlas-3ocihiu-shard-0&authSource=admin&retryWrites=true&w=majority";
+const uri =
+  "mongodb://jevxo-doc-engine:UVuLNTIZKCWrCfyG@ac-3ocihiu-shard-00-00.gh1jtid.mongodb.net:27017,ac-3ocihiu-shard-00-01.gh1jtid.mongodb.net:27017,ac-3ocihiu-shard-00-02.gh1jtid.mongodb.net:27017/jevxo-hr?ssl=true&replicaSet=atlas-3ocihiu-shard-0&authSource=admin&retryWrites=true&w=majority";
 
 console.log("Testing direct URI...");
 

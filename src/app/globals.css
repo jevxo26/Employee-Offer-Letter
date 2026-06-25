@@ -27,8 +27,20 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Prevent html2canvas oklch parsing crashes by overriding tailwind color variables to hex inside document preview */
-#preview_scrollable_deck, #jevxo_p1, #jevxo_p2, #jevxo_p3 {
+/* A4 document scaler — disable transform during PDF capture for full-resolution output */
+html.a4-exporting .a4-scaler-spacer {
+  width: 794px !important;
+  height: auto !important;
+}
+
+html.a4-exporting .a4-scaler-inner {
+  transform: none !important;
+  position: relative !important;
+}
+
+#document-preview-container,
+#document-page-1,
+#document-page-2 {
   --color-slate-950: #020617;
   --color-slate-900: #0f172a;
   --color-slate-800: #1e293b;

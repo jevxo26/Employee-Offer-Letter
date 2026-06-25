@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import dbConnect from "../../../lib/mongodb";
-import Agreement from "../../../models/Agreement";
+import { findAgreementById } from "../../../lib/agreementStore";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const BASE_URL = process.env.BASE_URL;
@@ -18,9 +17,7 @@ export async function POST(request: Request) {
       );
     }
 
-    await dbConnect();
-    const agreement = await Agreement.findOne({ agreementId: offerId });
-
+    const agreement = await findAgreementById(offerId);
     if (!agreement) {
       return NextResponse.json({ error: "Offer details not found on server." }, { status: 404 });
     }

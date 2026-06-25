@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "motion/react";
-import { FileText, CreditCard, ArrowRight, ChevronRight } from "lucide-react";
+import { FileText, CreditCard, ArrowRight, ChevronRight, LayoutDashboard } from "lucide-react";
 import { DocType } from "../types";
 
 interface DocOption {
@@ -36,9 +36,10 @@ const DOC_OPTIONS: DocOption[] = [
 
 interface DocTypeSelectorProps {
   onSelect: (type: DocType) => void;
+  onOpenAdmin?: () => void;
 }
 
-export default function DocTypeSelector({ onSelect }: DocTypeSelectorProps) {
+export default function DocTypeSelector({ onSelect, onOpenAdmin }: DocTypeSelectorProps) {
   const [selected, setSelected] = React.useState<Set<DocType>>(new Set());
 
   const toggle = (id: DocType) => {
@@ -173,6 +174,16 @@ export default function DocTypeSelector({ onSelect }: DocTypeSelectorProps) {
         <p className="text-center text-[11px] text-[#94A3B8]">
           More document types coming soon — the system is modular and extensible.
         </p>
+
+        {onOpenAdmin && (
+          <button
+            onClick={onOpenAdmin}
+            className="w-full py-3 px-6 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 border border-[#DBEAFE] bg-white hover:border-[#2563EB] hover:bg-[#EFF6FF] text-[#64748B] hover:text-[#2563EB] transition cursor-pointer"
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            Open Agreement Registry (Admin)
+          </button>
+        )}
       </div>
     </motion.div>
   );

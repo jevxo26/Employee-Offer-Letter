@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { RefreshCw, Download, Upload, Check } from "lucide-react";
+import { RefreshCw, Upload, Check } from "lucide-react";
 import SignaturePad from "./SignaturePad";
 import { FirstParty, SecondParty } from "../types";
 
@@ -10,6 +10,7 @@ interface CandidateSidebarProps {
   secondParty: SecondParty;
   setSecondParty: React.Dispatch<React.SetStateAction<SecondParty>>;
   isExporting: boolean;
+  isCompleted: boolean;
   onExport: () => void;
   offerId: string;
 }
@@ -19,6 +20,7 @@ export default function CandidateSidebar({
   secondParty,
   setSecondParty,
   isExporting,
+  isCompleted,
   onExport,
   offerId,
 }: CandidateSidebarProps) {
@@ -102,6 +104,9 @@ export default function CandidateSidebar({
   };
 
   const handleActionClick = () => {
+    if (isCompleted) {
+      return;
+    }
     if (!secondParty.signatureImg) {
       setSigError("Please draw and save your signature before exporting.");
       return;
@@ -235,10 +240,14 @@ export default function CandidateSidebar({
       <div className="p-6 bg-[#F8FAFC] border-t border-[#DBEAFE] space-y-3 shrink-0 mb-12">
         <button
           onClick={handleActionClick}
-          disabled={isExporting}
+          disabled={isExporting || isCompleted}
           className="w-full py-4 px-6 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-[#64748B]/40 disabled:cursor-not-allowed font-bold text-white text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-[#2563EB]/10 hover:shadow-[#2563EB]/25 cursor-pointer animate-pulse-subtle"
         >
-          {isExporting ? (
+          {isCompleted ? (
+            <>
+              <Check className="w-5 h-5" /> Signed Successfully
+            </>
+          ) : isExporting ? (
             <>
               <RefreshCw className="w-5 h-5 animate-spin" /> Generating Signed
               PDF...

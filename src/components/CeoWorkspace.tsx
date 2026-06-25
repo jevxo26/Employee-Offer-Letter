@@ -19,9 +19,9 @@ interface CeoWorkspaceProps {
   isExporting: boolean;
   onExport: () => void;
   isDemo: boolean;
+  isOfferSent: boolean;
   onSendOffer: () => void;
-  previewRef1: React.RefObject<HTMLDivElement | null>;
-  previewRef2: React.RefObject<HTMLDivElement | null>;
+  previewRefs: React.RefObject<HTMLDivElement | null>[];
   docType: DocType;
   employeeCard: EmployeeCard;
   setEmployeeCard: React.Dispatch<React.SetStateAction<EmployeeCard>>;
@@ -39,9 +39,9 @@ export default function CeoWorkspace({
   isExporting,
   onExport,
   isDemo,
+  isOfferSent,
   onSendOffer,
-  previewRef1,
-  previewRef2,
+  previewRefs,
   docType,
   employeeCard,
   setEmployeeCard,
@@ -96,6 +96,7 @@ export default function CeoWorkspace({
                     isExporting={isExporting}
                     onExport={onExport}
                     isDemo={isDemo}
+                    isOfferSent={isOfferSent}
                     onSendOffer={onSendOffer}
                   />
                 </div>
@@ -104,8 +105,7 @@ export default function CeoWorkspace({
                 firstParty={firstParty}
                 secondParty={secondParty}
                 settings={docSettings}
-                previewRef1={previewRef1}
-                previewRef2={previewRef2}
+                previewRefs={previewRefs}
                 isExporting={isExporting}
                 onExport={onExport}
                 isDemo={isDemo}
@@ -152,6 +152,7 @@ export default function CeoWorkspace({
         isExporting={isExporting}
         onExport={onExport}
         isDemo={isDemo}
+        isOfferSent={isOfferSent}
         onSendOffer={onSendOffer}
       />
       </div>
@@ -159,8 +160,7 @@ export default function CeoWorkspace({
         firstParty={firstParty}
         secondParty={secondParty}
         settings={docSettings}
-        previewRef1={previewRef1}
-        previewRef2={previewRef2}
+        previewRefs={previewRefs}
         isExporting={isExporting}
         onExport={onExport}
         isDemo={isDemo}

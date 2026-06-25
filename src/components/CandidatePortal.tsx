@@ -12,10 +12,10 @@ interface CandidatePortalProps {
   setSecondParty: React.Dispatch<React.SetStateAction<SecondParty>>;
   docSettings: DocSettings;
   isExporting: boolean;
+  isCompleted: boolean;
   onExport: () => void;
   offerId: string;
-  previewRef1: React.RefObject<HTMLDivElement | null>;
-  previewRef2: React.RefObject<HTMLDivElement | null>;
+  previewRefs: React.RefObject<HTMLDivElement | null>[];
 }
 
 export default function CandidatePortal({
@@ -24,10 +24,10 @@ export default function CandidatePortal({
   setSecondParty,
   docSettings,
   isExporting,
+  isCompleted,
   onExport,
   offerId,
-  previewRef1,
-  previewRef2,
+  previewRefs,
 }: CandidatePortalProps) {
   return (
     <motion.section
@@ -44,6 +44,7 @@ export default function CandidatePortal({
         secondParty={secondParty}
         setSecondParty={setSecondParty}
         isExporting={isExporting}
+        isCompleted={isCompleted}
         onExport={onExport}
         offerId={offerId}
       />
@@ -52,8 +53,7 @@ export default function CandidatePortal({
         firstParty={firstParty}
         secondParty={secondParty}
         settings={docSettings}
-        previewRef1={previewRef1}
-        previewRef2={previewRef2}
+        previewRefs={previewRefs}
         isExporting={isExporting}
         onExport={onExport}
         isDemo={false}
