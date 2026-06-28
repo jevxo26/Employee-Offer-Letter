@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     const updatedSecondParty = { ...secondParty, partnerId };
     const updatedDocSettings = { ...docSettings, refId: agreementId };
 
-    const { agreement } = await saveAgreement({
+    await saveAgreement({
       agreementId,
       partnerId,
       docType,

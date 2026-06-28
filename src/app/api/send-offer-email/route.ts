@@ -94,10 +94,10 @@ export async function POST(request: Request) {
 
     console.log(`[Next.js API] Offer email dispatched via Resend: ${emailResult.data?.id}`);
     return NextResponse.json({ success: true, messageId: emailResult.data?.id });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[Next.js API] Error dispatching email:", err);
     return NextResponse.json(
-      { error: err.message || "Internal server error." },
+      { error: err instanceof Error ? err.message : "Internal server error." },
       { status: 500 }
     );
   }

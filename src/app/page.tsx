@@ -302,6 +302,8 @@ export default function Home() {
       if (!p.permanentAddress.trim()) return "Permanent Address is required.";
     } else if (activeStep === 4) {
       if (!docSettings.date.trim()) return "Signing Date is required.";
+      if (!secondParty.partnerIdSerial?.trim()) return "Partner ID serial is required.";
+      if (!docSettings.refIdSerial?.trim()) return "Agreement ID serial is required.";
       if (!docSettings.equityShare) return "Equity Share is required.";
       if (docSettings.equityShare < 1 || docSettings.equityShare > 100) return "Equity Share must be between 1% and 100%.";
       if (!docSettings.minimumServicePeriod) return "Minimum Service Period is required.";

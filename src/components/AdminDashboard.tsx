@@ -57,7 +57,13 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
   }, []);
 
   useEffect(() => {
-    loadAgreements();
+    const timer = window.setTimeout(() => {
+      void loadAgreements();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [loadAgreements]);
 
   const handleResend = async (agreementId: string) => {

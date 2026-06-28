@@ -1,18 +1,24 @@
-import mongoose from "mongoose";
+import mongoose, { Mongoose } from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI;
+type MongooseCache = {
+  conn: Mongoose | null;
+  promise: Promise<Mongoose> | null;
+};
 
-if (!MONGODB_URI) {
-  throw new Error("Please define the MONGODB_URI environment variable inside .env.local");
+declare global {
+  var mongooseCache: MongooseCache | undefined;
 }
 
-let cached = (global as any).mongoose;
-
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
-}
+const cached: MongooseCache =
+  global.mongooseCache ?? (global.mongooseCache = { conn: null, promise: null });
 
 async function dbConnect() {
+  const mongodbUri = process.env.MONGODB_URI;
+ console.log("[dbConnect] URI loaded:", mongodbUri ? "YES (length: " + mongodbUri.length + ")" : "NO — UNDEFINED");
+  if (!mongodbUri) {
+    throw new Error("MONGODB_URI is not configured.");
+  }
+
   if (cached.conn) {
     return cached.conn;
   }
@@ -21,9 +27,10 @@ async function dbConnect() {
     const opts = {
       bufferCommands: false,
       dbName: "jevxo-doc-engine",
+      serverSelectionTimeoutMS: 10000,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI as string, opts).then((mongoose) => {
+    cached.promise = mongoose.connect(mongodbUri, opts).then((mongoose) => {
       return mongoose;
     });
   }

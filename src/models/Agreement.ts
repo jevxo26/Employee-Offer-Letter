@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { DocSettings, FirstParty, SecondParty } from "../types";
 
 export interface IAgreement extends Document {
   agreementId: string;
@@ -9,9 +10,9 @@ export interface IAgreement extends Document {
   partnerSigned: boolean;
   signedAt?: Date;
   
-  firstParty: any;
-  secondParty: any;
-  docSettings: any;
+  firstParty: FirstParty;
+  secondParty: SecondParty;
+  docSettings: DocSettings;
   pdfData?: string; // base64 string
 }
 

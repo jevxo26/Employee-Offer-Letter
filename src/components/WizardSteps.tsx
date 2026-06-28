@@ -359,10 +359,26 @@ export function Step4({
   const [partnerWarning, setPartnerWarning] = React.useState("");
   const [refWarning, setRefWarning] = React.useState("");
 
+  const buildPartnerId = React.useCallback(
+    (serial: string) =>
+      serial ? `JVX-PT-${currentYearStr}-${serial.padStart(3, "0")}` : "",
+    [currentYearStr]
+  );
+
+  const buildAgreementId = React.useCallback(
+    (serial: string) =>
+      serial ? `JVX-AGR-${currentYearStr}-${serial.padStart(3, "0")}` : "",
+    [currentYearStr]
+  );
+
   React.useEffect(() => {
     let cancelled = false;
 
     async function loadNextIds() {
+      if (secondParty.partnerIdSerial && docSettings.refIdSerial) {
+        return;
+      }
+
       try {
         const res = await fetch("/api/check-id?action=next");
         if (!res.ok) return;
@@ -372,13 +388,21 @@ export function Step4({
 
         setSecondParty((prev) => ({
           ...prev,
-          partnerId: data.partnerId,
-          partnerIdSerial: data.partnerId?.split("-").pop() || prev.partnerIdSerial,
+          partnerId:
+            prev.partnerIdSerial || data.partnerId?.split("-").pop()
+              ? buildPartnerId(prev.partnerIdSerial || data.partnerId?.split("-").pop() || "")
+              : prev.partnerId,
+          partnerIdSerial:
+            prev.partnerIdSerial || data.partnerId?.split("-").pop() || prev.partnerIdSerial,
         }));
         setDocSettings((prev) => ({
           ...prev,
-          refId: data.agreementId,
-          refIdSerial: data.agreementId?.split("-").pop() || prev.refIdSerial,
+          refId:
+            prev.refIdSerial || data.agreementId?.split("-").pop()
+              ? buildAgreementId(prev.refIdSerial || data.agreementId?.split("-").pop() || "")
+              : prev.refId,
+          refIdSerial:
+            prev.refIdSerial || data.agreementId?.split("-").pop() || prev.refIdSerial,
         }));
       } catch (error) {
         console.error("Failed to load dynamic IDs", error);
@@ -390,7 +414,14 @@ export function Step4({
     return () => {
       cancelled = true;
     };
-  }, [setDocSettings, setSecondParty]);
+  }, [
+    buildAgreementId,
+    buildPartnerId,
+    docSettings.refIdSerial,
+    secondParty.partnerIdSerial,
+    setDocSettings,
+    setSecondParty,
+  ]);
 
   React.useEffect(() => {
     const timer = setTimeout(async () => {
@@ -427,32 +458,50 @@ export function Step4({
   const handlePartnerSerialChange = (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const serial = e.target.value
-      .replace(/\D/g, "")
-      .slice(0, 3)
-      .padStart(3, "0");
-    const fullId = `JVX-PT-${currentYearStr}-${serial}`;
+    const serial = e.target.value.replace(/\D/g, "").slice(0, 3);
 
     setSecondParty((prev) => ({
       ...prev,
       partnerIdSerial: serial,
-      partnerId: fullId,
+      partnerId: buildPartnerId(serial),
     }));
   };
 
   // Handle Document Ref ID Serial Input
   const handleRefSerialChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const serial = e.target.value
-      .replace(/\D/g, "")
-      .slice(0, 3)
-      .padStart(3, "0");
-    const fullRef = `JVX-AGR-${currentYearStr}-${serial}`;
+    const serial = e.target.value.replace(/\D/g, "").slice(0, 3);
 
     setDocSettings((prev) => ({
       ...prev,
       refIdSerial: serial,
-      refId: fullRef,
+      refId: buildAgreementId(serial),
     }));
+  };
+
+  const normalizePartnerSerial = () => {
+    setSecondParty((prev) => {
+      const serial = prev.partnerIdSerial?.trim() || "";
+      const normalized = serial ? serial.padStart(3, "0") : "";
+
+      return {
+        ...prev,
+        partnerIdSerial: normalized,
+        partnerId: buildPartnerId(normalized),
+      };
+    });
+  };
+
+  const normalizeRefSerial = () => {
+    setDocSettings((prev) => {
+      const serial = prev.refIdSerial?.trim() || "";
+      const normalized = serial ? serial.padStart(3, "0") : "";
+
+      return {
+        ...prev,
+        refIdSerial: normalized,
+        refId: buildAgreementId(normalized),
+      };
+    });
   };
 
 
@@ -509,6 +558,7 @@ export function Step4({
                   maxLength={3}
                   value={secondParty.partnerIdSerial || ""}
                   onChange={handlePartnerSerialChange}
+                  onBlur={normalizePartnerSerial}
                   className="flex-1 bg-transparent px-4 text-sm font-mono font-black focus:outline-none"
                   placeholder="001"
                 />
@@ -533,6 +583,7 @@ export function Step4({
                   maxLength={3}
                   value={docSettings.refIdSerial || ""}
                   onChange={handleRefSerialChange}
+                  onBlur={normalizeRefSerial}
                   className="flex-1 bg-transparent px-4 text-sm font-mono font-black focus:outline-none"
                   placeholder="001"
                 />
