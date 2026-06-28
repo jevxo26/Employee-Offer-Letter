@@ -25,7 +25,7 @@ export async function generateIds(): Promise<{ agreementId: string; partnerId: s
     }
   }
 
-  const sequenceStr = nextSequence.toString().padStart(4, "0");
+  const sequenceStr = nextSequence.toString().padStart(3, "0");
 
   const agreementId = `JVX-AGR-${currentYearStr}-${sequenceStr}`;
   const partnerId = `JVX-PT-${currentYearStr}-${sequenceStr}`;

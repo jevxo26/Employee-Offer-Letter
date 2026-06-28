@@ -14,7 +14,7 @@ const cached: MongooseCache =
 
 async function dbConnect() {
   const mongodbUri = process.env.MONGODB_URI;
- console.log("[dbConnect] URI loaded:", mongodbUri ? "YES (length: " + mongodbUri.length + ")" : "NO — UNDEFINED");
+
   if (!mongodbUri) {
     throw new Error("MONGODB_URI is not configured.");
   }
@@ -27,7 +27,9 @@ async function dbConnect() {
     const opts = {
       bufferCommands: false,
       dbName: "jevxo-doc-engine",
-      serverSelectionTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 5000,
+      socketTimeoutMS: 10000,
     };
 
     cached.promise = mongoose.connect(mongodbUri, opts).then((mongoose) => {

@@ -429,7 +429,9 @@ export function Step4({
       try {
         const res = await fetch(`/api/check-id?action=check&partnerId=${secondParty.partnerId}`);
         const data = await res.json();
-        setPartnerWarning(data.partnerTaken ? "Warning: This Partner ID is already taken." : "");
+        setPartnerWarning(
+          data.partnerTaken ? "⚠️ This Partner ID is already taken." : "",
+        );
       } catch {}
     }, 500);
     return () => clearTimeout(timer);
@@ -563,10 +565,12 @@ export function Step4({
                   placeholder="001"
                 />
               </div>
-              <p className="mt-1.5 text-xs text-emerald-600 font-mono font-bold">
+              <span className="flex justify-around items-center">
+              <p className={`mt-1.5 text-xs font-mono font-bold ${partnerWarning ? "text-rose-600" : "text-emerald-600"}`}>
                 {secondParty.partnerId}
               </p>
               {partnerWarning && <p className="text-[10px] text-rose-600 font-bold mt-1">{partnerWarning}</p>}
+            </span>
             </div>
 
             {/* Document Reference ID */}
@@ -588,10 +592,12 @@ export function Step4({
                   placeholder="001"
                 />
               </div>
-              <p className="mt-1.5 text-xs text-emerald-600 font-mono font-bold">
+              <span className="flex justify-around items-center">
+              <p className={`mt-1.5 text-xs font-mono font-bold ${refWarning ? "text-rose-600" : "text-emerald-600"}`}>
                 {docSettings.refId}
               </p>
               {refWarning && <p className="text-[10px] text-rose-600 font-bold mt-1">{refWarning}</p>}
+            </span>
             </div>
           </div>
         </div>
