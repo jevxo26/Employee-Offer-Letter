@@ -150,31 +150,27 @@ export default function DocumentPreview({
     >
       {/* PAGE 1 — Header, parties, QR top-right, Appointment & Responsibilities */}
       <PageShell pageNum={1} refProp={previewRefs[0]}>
-        <div className="absolute top-6 right-10 z-20 flex items-start gap-3">
+        <div className="absolute top-7 md:top-8 lg:top-10 right-10 z-20 flex items-center gap-2">
           <div className="flex flex-col items-end text-right font-sans">
-            <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">
+            <span className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">
               Agreement Document
             </span>
-            <div className="bg-slate-900 text-white text-xs px-3 py-1 font-mono font-semibold tracking-wider rounded">
+            <div className="bg-slate-900 text-white text-[10px] px-2.5 py-1 font-mono font-semibold tracking-wider rounded">
               Ref: {safeData.documentId}
             </div>
-            <span className="text-[11px] font-medium text-slate-500 mt-1.5 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full inline-block" />
-              Date: {safeData.date}
-            </span>
-            <span className="text-[12px] text-slate-600  mt-1 font-bold">
+            <span className="text-[11px] text-slate-600 mt-0.5 font-bold">
               Partner ID: {safeData.partnerId}
             </span>
           </div>
-          <div className="bg-white p-1.5 border border-slate-200 rounded shadow-sm shrink-0">
-            <QRCode value={verifyUrl} size={72} level="M" />
+          <div className="bg-white p-1 border border-slate-200 rounded shadow-sm shrink-0">
+            <QRCode value={verifyUrl} size={56} level="M" />
           </div>
         </div>
 
         <div className="z-10 flex flex-col flex-grow">
           <header
             id="page-header"
-            className="flex justify-between items-start border-b-2 border-slate-900 pb-3 mb-2 relative pr-52"
+            className="flex justify-between items-start border-b-2 border-slate-900 pb-3 mb-2 relative pr-44"
           >
             <div className="flex flex-col">
               <JevxoLogo />
@@ -471,68 +467,70 @@ export default function DocumentPreview({
           />
 
           <div className="space-y-5">
-              <section id="section-place-of-work">
-                <h4 className="font-sans font-bold text-[15px] uppercase tracking-wider text-indigo-600 mb-1 flex items-center gap-2">
-                  <span className="bg-indigo-100 text-indigo-800 text-[10px] font-mono px-1.5 py-0.5 rounded">
-                    04
-                  </span>
-                  Place of Work (Remote Work Policy)
-                </h4>
-                <div className="text-[13px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-3 rounded-md shadow-sm">
-                  <p>
-                    At present, all duties and responsibilities shall be
-                    performed on a{" "}
-                    <strong className="text-indigo-600 font-semibold">
-                      remote basis
-                    </strong>
-                    . The Company reserves the right to transition operations to
-                    a physical office environment when it reaches a sustainable
-                    and profitable stage, providing official written notice in
-                    advance.
-                  </p>
-                </div>
-              </section>
+            <section id="section-place-of-work">
+              <h4 className="font-sans font-bold text-[15px] uppercase tracking-wider text-indigo-600 mb-1 flex items-center gap-2">
+                <span className="bg-indigo-100 text-indigo-800 text-[10px] font-mono px-1.5 py-0.5 rounded">
+                  04
+                </span>
+                Work Arrangement & Remote Work Policy
+              </h4>
+              <div className="text-[13px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-3 rounded-md shadow-sm">
+                <p>
+                  At present, all duties and responsibilities under this
+                  Agreement shall be performed on a remote basis. The Partner
+                  shall dedicate a minimum of{" "}
+                  <strong> six (6) productive working hours </strong>
+                  per business day under a flexible work schedule, ensuring
+                  timely completion of assigned responsibilities, regular
+                  communication and attendance at scheduled meetings. The
+                  Company reserves the right to transition operations to a
+                  physical office environment upon reaching a sustainable and
+                  profitable stage, with prior official written notice.
+                </p>
+              </div>
+            </section>
 
-              <section id="section-confidentiality-nda">
-                <h4 className="font-sans font-bold text-[15px] uppercase tracking-wider text-indigo-600 mb-1 flex items-center gap-2">
-                  <span className="bg-indigo-100 text-indigo-800 text-[10px] font-mono px-1.5 py-0.5 rounded">
-                    05
-                  </span>
-                  Confidentiality &amp; NDA
-                </h4>
-                <div className="text-[13px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-3 rounded-md shadow-sm">
-                  <p>
-                    All company-related information, including source code,
-                    client data, business strategies, financial info, intellectual property and
-                    future plans, shall be treated as strictly confidential. The
-                    Partner agrees not to disclose, share, or misuse any
-                    confidential information during or after the course of
-                    engagement.
-                    <br /> Any unauthorized disclosure or misuse of confidential info shall be considered a material breach of this agreement and may result in legal action, claims for damages and other remedies available under applicable law. 
-                  </p>
-                </div>
-              </section>
+            <section id="section-confidentiality-nda">
+              <h4 className="font-sans font-bold text-[15px] uppercase tracking-wider text-indigo-600 mb-1 flex items-center gap-2">
+                <span className="bg-indigo-100 text-indigo-800 text-[10px] font-mono px-1.5 py-0.5 rounded">
+                  05
+                </span>
+                Confidentiality &amp; Non-Disclosure Agreement (NDA)
+              </h4>
+              <div className="text-[13px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-3 rounded-md shadow-sm">
+                <p>
+                  All company-related information, including source code, client
+                  data, business strategies, financial info, intellectual
+                  property and future plans, shall be treated as strictly
+                  confidential. The Partner agrees not to disclose, share, or
+                  misuse any confidential information during or after the course
+                  of engagement.
+                  <br /> Any unauthorized disclosure or misuse of confidential
+                  info shall be considered a material breach of this agreement
+                  and may result in legal action, claims for damages and other
+                  remedies available under applicable law.
+                </p>
+              </div>
+            </section>
 
-              <section id="section-intellectual-property">
-                <h4 className="font-sans font-bold text-[15px] uppercase tracking-wider text-indigo-600 mb-1 flex items-center gap-2">
-                  <span className="bg-indigo-100 text-indigo-800 text-[10px] font-mono px-1.5 py-0.5 rounded">
-                    06
-                  </span>
-                  Intellectual Property Ownership
-                </h4>
-                <div className="text-[13px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-3 rounded-md shadow-sm">
-                  <p>
-                    All source code, software applications, designs, systems, documents, inventions, work products, databases
-                    and other intellectual property developed by the Partner in
-                    connection with Company activities shall remain the
-                    exclusive property of{" "}
-                    <strong className="text-indigo-700 font-bold">
-                      {safeData.companyName}
-                    </strong> {" "}
-                    unless otherwise agreed in writing.
-                  </p>
-                </div>
-              </section>
+            <section id="section-intellectual-property">
+              <h4 className="font-sans font-bold text-[15px] uppercase tracking-wider text-indigo-600 mb-1 flex items-center gap-2">
+                <span className="bg-indigo-100 text-indigo-800 text-[10px] font-mono px-1.5 py-0.5 rounded">
+                  06
+                </span>
+                Intellectual Property Ownership
+              </h4>
+              <div className="text-[13px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-3 rounded-md shadow-sm">
+                <p>
+                  All source code, software applications, designs, systems,
+                  documents, inventions, work products, databases and other
+                  intellectual property developed by the Partner in connection
+                  with Company activities shall remain the exclusive property of{" "}
+                  <strong className="font-bold">{safeData.companyName}</strong>{" "}
+                  unless otherwise agreed in writing.
+                </p>
+              </div>
+            </section>
             <section id="section-termination-resignation">
               <h4 className="font-sans font-bold text-[15px] uppercase tracking-wider text-indigo-600 mb-1 flex items-center gap-2">
                 <span className="bg-indigo-100 text-indigo-800 text-[10px] font-mono px-1.5 py-0.5 rounded">
@@ -544,12 +542,19 @@ export default function DocumentPreview({
                 <p>
                   Either Party may terminate this agreement by providing the
                   other Party with a minimum of{" "}
-                  <strong className="text-red-600 font-semibold">
+                  <strong className="text-indigo-600 font-bold">
                     {safeData.noticePeriodDays} days&apos;
                   </strong>{" "}
-                  written notice. <br /> The Company reserves the right to implement 
-                  <strong> immediate termination</strong> in cases involving fraud, misconduct, breach of confidentiality, gross negligence, unethical behavior, violation of company policies or any action that causes significant harm to the Company's interests, reputation or operations. <br />
-                  Upon termination, both Parties shall fulfill any outstanding obligations and return any Company-owned property, documents, credentials or confidential information in their possession.
+                  written notice. <br /> The Company reserves the right to
+                  implement
+                  <strong> immediate termination</strong> in cases involving
+                  fraud, misconduct, breach of confidentiality, gross
+                  negligence, unethical behavior, violation of company policies
+                  or any action that causes significant harm to the Company's
+                  interests, reputation or operations. <br />
+                  Upon termination, both Parties shall fulfill any outstanding
+                  obligations and return any Company-owned property, documents,
+                  credentials or confidential information in their possession.
                 </p>
               </div>
             </section>
@@ -561,7 +566,7 @@ export default function DocumentPreview({
               <h4 className="font-sans font-bold text-indigo-700 text-[16px] uppercase tracking-wider mb-2">
                 Acceptance &amp; Executory Signatures
               </h4>
-              <p className="text-[13px] text-slate-600 leading-relaxed font-sans mb-4 bg-white/50 p-3 rounded-md border border-slate-100 shadow-sm text-justify">
+              <p className="text-[13px] text-slate-600 leading-relaxed font-sans bg-white/50 p-3 rounded-md border border-slate-100 shadow-sm text-justify">
                 I,{" "}
                 <strong className="text-slate-800 font-bold">
                   {safeData.partnerName}
@@ -628,7 +633,7 @@ export default function DocumentPreview({
                   <div className="text-[11px] text-slate-500 text-center">
                     {safeData.companyRepRole}, {safeData.companyName}
                   </div>
-                  <div className="text-[10px] text-slate-400 text-center mt-2">
+                  <div className="text-[10px] text-slate-400 text-center my-2">
                     Date: {safeData.date}
                   </div>
                 </div>
@@ -639,7 +644,7 @@ export default function DocumentPreview({
 
         <footer
           id="page-3-footer"
-          className="mt-auto pt-3 border-t border-slate-900 text-[13px] text-slate-500 font-mono flex flex-col gap-1.5 z-10"
+          className="mt-auto pt-1 border-t border-slate-900 text-[13px] text-slate-500 font-mono flex flex-col gap-1.5 z-10"
         >
           <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-slate-100">
             <span>
