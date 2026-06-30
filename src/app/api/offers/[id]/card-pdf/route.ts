@@ -1,14 +1,23 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { findAgreementById, updateAgreement } from "../../../../../lib/agreementStore";
+import {
+  getFounderNotificationRecipients,
+  getResendFromAddress,
+} from "../../../../../lib/emailConfig";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
  * POST /api/offers/[id]/card-pdf
- * Receives the client-generated ID card PDF base64, saves it to the DB,
- * and sends it via email to both parties alongside the already-stored letter PDF.
- * Called AFTER /sign succeeds — split to avoid FUNCTION_PAYLOAD_TOO_LARGE on Vercel.
+ * Receives the client-generated ID card PDF (captured with the candidate's own
+ * photo), saves it to the DB, then sends ONE combined email to both parties
+ * containing the appointment letter + the correct ID card.
+ *
+ * This is the SOLE email dispatch point for the candidate-signing flow.
+ * /sign intentionally skips email so that both parties receive a single,
+ * complete email rather than two separate ones (the first of which would have
+ * the pre-generated photo-less founder card).
  */
 export async function POST(
   request: Request,
@@ -33,49 +42,79 @@ export async function POST(
       return NextResponse.json({ error: "Agreement not found." }, { status: 404 });
     }
 
-    // Save card PDF to DB
+    // Pull the appointment letter that /sign already saved to the DB
+    const letterPDFdata =
+      typeof agreement.letterPDFdata === "string"
+        ? agreement.letterPDFdata.replace(/^data:application\/pdf(?:;[^;]*)?;base64,/, "")
+        : "";
+
+    // Save the correct (candidate-photo) card PDF to DB
     await updateAgreement(id, {
       cardPDFdata,
       idCardGenerated: true,
-      idCardSent: true,
+      idCardSent: false,
     });
 
-    // Send email with card PDF to both parties (letter PDF already sent by /sign)
+    let founderEmailSent = false;
+    let partnerEmailSent = false;
+
     if (process.env.RESEND_API_KEY) {
-      const founderEmail = process.env.FOUNDER_EMAIL || agreement.firstParty.email;
+      const founderRecipients = getFounderNotificationRecipients(
+        process.env.FOUNDER_EMAIL,
+        agreement.firstParty.email,
+      );
       const partnerEmail = agreement.secondParty.email;
       const founderName  = agreement.firstParty.representedBy;
       const partnerName  = agreement.secondParty.fullName;
 
-      console.log(`[card-pdf] Sending ID card emails — founder: ${founderEmail}, partner: ${partnerEmail}`);
+      console.log(
+        `[card-pdf] Sending combined emails — founder: ${founderRecipients.join(", ")}, partner: ${partnerEmail}`
+      );
 
-      const attachment = { filename: `${id}-id-card.pdf`, content: cardPDFdata };
+      // Build attachments — always include the card; add letter if available
+      const attachments: { filename: string; content: string }[] = [
+        { filename: `${id}-id-card.pdf`, content: cardPDFdata },
+      ];
+      if (letterPDFdata) {
+        attachments.unshift({ filename: `${id}-appointment.pdf`, content: letterPDFdata });
+      }
 
       const [founderResult, partnerResult] = await Promise.all([
         resend.emails.send({
-          from: "JEVXO <info@jevxo.com>",
-          to: [founderEmail],
-          subject: `ID Card Ready — ${partnerName}`,
-          text: `Dear ${founderName},\n\nThe employee ID card for ${partnerName} is attached.\n\nBest,\nJEVXO HR System`,
-          attachments: [attachment],
+          from: getResendFromAddress(),
+          to: founderRecipients,
+          subject: "Appointment Letter Fully Executed",
+          text: `Dear ${founderName},\n\nThe appointment letter for ${partnerName} has been fully executed. Please find the attached documents.\n\nBest,\nJEVXO HR System`,
+          attachments,
         }),
         resend.emails.send({
-          from: "JEVXO <info@jevxo.com>",
+          from: getResendFromAddress(),
           to: [partnerEmail],
-          subject: "Your JEVXO Employee ID Card",
-          text: `Dear ${partnerName},\n\nYour JEVXO employee ID card is attached.\n\nBest,\nJEVXO`,
-          attachments: [attachment],
+          subject: "Your Appointment Letter & ID Card from JEVXO",
+          text: `Dear ${partnerName},\n\nYour appointment letter and employee ID card from JEVXO are attached.\n\nBest,\nJEVXO`,
+          attachments,
         }),
       ]);
 
       if (founderResult.error) console.error("[card-pdf] Founder email failed:", founderResult.error);
-      else console.log(`[card-pdf] Founder email sent: ${founderResult.data?.id}`);
+      else { founderEmailSent = true; console.log(`[card-pdf] Founder email sent: ${founderResult.data?.id}`); }
 
       if (partnerResult.error) console.error("[card-pdf] Partner email failed:", partnerResult.error);
-      else console.log(`[card-pdf] Partner email sent: ${partnerResult.data?.id}`);
+      else { partnerEmailSent = true; console.log(`[card-pdf] Partner email sent: ${partnerResult.data?.id}`); }
     }
 
-    return NextResponse.json({ success: true });
+    const sentToBoth = founderEmailSent && partnerEmailSent;
+    await updateAgreement(id, {
+      letterSentToBoth: sentToBoth,
+      idCardSent: sentToBoth,
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: sentToBoth
+        ? "The fully executed documents have been emailed to you and the Founder."
+        : "Documents generated, but at least one email delivery failed.",
+    });
   } catch (err: unknown) {
     console.error("[card-pdf] Error:", err);
     return NextResponse.json({ error: "Failed to process card PDF." }, { status: 500 });

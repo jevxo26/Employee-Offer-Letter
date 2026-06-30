@@ -1,13 +1,6 @@
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
 import { findAgreementById, updateAgreement } from "../../../../../lib/agreementStore";
 import { generateIdCardPdf } from "../../../../../lib/idCardPdf";
-import {
-  getFounderNotificationRecipients,
-  getResendFromAddress,
-} from "../../../../../lib/emailConfig";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(
   request: Request,
@@ -104,73 +97,17 @@ export async function POST(
 
     console.log(`[Next.js API] Offer fully executed: ${id}`);
 
-    let founderEmailSent = false;
-    let partnerEmailSent = false;
-
-    if (process.env.RESEND_API_KEY) {
-      const founderRecipients = getFounderNotificationRecipients(
-        process.env.FOUNDER_EMAIL,
-        updated.firstParty.email,
-      );
-      const partnerEmail = updated.secondParty.email;
-      const founderName  = updated.firstParty.representedBy;
-      const partnerName  = updated.secondParty.fullName;
-
-      console.log(
-        `[Next.js API] Sending emails — founder: ${founderRecipients.join(", ")}, partner: ${partnerEmail}`
-      );
-
-      const attachments: { filename: string; content: string }[] = [
-        { filename: `${id}-appointment.pdf`, content: normalizedLetterPdf },
-      ];
-      if (idCardPdfBase64) {
-        attachments.push({ filename: `${id}-id-card.pdf`, content: idCardPdfBase64 });
-      }
-
-      const [founderResult, partnerResult] = await Promise.all([
-        resend.emails.send({
-          from: getResendFromAddress(),
-          to: founderRecipients,
-          subject: "Appointment Letter Fully Executed",
-          text: `Dear ${founderName},\n\nThe appointment letter for ${partnerName} has been fully executed. Please find the attached documents.\n\nBest,\nJEVXO HR System`,
-          attachments,
-        }),
-        resend.emails.send({
-          from: getResendFromAddress(),
-          to: [partnerEmail],
-          subject: "Your Appointment Letter & ID Card from JEVXO",
-          text: `Dear ${partnerName},\n\nYour appointment letter and employee ID card from JEVXO are attached.\n\nBest,\nJEVXO`,
-          attachments,
-        }),
-      ]);
-
-      if (founderResult.error) {
-        console.error("[Next.js API] Founder email failed:", founderResult.error);
-      } else {
-        founderEmailSent = true;
-        console.log(`[Next.js API] Founder email sent: ${founderResult.data?.id}`);
-      }
-      if (partnerResult.error) {
-        console.error("[Next.js API] Partner email failed:", partnerResult.error);
-      } else {
-        partnerEmailSent = true;
-        console.log(`[Next.js API] Partner email sent: ${partnerResult.data?.id}`);
-      }
-    }
-
-    const lettersSentToBoth = founderEmailSent && partnerEmailSent;
-    const idCardSentToBoth = lettersSentToBoth && idCardPdfBase64.length > 0;
-
-    await updateAgreement(id, {
-      letterSentToBoth: lettersSentToBoth,
-      idCardSent: idCardSentToBoth,
-    });
+    // ── No emails sent here ───────────────────────────────────────────────────
+    // The /card-pdf route (called immediately after this by the client) sends the
+    // single combined email with BOTH the appointment letter and the correct ID card
+    // (captured client-side with the candidate's photo).  Sending here would cause
+    // the candidate to receive a duplicate email with the pre-generated (photo-less)
+    // founder card, which is wrong.  All email dispatch is intentionally deferred to
+    // /card-pdf so both parties receive exactly one email containing both documents.
 
     return NextResponse.json({
       success: true,
-      message: lettersSentToBoth
-        ? "Signature applied successfully! The fully executed documents have been emailed to you and the Founder."
-        : "Signature applied successfully! The fully executed documents were generated, but at least one email delivery failed.",
+      message: "Signature applied successfully! Generating your ID card…",
     });
   } catch (err: unknown) {
     console.error("[Next.js API] Error signing offer:", err);

@@ -389,10 +389,7 @@ export default function Home() {
         }
 
         setIsCandidateSigned(true);
-        toast.success(
-          data?.message ||
-            "Signature applied! Generating your ID card..."
-        );
+        toast.info("Signature applied! Preparing your documents…");
 
         // Step 2: Generate and send ID card PDF separately (avoids payload limit).
         // Wait one animation frame so React flushes the isCandidateSigned state
@@ -406,12 +403,16 @@ export default function Home() {
           try {
             const cardPDFdata = await buildIdCardPdfBase64(frontEl, backEl);
             if (cardPDFdata) {
-              await fetch(`/api/offers/${offerId}/card-pdf`, {
+              const cardRes = await fetch(`/api/offers/${offerId}/card-pdf`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ cardPDFdata }),
               });
-              toast.success("Your ID card has been emailed to you and the Founder.");
+              const cardData = await cardRes.json().catch(() => null);
+              toast.success(
+                cardData?.message ||
+                  "The fully executed documents have been emailed to you and the Founder."
+              );
             }
           } catch (cardErr) {
             console.warn("ID card PDF generation skipped:", cardErr);
