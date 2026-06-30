@@ -242,8 +242,7 @@ export default function Home() {
     }));
   };
 
-  const handleSendOffer = async (idCardPdfBase64?: string) => {
-    // Generate a temporary ID for local storage fallback, but we will use the DB ID for the real link.
+  const handleSendOffer = async () => {
     const tempId = Math.random().toString(36).substring(2, 11);
     const stateToSave = { firstParty, secondParty, docSettings };
     localStorage.setItem("jevxo_offer_" + tempId, JSON.stringify(stateToSave));
@@ -261,8 +260,6 @@ export default function Home() {
             secondParty,
             docSettings,
             docType,
-            // Store pre-generated id card PDF so sign route can attach it
-            cardPDFdata: idCardPdfBase64 || undefined,
           }),
         });
 

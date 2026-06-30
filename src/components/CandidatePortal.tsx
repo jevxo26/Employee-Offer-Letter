@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { motion } from "motion/react";
+import { toast } from "react-toastify";
+import { Upload } from "lucide-react";
 import CandidateSidebar from "./CandidateSidebar";
 import WorkspaceCanvas from "./WorkspaceCanvas";
 import { IdCardFront, IdCardBack } from "./EmployeeIdCard";
@@ -17,7 +19,6 @@ interface CandidatePortalProps {
   onExport: () => void;
   offerId: string;
   previewRefs: React.RefObject<HTMLDivElement | null>[];
-  /** Receives the id card refs so page.tsx can call buildIdCardPdfBase64 at sign time */
   onIdCardRefsReady?: (
     frontRef: React.RefObject<HTMLDivElement | null>,
     backRef:  React.RefObject<HTMLDivElement | null>,
@@ -36,13 +37,16 @@ export default function CandidatePortal({
   previewRefs,
   onIdCardRefsReady,
 }: CandidatePortalProps) {
-  const [activeTab, setActiveTab] = React.useState<"letter" | "idcard">("letter");
+  const [activeTab, setActiveTab] = useState<"letter" | "idcard">("letter");
 
-  // ID card refs — created here, shared up to page.tsx via callback
+  // Candidate's own photo — uploaded in ID card tab
+  const [candidatePhotoUrl, setCandidatePhotoUrl] = useState("");
+
+  // ID card DOM refs
   const cardFrontRef = useRef<HTMLDivElement>(null);
   const cardBackRef  = useRef<HTMLDivElement>(null);
 
-  // Register refs with parent once on mount
+  // Register refs with page.tsx on mount
   React.useEffect(() => {
     if (onIdCardRefsReady) {
       onIdCardRefsReady(cardFrontRef, cardBackRef);
@@ -50,16 +54,40 @@ export default function CandidatePortal({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Build card data from agreement fields
+  // Card data — uses candidate's uploaded photo
   const cardData: EmployeeCard = {
     fullName:   secondParty.fullName   || "",
     position:   secondParty.position   || "",
     employeeId: secondParty.partnerId  || "",
     bloodGroup: secondParty.bloodGroup || "A+",
     department: "",
-    photoUrl:   (secondParty as unknown as Record<string, string>).photoUrl || "",
+    photoUrl:   candidatePhotoUrl,
     issueDate:  docSettings.date       || "",
     expiryDate: "",
+  };
+
+  // Gate: candidate must upload photo before confirming
+  const handleConfirmSign = () => {
+    if (!candidatePhotoUrl) {
+      toast.error(
+        "Please upload your photo in the ID Card tab before signing.",
+        { autoClose: 5000 }
+      );
+      setActiveTab("idcard");
+      return;
+    }
+    onExport();
+  };
+
+  // Photo upload handler
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setCandidatePhotoUrl(ev.target?.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -87,6 +115,10 @@ export default function CandidatePortal({
             }`}
           >
             {label}
+            {/* Red dot if photo not uploaded yet */}
+            {id === "idcard" && !candidatePhotoUrl && !isCompleted && (
+              <span className="ml-1.5 inline-block w-1.5 h-1.5 rounded-full bg-rose-500 align-middle" />
+            )}
           </button>
         ))}
       </div>
@@ -95,7 +127,7 @@ export default function CandidatePortal({
       <div className="flex-1 flex flex-col xl:flex-row min-h-0 overflow-hidden">
         {activeTab === "letter" ? (
           <>
-            {/* Appointment letter tab — existing layout unchanged */}
+            {/* Appointment letter tab — existing layout, pass photo gate via onExport override */}
             <div className="sticky top-20 h-screen shrink-0">
               <CandidateSidebar
                 firstParty={firstParty}
@@ -103,8 +135,10 @@ export default function CandidatePortal({
                 setSecondParty={setSecondParty}
                 isExporting={isExporting}
                 isCompleted={isCompleted}
-                onExport={onExport}
+                onExport={handleConfirmSign}
                 offerId={offerId}
+                isPhotoUploaded={!!candidatePhotoUrl}
+                onSwitchToIdCard={() => setActiveTab("idcard")}
               />
             </div>
             <WorkspaceCanvas
@@ -113,16 +147,65 @@ export default function CandidatePortal({
               settings={docSettings}
               previewRefs={previewRefs}
               isExporting={isExporting}
-              onExport={onExport}
+              onExport={handleConfirmSign}
               isDemo={false}
             />
           </>
         ) : (
-          /* ID Card tab — read-only view, refs captured for PDF generation */
-          <div className="flex-1 flex items-center justify-center bg-[#1a1a2e] overflow-auto p-8">
+          /* ID Card tab — photo upload + card preview */}
+          <div className="flex-1 flex flex-col items-center bg-[#1a1a2e] overflow-auto p-6 sm:p-8 gap-6">
+
+            {/* Photo upload panel */}
+            {!isCompleted && (
+              <div className="w-full max-w-md bg-[#F8FAFC] rounded-2xl p-5 space-y-3">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-[#334155] uppercase tracking-wider flex items-center gap-1.5">
+                    <Upload className="w-3 h-3 text-[#2563EB]" />
+                    Your Photo{" "}
+                    <span className="text-rose-500 font-extrabold">* Required before signing</span>
+                  </span>
+                  <p className="text-[10px] text-[#64748B]">
+                    Upload a professional photo without background. This will appear on your ID card.
+                  </p>
+                </div>
+                <label className="flex flex-col items-center justify-center gap-2 h-28 border-2 border-dashed border-[#DBEAFE] hover:border-[#2563EB] rounded-xl cursor-pointer bg-white transition-all group">
+                  {candidatePhotoUrl ? (
+                    <img
+                      src={candidatePhotoUrl}
+                      alt="Your photo"
+                      className="h-full w-full object-cover rounded-xl"
+                    />
+                  ) : (
+                    <>
+                      <Upload className="w-5 h-5 text-[#94A3B8] group-hover:text-[#2563EB] transition" />
+                      <span className="text-xs font-medium text-[#94A3B8] group-hover:text-[#2563EB] transition">
+                        Click to upload your photo
+                      </span>
+                      <span className="text-[10px] text-[#CBD5E1]">PNG, JPG — transparent or plain background recommended</span>
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                  />
+                </label>
+                {candidatePhotoUrl && (
+                  <button
+                    onClick={() => setCandidatePhotoUrl("")}
+                    className="text-[10px] font-semibold text-red-400 hover:text-red-600 text-right w-full transition cursor-pointer"
+                  >
+                    Remove photo
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Card preview */}
             <div className="flex flex-col items-center gap-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-mono mb-2">
-                Your JEVXO Employee ID Card
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-mono">
+                Your JEVXO Employee ID Card Preview
               </p>
               <div className="flex flex-col xl:flex-row gap-8 items-center">
                 <div className="flex flex-col items-center gap-2">
@@ -138,10 +221,13 @@ export default function CandidatePortal({
                   <IdCardBack data={cardData} cardRef={cardBackRef} />
                 </div>
               </div>
-              <p className="text-[10px] text-slate-500 mt-2">
-                This ID card will be emailed to you once you sign the appointment letter.
-              </p>
+              {!isCompleted && (
+                <p className="text-[10px] text-slate-400 mt-1 text-center max-w-sm">
+                  Upload your photo above, then go to the Appointment Letter tab to sign and confirm.
+                </p>
+              )}
             </div>
+
           </div>
         )}
       </div>

@@ -13,6 +13,8 @@ interface CandidateSidebarProps {
   isCompleted: boolean;
   onExport: () => void;
   offerId: string;
+  isPhotoUploaded?: boolean;
+  onSwitchToIdCard?: () => void;
 }
 
 export default function CandidateSidebar({
@@ -23,6 +25,8 @@ export default function CandidateSidebar({
   isCompleted,
   onExport,
   offerId,
+  isPhotoUploaded = false,
+  onSwitchToIdCard,
 }: CandidateSidebarProps) {
   const [sigError, setSigError] = useState("");
 
@@ -104,13 +108,17 @@ export default function CandidateSidebar({
   };
 
   const handleActionClick = () => {
-    if (isCompleted) {
-      return;
-    }
+    if (isCompleted) return;
     if (!secondParty.signatureImg) {
       setSigError("Please draw and save your signature before exporting.");
       return;
     }
+    if (!isPhotoUploaded) {
+      setSigError("Please upload your photo in the ID Card tab before signing.");
+      if (onSwitchToIdCard) onSwitchToIdCard();
+      return;
+    }
+    setSigError("");
     onExport();
   };
 

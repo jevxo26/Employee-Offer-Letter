@@ -21,7 +21,7 @@ interface CeoWorkspaceProps {
   onExport: () => void;
   isDemo: boolean;
   isOfferSent: boolean;
-  onSendOffer: (idCardPdfBase64?: string) => void;
+  onSendOffer: () => void;
   previewRefs: React.RefObject<HTMLDivElement | null>[];
   docType: DocType;
   employeeCard: EmployeeCard;
@@ -51,28 +51,26 @@ export default function CeoWorkspace({
   // Holds the getter function registered by IdCardWorkspace
   const idCardPdfGetterRef = React.useRef<(() => Promise<string>) | null>(null);
 
-  // ── Photo gate: check photo before allowing send ──────────────────────────
+  // Track whether founder has visited the ID card tab (required before sending)
+  const [idCardTabVisited, setIdCardTabVisited] = React.useState(false);
+
+  const handleTabChange = (id: string) => {
+    if (id === "idCard") setIdCardTabVisited(true);
+    setActiveWorkspaceTab(id);
+  };
+
+  // ── Tab-visited gate: founder must visit ID card tab before sending ───────
   const handleSendOffer = async () => {
-    if (docType === "both" && !employeeCard.photoUrl) {
+    if (docType === "both" && !idCardTabVisited) {
       toast.error(
-        "Please upload the employee photo in the ID Card tab before sending the offer.",
+        "Please visit the ID Card tab before sending the offer.",
         { autoClose: 5000 }
       );
-      setActiveWorkspaceTab("idCard");
+      handleTabChange("idCard");
       return;
     }
 
-    // Generate ID card PDF before saving the agreement
-    let idCardPdfBase64 = "";
-    if (docType === "both" && idCardPdfGetterRef.current) {
-      try {
-        idCardPdfBase64 = await idCardPdfGetterRef.current();
-      } catch {
-        // non-fatal — continue without it
-      }
-    }
-
-    onSendOffer(idCardPdfBase64);
+    onSendOffer();
   };
 
   // ── "both" mode: tabbed view ──────────────────────────────────────────────
@@ -96,7 +94,7 @@ export default function CeoWorkspace({
           ].map(({ id, label }) => (
             <button
               key={id}
-              onClick={() => setActiveWorkspaceTab(id)}
+              onClick={() => handleTabChange(id)}
               className={`px-6 py-3.5 text-xs font-bold uppercase tracking-wide border-b-2 transition cursor-pointer ${
                 activeWorkspaceTab === id
                   ? "border-[#2563EB] text-[#2563EB]"
@@ -104,8 +102,8 @@ export default function CeoWorkspace({
               }`}
             >
               {label}
-              {/* Red dot indicator when photo is missing */}
-              {id === "idCard" && !employeeCard.photoUrl && (
+              {/* Red dot when ID card tab not yet visited */}
+              {id === "idCard" && !idCardTabVisited && (
                 <span className="ml-1.5 inline-block w-1.5 h-1.5 rounded-full bg-rose-500 align-middle" />
               )}
             </button>
