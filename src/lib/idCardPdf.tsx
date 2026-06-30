@@ -17,7 +17,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     padding: 0,
   },
-  // ── Front card ──
   front: {
     width: "50%",
     height: "100%",
@@ -40,9 +39,6 @@ const styles = StyleSheet.create({
     right: 0,
     width: "82%",
     height: "72%",
-    objectFit: "cover",
-    objectPositionX: "center",
-    objectPositionY: "top",
   },
   frontLogo: {
     position: "absolute",
@@ -63,20 +59,19 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   frontNameChar: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "bold",
     color: "#ffffff",
     marginBottom: 1,
-    transform: "rotate(-90deg)",
   },
   frontBottomPanel: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: 160,
-    backgroundColor: "rgba(10,11,16,0.97)",
-    padding: "10 14 14 14",
+    height: 155,
+    backgroundColor: "#0A0B10",
+    padding: 12,
     display: "flex",
     flexDirection: "column",
     justifyContent: "flex-end",
@@ -101,7 +96,7 @@ const styles = StyleSheet.create({
     fontSize: 7,
     color: "#ffffff",
     textAlign: "center",
-    marginBottom: 12,
+    marginBottom: 10,
     paddingLeft: 28,
     opacity: 0.75,
   },
@@ -119,11 +114,15 @@ const styles = StyleSheet.create({
   },
   frontNfcText: {
     fontSize: 7,
-    color: "rgba(255,255,255,0.5)",
+    color: "#ffffff",
     alignSelf: "flex-end",
     marginBottom: 4,
+    opacity: 0.5,
   },
-  // ── Back card ──
+  divider: {
+    width: 1,
+    backgroundColor: "#e2e8f0",
+  },
   back: {
     width: "50%",
     height: "100%",
@@ -131,16 +130,10 @@ const styles = StyleSheet.create({
   backImage: {
     width: "100%",
     height: "100%",
-    objectFit: "cover",
-  },
-  // ── Divider ──
-  divider: {
-    width: 1,
-    backgroundColor: "#e2e8f0",
   },
 });
 
-// ─── Helper: generate QR as data URL ─────────────────────────────────────────
+// ─── QR helper ────────────────────────────────────────────────────────────────
 async function makeQrDataUrl(text: string): Promise<string> {
   return QRCodeLib.toDataURL(text, {
     width: 120,
@@ -149,7 +142,7 @@ async function makeQrDataUrl(text: string): Promise<string> {
   });
 }
 
-// ─── ID Card PDF document ─────────────────────────────────────────────────────
+// ─── PDF Document component ───────────────────────────────────────────────────
 interface IdCardDocProps {
   fullName: string;
   position: string;
@@ -178,20 +171,12 @@ function IdCardDocument({
   return (
     <Document>
       <Page size="A5" orientation="landscape" style={styles.page}>
-        {/* ── FRONT SIDE ── */}
+        {/* FRONT */}
         <View style={styles.front}>
-          {/* X logo watermark */}
           <Image src={xLogoDataUrl} style={styles.frontBg} />
-
-          {/* Photo */}
-          {photoUrl && (
-            <Image src={photoUrl} style={styles.frontPhoto} />
-          )}
-
-          {/* JEVXO logo top-right */}
+          {photoUrl ? <Image src={photoUrl} style={styles.frontPhoto} /> : null}
           <Image src={logoDataUrl} style={styles.frontLogo} />
 
-          {/* Vertical name — bottom to top */}
           <View style={styles.frontNameContainer}>
             {nameChars.map((char, i) => (
               <Text key={i} style={styles.frontNameChar}>
@@ -200,13 +185,10 @@ function IdCardDocument({
             ))}
           </View>
 
-          {/* Bottom info panel */}
           <View style={styles.frontBottomPanel}>
-            <Text style={styles.frontPosition}>
-              {position || "Position"}
-            </Text>
+            <Text style={styles.frontPosition}>{position || "Partner"}</Text>
             <Text style={styles.frontEmployeeId}>
-              ID No: {employeeId || "000-000-0001"}
+              Partner ID: {employeeId || "000-000-001"}
             </Text>
             <Text style={styles.frontIssueDate}>
               Issue Date: {issueDate || "—"}
@@ -218,10 +200,10 @@ function IdCardDocument({
           </View>
         </View>
 
-        {/* ── DIVIDER ── */}
+        {/* DIVIDER */}
         <View style={styles.divider} />
 
-        {/* ── BACK SIDE ── */}
+        {/* BACK */}
         <View style={styles.back}>
           <Image src={backImageDataUrl} style={styles.backImage} />
         </View>
@@ -230,50 +212,62 @@ function IdCardDocument({
   );
 }
 
-// ─── Public function ──────────────────────────────────────────────────────────
+// ─── Public export ────────────────────────────────────────────────────────────
 export async function generateIdCardPdf(
   agreement: Record<string, unknown>
 ): Promise<string> {
-  const secondParty = (agreement.secondParty as Record<string, string>) || {};
-  const docSettings = (agreement.docSettings as Record<string, unknown>) || {};
+  const secondParty =
+    (agreement.secondParty as Record<string, string>) || {};
+  const docSettings =
+    (agreement.docSettings as Record<string, unknown>) || {};
 
-  const fullName   = secondParty.fullName   || "Employee Name";
-  const position   = secondParty.position   || "Partner";
-  const partnerId  = secondParty.partnerId  || (agreement.partnerId as string) || "";
-  const photoUrl   = secondParty.photoUrl   || "";
-  const employeeId = partnerId;
-  const issueDate  = (docSettings.date as string) || "";
+  const fullName  = secondParty.fullName  || "Employee Name";
+  const position  = secondParty.position  || "Partner";
+  const partnerId =
+    secondParty.partnerId || (agreement.partnerId as string) || "";
+  const photoUrl  = secondParty.photoUrl  || "";
+  const issueDate = (docSettings.date as string) || "";
 
-  // QR — links to jevxo.com verify
-  const verifyUrl = `https://www.jevxo.com/verify/${encodeURIComponent(partnerId.replace(/\//g, "-"))}`;
+  const verifyUrl = `https://www.jevxo.com/verify/${encodeURIComponent(
+    partnerId.replace(/\//g, "-")
+  )}`;
   const qrDataUrl = await makeQrDataUrl(verifyUrl);
 
-  // Read static assets as base64 data URLs
-  const fs   = await import("fs/promises");
-  const path = await import("path");
-  const cwd  = process.cwd();
+  const fsModule   = await import("fs/promises");
+  const pathModule = await import("path");
+  const cwd        = process.cwd();
 
   const readAsDataUrl = async (filePath: string, mime: string) => {
-    const buf = await fs.readFile(filePath);
+    const buf = await fsModule.readFile(filePath);
     return `data:${mime};base64,${buf.toString("base64")}`;
   };
 
-  const xLogoDataUrl   = await readAsDataUrl(path.join(cwd, "public", "x-logo0bg.png"), "image/png");
-  const logoDataUrl    = await readAsDataUrl(path.join(cwd, "assets", "logo0bg.png"),   "image/png");
-  const backImageDataUrl = await readAsDataUrl(path.join(cwd, "public", "id-card-back.png"), "image/png");
+  const xLogoDataUrl = await readAsDataUrl(
+    pathModule.join(cwd, "public", "x-logo0bg.png"),
+    "image/png"
+  );
+  const logoDataUrl = await readAsDataUrl(
+    pathModule.join(cwd, "assets", "logo0bg.png"),
+    "image/png"
+  );
+  const backImageDataUrl = await readAsDataUrl(
+    pathModule.join(cwd, "public", "id-card-back.png"),
+    "image/png"
+  );
 
-  const doc = React.createElement(IdCardDocument, {
-    fullName,
-    position,
-    employeeId,
-    issueDate,
-    photoUrl: photoUrl || undefined,
-    qrDataUrl,
-    xLogoDataUrl,
-    logoDataUrl,
-    backImageDataUrl,
-  });
+  const buffer = await renderToBuffer(
+    <IdCardDocument
+      fullName={fullName}
+      position={position}
+      employeeId={partnerId}
+      issueDate={issueDate}
+      photoUrl={photoUrl || undefined}
+      qrDataUrl={qrDataUrl}
+      xLogoDataUrl={xLogoDataUrl}
+      logoDataUrl={logoDataUrl}
+      backImageDataUrl={backImageDataUrl}
+    />
+  );
 
-  const buffer = await renderToBuffer(doc as React.ReactElement);
   return buffer.toString("base64");
 }
