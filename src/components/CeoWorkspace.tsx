@@ -2,10 +2,10 @@
 
 import React from "react";
 import { motion } from "motion/react";
-import { toast } from "react-toastify";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 import WorkspaceCanvas from "./WorkspaceCanvas";
-import IdCardWorkspace from "./IdCardWorkspace";
+import IdCardWorkspace, { buildIdCardPdfBase64 } from "./IdCardWorkspace";
+import { IdCardFront, IdCardBack } from "./EmployeeIdCard";
 import { FirstParty, SecondParty, DocSettings, DocType, EmployeeCard } from "../types";
 
 interface CeoWorkspaceProps {
@@ -47,41 +47,35 @@ export default function CeoWorkspace({
   employeeCard,
   setEmployeeCard,
 }: CeoWorkspaceProps) {
+  const hiddenCardFrontRef = React.useRef<HTMLDivElement>(null);
+  const hiddenCardBackRef = React.useRef<HTMLDivElement>(null);
 
-  // Holds the getter function registered by IdCardWorkspace
-  const idCardPdfGetterRef = React.useRef<(() => Promise<string>) | null>(null);
+  const founderCardData = React.useMemo(
+    () => ({
+      fullName: secondParty.fullName,
+      position: secondParty.position,
+      bloodGroup: secondParty.bloodGroup || "A+",
+      employeeId: secondParty.partnerId || employeeCard.employeeId,
+      department: employeeCard.department,
+      photoUrl: employeeCard.photoUrl,
+      issueDate: docSettings.date || employeeCard.issueDate,
+      expiryDate: employeeCard.expiryDate,
+    }),
+    [docSettings.date, employeeCard, secondParty],
+  );
 
-  // Track whether founder has visited the ID card tab (required before sending)
-  const [idCardTabVisited, setIdCardTabVisited] = React.useState(false);
-
-  const handleTabChange = (id: string) => {
-    if (id === "idCard") setIdCardTabVisited(true);
-    setActiveWorkspaceTab(id);
-  };
-
-  // ── Tab-visited gate: founder must visit ID card tab before sending ───────
   const handleSendOffer = async () => {
-    if (docType === "both" && !idCardTabVisited) {
-      toast.error(
-        "Please visit the ID Card tab before sending the offer.",
-        { autoClose: 5000 }
-      );
-      handleTabChange("idCard");
-      return;
-    }
-
     if (docType === "both") {
-      if (!idCardPdfGetterRef.current) {
-        toast.error("The ID card preview is not ready yet. Please reopen the ID Card tab and try again.");
-        handleTabChange("idCard");
-        return;
-      }
-
-      const cardPDFdata = await idCardPdfGetterRef.current();
-      if (!cardPDFdata) {
-        toast.error("Failed to prepare the ID card PDF. Please wait a moment and try again.");
-        handleTabChange("idCard");
-        return;
+      let cardPDFdata = "";
+      if (hiddenCardFrontRef.current && hiddenCardBackRef.current) {
+        try {
+          cardPDFdata = await buildIdCardPdfBase64(
+            hiddenCardFrontRef.current,
+            hiddenCardBackRef.current,
+          );
+        } catch (error) {
+          console.warn("Founder ID card pre-generation failed, continuing without cached PDF.", error);
+        }
       }
 
       await onSendOffer({ cardPDFdata });
@@ -104,6 +98,23 @@ export default function CeoWorkspace({
         transition={{ duration: 0.3 }}
         className="flex-1 flex flex-col w-full relative h-screen"
       >
+        <div
+          aria-hidden="true"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            opacity: 0,
+            pointerEvents: "none",
+            zIndex: -10,
+            display: "flex",
+            gap: "40px",
+          }}
+        >
+          <IdCardFront data={founderCardData} cardRef={hiddenCardFrontRef} />
+          <IdCardBack data={founderCardData} cardRef={hiddenCardBackRef} />
+        </div>
+
         {/* Tab bar */}
         <div className="sticky top-20 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-6">
           {[
@@ -112,7 +123,7 @@ export default function CeoWorkspace({
           ].map(({ id, label }) => (
             <button
               key={id}
-              onClick={() => handleTabChange(id)}
+              onClick={() => setActiveWorkspaceTab(id)}
               className={`px-6 py-3.5 text-xs font-bold uppercase tracking-wide border-b-2 transition cursor-pointer ${
                 activeWorkspaceTab === id
                   ? "border-[#2563EB] text-[#2563EB]"
@@ -120,10 +131,6 @@ export default function CeoWorkspace({
               }`}
             >
               {label}
-              {/* Red dot when ID card tab not yet visited */}
-              {id === "idCard" && !idCardTabVisited && (
-                <span className="ml-1.5 inline-block w-1.5 h-1.5 rounded-full bg-rose-500 align-middle" />
-              )}
             </button>
           ))}
         </div>
@@ -176,9 +183,6 @@ export default function CeoWorkspace({
                 setEmployeeCard((p) => ({ ...p, photoUrl: dataUrl }))
               }
               hidePhotoUpload
-              onRequestPdfBase64={(getter) => {
-                idCardPdfGetterRef.current = getter;
-              }}
             />
           )}
         </div>
