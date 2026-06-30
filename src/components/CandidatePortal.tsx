@@ -39,6 +39,8 @@ export default function CandidatePortal({
 }: CandidatePortalProps) {
   const [activeTab, setActiveTab] = useState<"letter" | "idcard">("letter");
   const [candidatePhotoUrl, setCandidatePhotoUrl] = useState(secondParty.photoUrl || "");
+  const [isSavingPhotoAssets, setIsSavingPhotoAssets] = useState(false);
+  const lastSavedPhotoRef = useRef<string | null>(null);
 
   // ── ID card refs ─────────────────────────────────────────────────────────────
   // The card components are rendered in a hidden-but-visible layer (opacity:0,
@@ -55,6 +57,55 @@ export default function CandidatePortal({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  React.useEffect(() => {
+    if (!offerId || isCompleted) return;
+    if (candidatePhotoUrl === lastSavedPhotoRef.current) return;
+
+    let cancelled = false;
+
+    const persistCandidateAssets = async () => {
+      setIsSavingPhotoAssets(true);
+      try {
+        // Only persist the photo URL here — the card PDF is generated and sent
+        // separately via /card-pdf after the candidate confirms their signature.
+        // Sending the card PDF in this call would push the payload over Vercel's
+        // 4.5 MB request-body limit and cause a FUNCTION_PAYLOAD_TOO_LARGE error.
+        const response = await fetch(`/api/offers/${offerId}/sign`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            photoUrl: candidatePhotoUrl,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to save candidate photo.");
+        }
+
+        if (!cancelled) {
+          lastSavedPhotoRef.current = candidatePhotoUrl;
+        }
+      } catch (error) {
+        console.error("Failed to persist candidate photo assets:", error);
+        if (!cancelled) {
+          toast.error("We could not save your ID card photo. Please upload it again.");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsSavingPhotoAssets(false);
+        }
+      }
+    };
+
+    persistCandidateAssets();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [candidatePhotoUrl, isCompleted, offerId]);
 
   const cardData: EmployeeCard = {
     fullName:   secondParty.fullName   || "",
@@ -76,19 +127,56 @@ export default function CandidatePortal({
       setActiveTab("idcard");
       return;
     }
+    if (isSavingPhotoAssets) {
+      toast.info("Your ID card photo is still being prepared. Please wait a moment and try again.");
+      return;
+    }
     onExport();
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressPhoto = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const maxWidth = 640;
+          const maxHeight = 960;
+          const scale = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
+          const width = Math.max(1, Math.round(img.width * scale));
+          const height = Math.max(1, Math.round(img.height * scale));
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            reject(new Error("Could not prepare image canvas."));
+            return;
+          }
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", 0.82));
+        };
+        img.onerror = () => reject(new Error("Failed to read image."));
+        img.src = typeof reader.result === "string" ? reader.result : "";
+      };
+      reader.onerror = () => reject(new Error("Failed to load file."));
+      reader.readAsDataURL(file);
+    });
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
+    try {
+      const dataUrl = await compressPhoto(file);
+      lastSavedPhotoRef.current = null;
       setCandidatePhotoUrl(dataUrl);
       setSecondParty((prev) => ({ ...prev, photoUrl: dataUrl }));
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Photo compression failed:", error);
+      toast.error("We could not process your photo. Please try another image.");
+    }
   };
 
   return (
@@ -203,6 +291,7 @@ export default function CandidatePortal({
                 {candidatePhotoUrl && (
                   <button
                     onClick={() => {
+                      lastSavedPhotoRef.current = null;
                       setCandidatePhotoUrl("");
                       setSecondParty((prev) => ({ ...prev, photoUrl: "" }));
                     }}

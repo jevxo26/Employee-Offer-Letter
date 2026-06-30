@@ -191,11 +191,22 @@ async function captureCard(
 export async function buildIdCardPdfBase64(
   frontEl: HTMLDivElement,
   backEl: HTMLDivElement,
+  options?: {
+    scale?: number;
+    imageFormat?: "PNG" | "JPEG";
+    imageQuality?: number;
+  },
 ): Promise<string> {
+  const scale = options?.scale ?? 3;
+  const imageFormat = options?.imageFormat ?? "PNG";
+  const imageQuality = options?.imageQuality ?? 0.92;
   const [frontCanvas, backCanvas] = await Promise.all([
-    captureCard(frontEl, { scale: 3, backgroundColor: "#0A0B10" }),
-    captureCard(backEl,  { scale: 3, backgroundColor: null }),
+    captureCard(frontEl, { scale, backgroundColor: "#0A0B10" }),
+    captureCard(backEl,  { scale, backgroundColor: null }),
   ]);
+  const mimeType = imageFormat === "JPEG" ? "image/jpeg" : "image/png";
+  const frontImage = frontCanvas.toDataURL(mimeType, imageQuality);
+  const backImage = backCanvas.toDataURL(mimeType, imageQuality);
 
   const doc = new jsPDF({
     orientation: "landscape",
@@ -206,8 +217,8 @@ export async function buildIdCardPdfBase64(
 
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, PDF_PAGE_W, PDF_PAGE_H, "F");
-  doc.addImage(frontCanvas.toDataURL("image/png"), "PNG", PDF_FRONT_X, PDF_CARD_Y, PDF_CARD_W, PDF_CARD_H);
-  doc.addImage(backCanvas.toDataURL("image/png"),  "PNG", PDF_BACK_X,  PDF_CARD_Y, PDF_CARD_W, PDF_CARD_H);
+  doc.addImage(frontImage, imageFormat, PDF_FRONT_X, PDF_CARD_Y, PDF_CARD_W, PDF_CARD_H);
+  doc.addImage(backImage, imageFormat, PDF_BACK_X, PDF_CARD_Y, PDF_CARD_W, PDF_CARD_H);
 
   const buf = doc.output("arraybuffer");
   const bytes = new Uint8Array(buf);

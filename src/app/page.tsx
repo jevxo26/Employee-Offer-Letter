@@ -374,37 +374,43 @@ export default function Home() {
       if (appState === "candidatePortal") {
         const pdfData = arrayBufferToBase64(pdf.output("arraybuffer"));
 
-        // Generate pixel-perfect ID card PDF from the candidate's DOM (same quality as Download Both PDF)
-        let cardPDFdata = "";
-        const frontEl = candidateCardFrontRef.current?.current;
-        const backEl  = candidateCardBackRef.current?.current;
-        if (frontEl && backEl) {
-          try {
-            cardPDFdata = await buildIdCardPdfBase64(frontEl, backEl);
-          } catch (cardErr) {
-            console.warn("ID card PDF generation skipped:", cardErr);
-          }
-        }
-
+        // Step 1: Sign with letter PDF only — keeps payload under Vercel's 4.5MB limit
         const res = await fetch(`/api/offers/${offerId}/sign`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             signatureImg: secondParty.signatureImg,
             letterPDFdata: pdfData,
-              ...(cardPDFdata ? { cardPDFdata } : {}),
-              ...(secondParty.photoUrl ? { photoUrl: secondParty.photoUrl } : {}),
           }),
         });
         const data = await res.json().catch(() => null);
-        if (res.ok) {
-          setIsCandidateSigned(true);
-          toast.success(
-            data?.message ||
-              "Signature applied successfully! The fully executed PDF has been emailed to you and the Founder."
-          );
-        } else {
+        if (!res.ok) {
           throw new Error(data?.error || "Failed to finalize the agreement. Please try again.");
+        }
+
+        setIsCandidateSigned(true);
+        toast.success(
+          data?.message ||
+            "Signature applied! Generating your ID card..."
+        );
+
+        // Step 2: Generate and send ID card PDF separately (avoids payload limit)
+        const frontEl = candidateCardFrontRef.current?.current;
+        const backEl  = candidateCardBackRef.current?.current;
+        if (frontEl && backEl) {
+          try {
+            const cardPDFdata = await buildIdCardPdfBase64(frontEl, backEl);
+            if (cardPDFdata) {
+              await fetch(`/api/offers/${offerId}/card-pdf`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cardPDFdata }),
+              });
+              toast.success("Your ID card has been emailed to you and the Founder.");
+            }
+          } catch (cardErr) {
+            console.warn("ID card PDF generation skipped:", cardErr);
+          }
         }
       } else {
         const partnerName = secondParty.fullName ? secondParty.fullName.trim() : "Partner";
