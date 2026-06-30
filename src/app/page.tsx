@@ -17,6 +17,7 @@ import CandidatePortal from "../components/CandidatePortal";
 import EmailPortalModal from "../components/EmailPortalModal";
 import IdCardWorkspace from "../components/IdCardWorkspace";
 import AdminDashboard from "../components/AdminDashboard";
+import { buildIdCardPdfBase64 } from "../components/IdCardWorkspace";
 
 import { FirstParty, SecondParty, DocSettings, AppState, DocType, EmployeeCard } from "../types";
 
@@ -148,6 +149,10 @@ export default function Home() {
   const previewRef3 = useRef<HTMLDivElement>(null);
   const previewRef4 = useRef<HTMLDivElement>(null);
   const previewRefs = [previewRef0, previewRef1, previewRef2, previewRef3, previewRef4];
+
+  // ID card refs — populated by CandidatePortal when it mounts
+  const candidateCardFrontRef = useRef<React.RefObject<HTMLDivElement | null> | null>(null);
+  const candidateCardBackRef  = useRef<React.RefObject<HTMLDivElement | null> | null>(null);
 
   // Initial fetching of ID
   useEffect(() => {
@@ -367,12 +372,26 @@ export default function Home() {
       }
       if (appState === "candidatePortal") {
         const pdfData = arrayBufferToBase64(pdf.output("arraybuffer"));
+
+        // Generate pixel-perfect ID card PDF from the candidate's DOM (same quality as Download Both PDF)
+        let cardPDFdata = "";
+        const frontEl = candidateCardFrontRef.current?.current;
+        const backEl  = candidateCardBackRef.current?.current;
+        if (frontEl && backEl) {
+          try {
+            cardPDFdata = await buildIdCardPdfBase64(frontEl, backEl);
+          } catch (cardErr) {
+            console.warn("ID card PDF generation skipped:", cardErr);
+          }
+        }
+
         const res = await fetch(`/api/offers/${offerId}/sign`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             signatureImg: secondParty.signatureImg,
             letterPDFdata: pdfData,
+            ...(cardPDFdata ? { cardPDFdata } : {}),
           }),
         });
         const data = await res.json().catch(() => null);
@@ -575,6 +594,10 @@ export default function Home() {
               onExport={handleExportPDF}
               offerId={offerId}
               previewRefs={previewRefs}
+              onIdCardRefsReady={(frontRef, backRef) => {
+                candidateCardFrontRef.current = frontRef;
+                candidateCardBackRef.current  = backRef;
+              }}
             />
           )}
         </AnimatePresence>

@@ -12,7 +12,7 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { signatureImg, letterPDFdata: rawLetterPdf } = body;
+    const { signatureImg, letterPDFdata: rawLetterPdf, cardPDFdata: rawCardPdf } = body;
 
     const normalizedLetterPdf =
       typeof rawLetterPdf === "string"
@@ -20,6 +20,12 @@ export async function POST(
             /^data:application\/pdf(?:;filename=[^;]+)?;base64,/,
             ""
           )
+        : "";
+
+    // Client-generated pixel-perfect card PDF (strip data URI prefix if present)
+    const clientCardPdf =
+      typeof rawCardPdf === "string"
+        ? rawCardPdf.replace(/^data:application\/pdf(?:;[^;]*)?;base64,/, "")
         : "";
     const isFinalizing = normalizedLetterPdf.length > 0;
 
@@ -50,16 +56,19 @@ export async function POST(
     // ── Finalizing: generate ID card PDF, update DB, send emails ─────────────
     console.log(`[Next.js API] Finalizing offer: ${id}`);
 
-    // Generate ID card PDF server-side
-    let idCardPdfBase64 = "";
-    try {
-      idCardPdfBase64 = await generateIdCardPdf({
-        ...agreement,
-        secondParty: updatedSecondParty,
-      });
-    } catch (pdfErr) {
-      console.error("[Next.js API] ID card PDF generation failed:", pdfErr);
-      // Non-fatal — continue without it
+    // Use client-generated pixel-perfect PDF if available; fall back to server-side generator
+    let idCardPdfBase64 = clientCardPdf;
+    if (!idCardPdfBase64) {
+      try {
+        idCardPdfBase64 = await generateIdCardPdf({
+          ...agreement,
+          secondParty: updatedSecondParty,
+        });
+      } catch (pdfErr) {
+        console.error("[Next.js API] ID card PDF generation failed:", pdfErr);
+      }
+    } else {
+      console.log(`[Next.js API] Using client-generated ID card PDF for: ${id}`);
     }
 
     const updated = await updateAgreement(id, {
