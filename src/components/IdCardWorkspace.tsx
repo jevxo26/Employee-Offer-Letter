@@ -530,7 +530,7 @@ export default function IdCardWorkspace({
           </div>
         </div>
 
-        {/* Download Footer */}
+        {/* Download Footer
         <div className="p-4 sm:p-6 border-t border-[#DBEAFE] space-y-2 mt-auto shrink-0 bg-[#F8FAFC]">
           <div className="flex flex-col sm:flex-row xl:flex-col gap-2">
             <button
@@ -562,7 +562,7 @@ export default function IdCardWorkspace({
             <span>PNG · 3× scale · Print ready</span>
             <span>Front + Back</span>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* ── RIGHT: Card Preview — scales to fit any screen ──────────────────── */}

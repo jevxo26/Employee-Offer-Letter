@@ -72,7 +72,7 @@ export function Step1({ secondParty, setSecondParty }: Step1Props) {
           <IconInput
             icon={User}
             type="text"
-            placeholder="e.g. Md. Golam Rabbi"
+            placeholder="e.g. Jhon Doe"
             value={secondParty.fullName}
             onChange={(e) =>
               setSecondParty((p) => ({ ...p, fullName: e.target.value }))
@@ -84,7 +84,7 @@ export function Step1({ secondParty, setSecondParty }: Step1Props) {
           <IconInput
             icon={Briefcase}
             type="text"
-            placeholder="e.g. Full Stack Developer (React/Next.js)"
+            placeholder="e.g. Web Developer"
             value={secondParty.position}
             onChange={(e) =>
               setSecondParty((p) => ({ ...p, position: e.target.value }))
@@ -110,7 +110,7 @@ export function Step1({ secondParty, setSecondParty }: Step1Props) {
           <IconInput
             icon={ShieldCheck}
             type="text"
-            placeholder="e.g. 4229023884"
+            placeholder="e.g. 123XXXXX321"
             value={secondParty.nidNumber}
             onChange={(e) =>
               setSecondParty((p) => ({
@@ -128,12 +128,17 @@ export function Step1({ secondParty, setSecondParty }: Step1Props) {
               onChange={(e) =>
                 setSecondParty((p) => ({ ...p, bloodGroup: e.target.value }))
               }
-              className="w-full bg-[#F8FAFC] border border-[#DBEAFE] focus:border-[#2563EB] rounded-xl py-3 pl-4 pr-4 text-sm text-[#0F172A] focus:outline-none transition appearance-none cursor-pointer"
+              className="w-full bg-[#F8FAFC] border border-[#DBEAFE] focus:border-[#2563EB] rounded-xl py-3 pl-4 pr-10 text-sm text-[#0F172A] focus:outline-none transition appearance-none cursor-pointer"
             >
               {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bg) => (
                 <option key={bg} value={bg}>{bg}</option>
               ))}
             </select>
+            <div className="pointer-events-none absolute inset-y-0 top-0 right-3 flex items-center">
+              <svg className="w-4 h-4 text-[#94A3B8]" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </div>
           </div>
           <p className="text-[10px] text-[#64748B] italic">
             Used on employee ID card for emergency reference.
@@ -191,7 +196,7 @@ export function Step2({ secondParty, setSecondParty }: Step2Props) {
           <IconInput
             icon={User}
             type="text"
-            placeholder="e.g. Md. Abdul Haque"
+            placeholder="e.g. Zhon Doe"
             value={secondParty.guardianName}
             onChange={(e) =>
               setSecondParty((p) => ({ ...p, guardianName: e.target.value }))
@@ -203,7 +208,7 @@ export function Step2({ secondParty, setSecondParty }: Step2Props) {
           <IconInput
             icon={Phone}
             type="text"
-            placeholder="e.g. 01786809081"
+            placeholder="e.g. 01XXXXXXXXX"
             value={secondParty.guardianMobile}
             onChange={(e) =>
               setSecondParty((p) => ({ ...p, guardianMobile: e.target.value }))
@@ -241,11 +246,11 @@ export function Step3({
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <Field label="Candidate Mobile Number *">
+        <Field label="Partner Mobile Number *">
           <IconInput
             icon={Phone}
             type="text"
-            placeholder="e.g. 01558984151"
+            placeholder="e.g. 01XXXXXXXXX"
             value={secondParty.mobileNumber}
             onChange={(e) =>
               setSecondParty((p) => ({
@@ -256,11 +261,11 @@ export function Step3({
           />
         </Field>
 
-        <Field label="Candidate Email Address *">
+        <Field label="Partner Email Address *">
           <IconInput
             icon={Mail}
             type="email"
-            placeholder="e.g. candidate@gmail.com"
+            placeholder="e.g. partner@gmail.com"
             value={secondParty.email || ""}
             onChange={(e) =>
               setSecondParty((p) => ({
@@ -276,7 +281,7 @@ export function Step3({
         <div className="relative">
           <MapPin className="absolute left-3 top-[15px] w-4 h-4 text-[#64748B]" />
           <textarea
-            placeholder="e.g. Savar-DOHS, Dhaka"
+            placeholder="e.g. Dhaka, Bangladesh"
             rows={2}
             value={secondParty.presentAddress}
             onChange={(e) => {
@@ -317,7 +322,7 @@ export function Step3({
         <div className="relative">
           <MapPin className="absolute left-3 top-[15px] w-4 h-4 text-[#64748B] pointer-events-none" />
           <textarea
-            placeholder="e.g. Harodanga, Faridpur, Pabna"
+            placeholder="e.g. Gazipur, Bangladesh"
             rows={2}
             disabled={sameAddress}
             value={
@@ -524,7 +529,7 @@ export function Step4({
             <IconInput
               icon={Calendar}
               type="text"
-              placeholder="e.g. June 10, 2026"
+              placeholder="e.g. Present Date"
               value={docSettings.date || ""}
               onChange={(e) =>
                 setDocSettings((p) => ({ ...p, date: e.target.value }))

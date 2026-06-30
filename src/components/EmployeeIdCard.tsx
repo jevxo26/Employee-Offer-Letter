@@ -206,7 +206,7 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
       )}
 
       {/* JEVXO Logo */}
-      <div className="absolute top-2 right-2 z-30 bg-[#0A0B10]/80 backdrop-blur-sm px-2 py-1 rounded-xl">
+      <div className="absolute top-2 right-2 z-10 bg-[#0A0B10]/80 backdrop-blur-sm px-2 py-1 rounded-xl">
         <Image
           src={logo}
           width={140}
@@ -219,7 +219,7 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
       {/* Vertical Name */}
       <div className="absolute top-10 bottom-[150px] w-[42px] flex items-center justify-center z-20 pointer-events-none">
         <div
-          className="flex flex-col items-center font-black text-[33px] leading-[28px] text-white tracking-tighter"
+          className="flex flex-col items-center font-black text-[33px] leading-[28px] text-white"
           style={{
             fontFamily: "'Orbitron', sans-serif",
             textShadow:

@@ -76,7 +76,7 @@ export default function VerifyPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
-      <header className="border-b border-[#DBEAFE] bg-white/80 backdrop-blur-md px-6 py-4 flex items-center justify-between">
+      <header className="border-b border-[#DBEAFE] bg-white/80 backdrop-blur-md px-6 py-2 flex items-center justify-between">
         <JevxoLogo />
         <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
           Document Verification Portal

@@ -37,19 +37,19 @@ const DEFAULT_FIRST_PARTY: FirstParty = {
 };
 
 const DEFAULT_SECOND_PARTY: SecondParty = {
-  partnerId: "JVX-PT-26-001",
-  partnerIdSerial: "001",
-  fullName: "Jhon Doe",
-  email: "jhon@example.com",
-  guardianName: "Jhon Doe Sr.",
+  partnerId: "",
+  partnerIdSerial: "",
+  fullName: "",
+  email: "",
+  guardianName: "",
   guardianRelation: "Father",
-  mobileNumber: "0123456789",
-  guardianMobile: "01987654321",
-  presentAddress: "Delhi, India",
-  permanentAddress: "Wahington, USA",
-  dob: "2002-01-01",
-  nidNumber: "555555555",
-  position: "Web Developer",
+  mobileNumber: "",
+  guardianMobile: "",
+  presentAddress: "",
+  permanentAddress: "",
+  dob: "",
+  nidNumber: "",
+  position: "",
   bloodGroup: "A+",
   photoUrl: "",
   signatureImg: "",
@@ -453,7 +453,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col font-sans selection:bg-[#2563EB]/20">
       {/* Header */}
-      <header className="border-b border-[#DBEAFE] bg-[#F8FAFC]/80 backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex justify-between items-center">
+      <header className="border-b border-[#DBEAFE] bg-[#F8FAFC]/80 backdrop-blur-md sticky top-0 z-40 px-6 py-2 flex justify-between items-center">
         <div
           className="flex items-center gap-3 cursor-pointer"
           onClick={() => {

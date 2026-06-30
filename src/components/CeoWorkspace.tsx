@@ -116,7 +116,7 @@ export default function CeoWorkspace({
         </div>
 
         {/* Tab bar */}
-        <div className="sticky top-20 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-6">
+        <div className="sticky top-15 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-6">
           {[
             { id: "settings", label: "📄 Appointment Docs" },
             { id: "idCard",   label: "🪪 Employee ID Card" },
