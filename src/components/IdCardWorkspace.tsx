@@ -3,13 +3,34 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "motion/react";
 import html2canvas from "html2canvas-pro";
-import { Download, Upload, User, Briefcase, Hash, Calendar, Image } from "lucide-react";
+import { jsPDF } from "jspdf";
+import {
+  Download,
+  Upload,
+  User,
+  Briefcase,
+  Hash,
+  Calendar,
+  Image,
+  FileText,
+} from "lucide-react";
 import EmployeeIdCard from "./EmployeeIdCard";
 import { EmployeeCard } from "../types";
 
 // ─── Card fixed dimensions ────────────────────────────────────────────────────
 const CARD_W = 360;
 const CARD_H = 570;
+
+// ─── A4 landscape PDF geometry (mm) — must match how the two cards are laid out
+const PDF_PAGE_W = 297;
+const PDF_PAGE_H = 210;
+const PDF_MARGIN = 8;
+const PDF_GAP = 10;
+const PDF_CARD_W = (PDF_PAGE_W - PDF_MARGIN * 2 - PDF_GAP) / 2; // ~135.5mm
+const PDF_CARD_H = PDF_PAGE_H - PDF_MARGIN * 2; // 194mm
+const PDF_FRONT_X = PDF_MARGIN;
+const PDF_BACK_X = PDF_MARGIN + PDF_CARD_W + PDF_GAP;
+const PDF_CARD_Y = PDF_MARGIN;
 
 // ─── Input primitives ─────────────────────────────────────────────────────────
 function Field({
@@ -57,98 +78,38 @@ function ReadOnlyField({
   );
 }
 
-// ─── Pixel-perfect card export ────────────────────────────────────────────────
-// html2canvas cannot render:
-//   1. CSS background-image: url(...)  → preload image & inline it into a clone
-//   2. -webkit-background-clip: text   → patch to a solid colour in the clone
-// We build an off-screen clone, fix those two issues, capture it, then remove it.
-async function captureCardPixelPerfect(
-  sourceEl: HTMLDivElement,
-  scale = 3
+// ─── Capture helpers ───────────────────────────────────────────────────────────
+// Waits for every <img> inside an element to finish loading before we let
+// html2canvas read it — this is the actual fix for images coming out blank
+// or misplaced in exports (the old clone-based approach didn't wait for this).
+async function waitForImages(el: HTMLElement): Promise<void> {
+  const imgs = Array.from(el.querySelectorAll("img"));
+  await Promise.all(
+    imgs.map((img) => {
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      return new Promise<void>((resolve) => {
+        img.addEventListener("load", () => resolve(), { once: true });
+        img.addEventListener("error", () => resolve(), { once: true });
+      });
+    }),
+  );
+}
+
+// Captures the REAL rendered card element — no cloning, no off-screen tricks.
+// This is what guarantees the PNG/PDF match exactly what's on screen.
+async function captureCard(
+  el: HTMLDivElement,
+  opts: { scale?: number; backgroundColor?: string | null } = {},
 ): Promise<HTMLCanvasElement> {
-  // 1 ── deep-clone the element
-  const clone = sourceEl.cloneNode(true) as HTMLDivElement;
-
-  // 2 ── position it off-screen but fully rendered
-  clone.style.position = "fixed";
-  clone.style.top = "-9999px";
-  clone.style.left = "-9999px";
-  clone.style.zIndex = "-1";
-  clone.style.pointerEvents = "none";
-  document.body.appendChild(clone);
-
-  try {
-    // 3 ── fix CSS background-image → real <img> element
-    const bgImgUrl = getComputedStyle(sourceEl).backgroundImage;
-    const urlMatch = bgImgUrl.match(/url\(["']?([^"')]+)["']?\)/);
-    if (urlMatch) {
-      const imgSrc = urlMatch[1];
-      // Preload as blob to guarantee html2canvas can read it
-      const resp = await fetch(imgSrc);
-      const blob = await resp.blob();
-      const dataUrl = await new Promise<string>((res) => {
-        const fr = new FileReader();
-        fr.onload = () => res(fr.result as string);
-        fr.readAsDataURL(blob);
-      });
-
-      // Remove the CSS background from the clone
-      clone.style.backgroundImage = "none";
-
-      // Insert an <img> at z-index 0 as first child, same size as card
-      const bgImg = document.createElement("img");
-      bgImg.src = dataUrl;
-      bgImg.style.cssText = `
-        position:absolute;top:0;left:0;
-        width:175%;height:auto;
-        transform:translateX(calc(-37.5% + ${CARD_W * 0.25 * 0.375}px));
-        object-fit:cover;
-        z-index:0;pointer-events:none;
-      `;
-      clone.insertBefore(bgImg, clone.firstChild);
-
-      // Wait for the image to load
-      await new Promise<void>((res) => {
-        if (bgImg.complete) { res(); return; }
-        bgImg.onload = () => res();
-        bgImg.onerror = () => res(); // skip if fails
-      });
-    }
-
-    // 4 ── fix -webkit-background-clip: text elements (gradient text)
-    //      Walk all descendants, find those using WebkitTextFillColor: transparent
-    //      and replace with the gradient start colour so text is visible
-    clone.querySelectorAll<HTMLElement>("*").forEach((el) => {
-      const cs = getComputedStyle(el);
-      if (cs.webkitTextFillColor === "transparent" || (cs as unknown as Record<string, string>)["-webkit-text-fill-color"] === "transparent") {
-        // Extract the first colour stop from the gradient background
-        const bg = cs.backgroundImage || cs.background;
-        const colourMatch = bg.match(/rgba?\([^)]+\)|#[0-9a-fA-F]{3,8}/);
-        const fallback = colourMatch ? colourMatch[0] : "#7B3FF5";
-        el.style.webkitTextFillColor = "unset";
-        el.style.backgroundImage = "none";
-        el.style.background = "none";
-        el.style.color = fallback;
-      }
-    });
-
-    // 5 ── capture
-    const canvas = await html2canvas(clone, {
-      scale,
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-      backgroundColor: "#0A0B10",
-      imageTimeout: 15000,
-      foreignObjectRendering: false,
-      width: CARD_W,
-      height: CARD_H,
-    });
-
-    return canvas;
-  } finally {
-    document.body.removeChild(clone);
-  }
+  await waitForImages(el);
+  return html2canvas(el, {
+    scale: opts.scale ?? 3,
+    useCORS: true,
+    allowTaint: true,
+    logging: false,
+    backgroundColor: opts.backgroundColor ?? "#0A0B10",
+    imageTimeout: 15000,
+  });
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -166,13 +127,19 @@ export default function IdCardWorkspace({
   const isControlled = controlledPhotoUrl !== undefined;
 
   const [card, setCard] = useState<EmployeeCard>({
-    fullName:   initialData?.fullName   || "",
-    position:   initialData?.position   || "",
+    fullName: initialData?.fullName || "",
+    position: initialData?.position || "",
     employeeId: initialData?.employeeId || "000-000-0001",
     bloodGroup: initialData?.bloodGroup || "A+",
     department: initialData?.department || "",
-    photoUrl:   isControlled ? controlledPhotoUrl : (initialData?.photoUrl || ""),
-    issueDate:  initialData?.issueDate  || new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
+    photoUrl: isControlled ? controlledPhotoUrl : initialData?.photoUrl || "",
+    issueDate:
+      initialData?.issueDate ||
+      new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
     expiryDate: initialData?.expiryDate || "",
   });
 
@@ -186,11 +153,11 @@ export default function IdCardWorkspace({
     if (initialData) {
       setCard((p) => ({
         ...p,
-        fullName:   initialData.fullName   ?? p.fullName,
-        position:   initialData.position   ?? p.position,
+        fullName: initialData.fullName ?? p.fullName,
+        position: initialData.position ?? p.position,
         employeeId: initialData.employeeId ?? p.employeeId,
         bloodGroup: initialData.bloodGroup ?? p.bloodGroup,
-        issueDate:  initialData.issueDate  ?? p.issueDate,
+        issueDate: initialData.issueDate ?? p.issueDate,
       }));
     }
   }, [
@@ -202,7 +169,8 @@ export default function IdCardWorkspace({
   ]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [isExportingFront, setIsExportingFront] = useState(false);
-  const [isExportingBack,  setIsExportingBack]  = useState(false);
+  const [isExportingBack, setIsExportingBack] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   // Responsive scale for the card preview area
   const previewAreaRef = useRef<HTMLDivElement>(null);
@@ -223,7 +191,7 @@ export default function IdCardWorkspace({
   }, []);
 
   const frontRef = useRef<HTMLDivElement>(null);
-  const backRef  = useRef<HTMLDivElement>(null);
+  const backRef = useRef<HTMLDivElement>(null);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -244,7 +212,10 @@ export default function IdCardWorkspace({
     if (!frontRef.current) return;
     setIsExportingFront(true);
     try {
-      const canvas = await captureCardPixelPerfect(frontRef.current, 3);
+      const canvas = await captureCard(frontRef.current, {
+        scale: 3,
+        backgroundColor: "#0A0B10",
+      });
       const link = document.createElement("a");
       link.download = `${card.fullName || "Employee"} - JEVXO ID Card Front.png`;
       link.href = canvas.toDataURL("image/png");
@@ -260,11 +231,8 @@ export default function IdCardWorkspace({
     if (!backRef.current) return;
     setIsExportingBack(true);
     try {
-      const canvas = await html2canvas(backRef.current, {
+      const canvas = await captureCard(backRef.current, {
         scale: 3,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
         backgroundColor: null,
       });
       const link = document.createElement("a");
@@ -275,6 +243,53 @@ export default function IdCardWorkspace({
       console.error("Export error:", err);
     } finally {
       setIsExportingBack(false);
+    }
+  };
+
+  // Builds the PDF from the SAME captures used for the PNG downloads, so the
+  // PDF is guaranteed to match the on-screen design exactly — front and back
+  // side-by-side on one A4 landscape page.
+  const exportPdf = async () => {
+    if (!frontRef.current || !backRef.current) return;
+    setIsExportingPdf(true);
+    try {
+      const [frontCanvas, backCanvas] = await Promise.all([
+        captureCard(frontRef.current, { scale: 3, backgroundColor: "#0A0B10" }),
+        captureCard(backRef.current, { scale: 3, backgroundColor: null }),
+      ]);
+
+      const doc = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4",
+        compress: true,
+      });
+
+      doc.setFillColor(230, 232, 238);
+      doc.rect(0, 0, PDF_PAGE_W, PDF_PAGE_H, "F");
+
+      doc.addImage(
+        frontCanvas.toDataURL("image/png"),
+        "PNG",
+        PDF_FRONT_X,
+        PDF_CARD_Y,
+        PDF_CARD_W,
+        PDF_CARD_H,
+      );
+      doc.addImage(
+        backCanvas.toDataURL("image/png"),
+        "PNG",
+        PDF_BACK_X,
+        PDF_CARD_Y,
+        PDF_CARD_W,
+        PDF_CARD_H,
+      );
+
+      doc.save(`${card.fullName || "Employee"} - JEVXO ID Card.pdf`);
+    } catch (err) {
+      console.error("PDF export error:", err);
+    } finally {
+      setIsExportingPdf(false);
     }
   };
 
@@ -295,9 +310,12 @@ export default function IdCardWorkspace({
             <span className="text-[10px] bg-[#EFF6FF] border border-[#DBEAFE]/50 text-[#1E3A8A] font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block">
               ID Card Preview
             </span>
-            <h2 className="text-lg sm:text-xl font-bold text-[#0F172A]">Employee ID Card</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-[#0F172A]">
+              Employee ID Card
+            </h2>
             <p className="text-[#64748B] text-xs">
-              Card details are pulled from the appointment form. Upload the employee photo below.
+              Card details are pulled from the appointment form. Upload the
+              employee photo below.
             </p>
           </div>
 
@@ -321,10 +339,17 @@ export default function IdCardWorkspace({
                   <span className="text-xs font-medium text-[#94A3B8] group-hover:text-[#2563EB] transition">
                     Click to upload photo
                   </span>
-                  <span className="text-[10px] text-[#CBD5E1]">PNG, JPG — recommended 400×600px</span>
+                  <span className="text-[10px] text-[#CBD5E1]">
+                    PNG, JPG — recommended 400×600px
+                  </span>
                 </>
               )}
-              <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoUpload}
+              />
             </label>
             {card.photoUrl && (
               <button
@@ -341,10 +366,30 @@ export default function IdCardWorkspace({
 
           {/* Read-only fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-3 sm:gap-4">
-            <ReadOnlyField label="Full Name"      icon={User}     value={card.fullName}   placeholder="From appointment form" />
-            <ReadOnlyField label="Position / Role" icon={Briefcase} value={card.position}  placeholder="From appointment form" />
-            <ReadOnlyField label="Partner ID"     icon={Hash}     value={card.employeeId} placeholder="From appointment form" />
-            <ReadOnlyField label="Issue Date"     icon={Calendar} value={card.issueDate}  placeholder="From appointment form" />
+            <ReadOnlyField
+              label="Full Name"
+              icon={User}
+              value={card.fullName}
+              placeholder="From appointment form"
+            />
+            <ReadOnlyField
+              label="Position / Role"
+              icon={Briefcase}
+              value={card.position}
+              placeholder="From appointment form"
+            />
+            <ReadOnlyField
+              label="Partner ID"
+              icon={Hash}
+              value={card.employeeId}
+              placeholder="From appointment form"
+            />
+            <ReadOnlyField
+              label="Issue Date"
+              icon={Calendar}
+              value={card.issueDate}
+              placeholder="From appointment form"
+            />
           </div>
         </div>
 
@@ -367,6 +412,14 @@ export default function IdCardWorkspace({
               <Download className="w-3.5 h-3.5 shrink-0" />
               {isExportingBack ? "Generating..." : "Download Back (PNG)"}
             </button>
+            <button
+              onClick={exportPdf}
+              disabled={isExportingPdf}
+              className="flex-1 py-2.5 px-4 border border-[#DBEAFE] hover:border-emerald-500 hover:bg-emerald-50 text-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition cursor-pointer"
+            >
+              <FileText className="w-3.5 h-3.5 shrink-0" />
+              {isExportingPdf ? "Generating..." : "Download Both (PDF)"}
+            </button>
           </div>
           <div className="flex justify-between text-[11px] text-[#64748B] px-1 font-semibold">
             <span>PNG · 3× scale · Print ready</span>
@@ -383,7 +436,7 @@ export default function IdCardWorkspace({
         {/* Scaler wrapper — same pattern as A4DocumentScaler */}
         <div
           style={{
-            width:  CARD_W * previewScale * 2 + 40 * previewScale, // front + back + gap
+            width: CARD_W * previewScale * 2 + 40 * previewScale, // front + back + gap
             height: CARD_H * previewScale,
             position: "relative",
           }}

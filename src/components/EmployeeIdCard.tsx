@@ -77,26 +77,28 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
   return (
     <div
       ref={cardRef}
-      className="relative w-[360px] h-[570px] rounded-[18px] overflow-hidden flex-shrink-0"
+      className="relative w-[360px] h-[570px] rounded-[18px] overflow-hidden flex-shrink-0 shadow-2xl"
       style={{
         backgroundColor: C.bg,
-        boxShadow: "0 32px 64px rgba(0,0,0,0.75)",
-        border: "1px solid rgba(255,255,255,0.07)",
+        boxShadow:
+          "0 32px 64px rgba(0,0,0,0.75), inset 0 0 0 1px rgba(255,255,255,0.07)",
         fontFamily: "'Orbitron', 'Rajdhani', sans-serif",
       }}
     >
-      {/* X-logo — as <img> instead of CSS background-image so html2canvas captures it */}
+      {/* X-logo watermark — centered behind the photo regardless of its natural aspect ratio */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/x-logo0bg.png"
         alt=""
+
         style={{
           position: "absolute",
           zIndex: 0,
-          width: "350px",
-          height: "100%",
-          bottom: "15%",
-          left: "-5%",
+          width: "150%",
+          height: "auto",
+          top: "30%",
+          left: "44%",
+          transform: "translate(-50%, -50%)",
           pointerEvents: "none",
           userSelect: "none",
         }}
@@ -107,7 +109,6 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
           src={data.photoUrl}
           alt={data.fullName || "Employee"}
           className="absolute top-[14px] right-[-14px] w-[320px] h-[490px] object-cover object-top z-10"
-          crossOrigin="anonymous"
         />
       ) : (
         <div
@@ -115,6 +116,10 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
           style={{
             background:
               "linear-gradient(140deg, #13141f 0%, #1e2035 55%, #13141f 100%)",
+            maskImage:
+              "linear-gradient(to bottom, black 45%, rgba(0,0,0,0.55) 75%, transparent 100%)",
+            WebkitMaskImage:
+              "linear-gradient(to bottom, black 45%, rgba(0,0,0,0.55) 75%, transparent 100%)",
           }}
         >
           <span className="text-[11px] font-bold tracking-[0.18em] text-white/12 text-center leading-tight">
@@ -126,14 +131,13 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
       )}
 
       {/* JEVXO Logo - HIGHER z-index + better positioning */}
-      <div className="absolute top-2 right-2 z-30 bg-[#0A0B10]/90 px-2 py-1 rounded-xl" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={logo.src}
+      <div className="absolute top-2 right-2 z-30 bg-[#0A0B10]/80 backdrop-blur-sm px-2 py-1 rounded-xl">
+        <Image
+          src={logo}
           width={140}
           height={95}
           alt="JEVXO Logo"
-          crossOrigin="anonymous"
+          className="drop-shadow-md"
         />
       </div>
 
@@ -148,7 +152,7 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
           }}
         >
           {nameChars.map((char, i) => (
-            <span key={i} style={{ display: "inline-block", transform: "rotate(-90deg)" }}>
+            <span key={i} className="block -rotate-90">
               {char === " " ? "\u00A0" : char}
             </span>
           ))}
@@ -166,7 +170,11 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
             <svg
               width="280"
               height="34"
-              style={{ display: "block", overflow: "visible", margin: "0 auto" }}
+              style={{
+                display: "block",
+                overflow: "visible",
+                margin: "0 auto",
+              }}
             >
               <defs>
                 <linearGradient id="posGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -225,19 +233,16 @@ export function IdCardBack({ data: _data, cardRef }: BackProps) {
   return (
     <div
       ref={cardRef}
-      className="w-[360px] h-[570px] rounded-[18px] overflow-hidden flex-shrink-0 relative"
+      className="w-[360px] h-[570px] rounded-[18px] overflow-hidden flex-shrink-0 shadow-2xl relative"
       style={{
-        boxShadow: "0 32px 64px rgba(0,0,0,0.75)",
-        border: "1px solid rgba(255,255,255,0.07)",
-        backgroundColor: C.bg,
+        boxShadow:
+          "0 32px 64px rgba(0,0,0,0.75), inset 0 0 0 1px rgba(255,255,255,0.07)",
       }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/id-card-back.png"
         alt="ID Card Back"
-        className="w-full h-full object-fill absolute top-0 left-0 z-10"
-        crossOrigin="anonymous"
+        className="w-full h-full object-fill"
       />
     </div>
   );
