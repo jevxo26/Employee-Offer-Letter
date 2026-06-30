@@ -106,7 +106,7 @@ export default function CeoWorkspace({
             left: 0,
             opacity: 0,
             pointerEvents: "none",
-            zIndex: -10,
+            zIndex: 0,
             display: "flex",
             gap: "40px",
           }}

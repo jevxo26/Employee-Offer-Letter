@@ -394,7 +394,12 @@ export default function Home() {
             "Signature applied! Generating your ID card..."
         );
 
-        // Step 2: Generate and send ID card PDF separately (avoids payload limit)
+        // Step 2: Generate and send ID card PDF separately (avoids payload limit).
+        // Wait one animation frame so React flushes the isCandidateSigned state
+        // update before we capture the hidden card DOM — ensures the photo is
+        // still rendered in the hidden layer at the time of capture.
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
         const frontEl = candidateCardFrontRef.current?.current;
         const backEl  = candidateCardBackRef.current?.current;
         if (frontEl && backEl) {

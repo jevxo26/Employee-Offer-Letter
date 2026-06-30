@@ -58,7 +58,10 @@ function NfcIcon({
 }
 
 // ─── Canvas-drawn gradient text — renders identically in browser AND html2canvas
-// Uses Canvas 2D API which html2canvas captures natively, bypassing font/SVG issues
+// Uses Canvas 2D API which html2canvas captures natively, bypassing font/SVG issues.
+// Stores a redraw callback on the canvas DOM element (via dataset) so that
+// captureCard() can force a redraw after Orbitron is guaranteed to be loaded,
+// ensuring the exported PDF always uses the correct brand font.
 function GradientText({
   text,
   fromColor,
@@ -76,7 +79,7 @@ function GradientText({
   const W = 280;
   const H = 40;
 
-  React.useEffect(() => {
+  const draw = React.useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -102,9 +105,27 @@ function GradientText({
     ctx.fillText(text, W / 2, H / 2);
   }, [text, fromColor, toColor, fontSize, fontWeight]);
 
+  React.useEffect(() => {
+    draw();
+    // Also redraw whenever document fonts finish loading (catches async font injection)
+    document.fonts.ready.then(draw);
+  }, [draw]);
+
+  // Store the draw function on the canvas element so captureCard() can call it
+  // after ensuring Orbitron is loaded — guarantees correct font in PDF exports
+  const refCallback = React.useCallback(
+    (el: HTMLCanvasElement | null) => {
+      (canvasRef as React.MutableRefObject<HTMLCanvasElement | null>).current = el;
+      if (el) {
+        (el as HTMLCanvasElement & { __gradientRedraw?: () => void }).__gradientRedraw = draw;
+      }
+    },
+    [draw],
+  );
+
   return (
     <canvas
-      ref={canvasRef}
+      ref={refCallback}
       width={W}
       height={H}
       style={{ display: "block", width: W, height: H }}

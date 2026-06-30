@@ -137,11 +137,22 @@ async function captureCard(
   el: HTMLDivElement,
   opts: { scale?: number; backgroundColor?: string | null } = {},
 ): Promise<HTMLCanvasElement> {
+  // 1. Ensure Orbitron is embedded as a data-URI @font-face
   await ensureOrbitronEmbedded();
-  await waitForImages(el);
 
-  // Force all fonts in the document to be loaded and ready
+  // 2. Wait for all document fonts (including the just-injected Orbitron)
   await document.fonts.ready;
+
+  // 3. Force-redraw every GradientText canvas now that Orbitron is guaranteed loaded.
+  //    Without this, canvases drawn at mount time use a fallback font in the PDF.
+  el.querySelectorAll<HTMLCanvasElement>("canvas").forEach((canvas) => {
+    const redraw = (canvas as HTMLCanvasElement & { __gradientRedraw?: () => void }).__gradientRedraw;
+    if (typeof redraw === "function") redraw();
+  });
+
+  // 4. Wait for every <img> inside the card (photo, logo, watermark) to fully load.
+  //    This includes the candidate photo data-URL which may have just been set.
+  await waitForImages(el);
 
   // Tailwind shadow-2xl is class-based — we must remove the class, not inline style
   const hadShadow = el.classList.contains("shadow-2xl");
@@ -167,6 +178,11 @@ async function captureCard(
       backgroundColor: opts.backgroundColor ?? "#0A0B10",
       imageTimeout: 15000,
       onclone: (_doc, clonedEl) => {
+        // In the clone: re-run all gradient redraws so the cloned canvases are fresh
+        clonedEl.querySelectorAll<HTMLCanvasElement>("canvas").forEach((canvas) => {
+          const redraw = (canvas as HTMLCanvasElement & { __gradientRedraw?: () => void }).__gradientRedraw;
+          if (typeof redraw === "function") redraw();
+        });
         // In the clone, also set font-family as CSS on SVG texts
         clonedEl.querySelectorAll<SVGTextElement>("text").forEach((t) => {
           const attr = t.getAttribute("fontFamily") || t.getAttribute("font-family");

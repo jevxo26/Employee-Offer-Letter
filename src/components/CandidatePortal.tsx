@@ -153,8 +153,7 @@ export default function CandidatePortal({
             reject(new Error("Could not prepare image canvas."));
             return;
           }
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(0, 0, width, height);
+          ctx.clearRect(0, 0, width, height);
           ctx.drawImage(img, 0, 0, width, height);
           resolve(canvas.toDataURL("image/jpeg", 0.82));
         };
@@ -200,7 +199,7 @@ export default function CandidatePortal({
           left: 0,
           opacity: 0,
           pointerEvents: "none",
-          zIndex: -10,
+          zIndex: 0,
           display: "flex",
           gap: "40px",
         }}
