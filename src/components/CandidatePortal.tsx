@@ -152,7 +152,7 @@ export default function CandidatePortal({
             />
           </>
         ) : (
-          /* ID Card tab — photo upload + card preview */}
+          /* ID Card tab — photo upload + card preview */
           <div className="flex-1 flex flex-col items-center bg-[#1a1a2e] overflow-auto p-6 sm:p-8 gap-6">
 
             {/* Photo upload panel */}
