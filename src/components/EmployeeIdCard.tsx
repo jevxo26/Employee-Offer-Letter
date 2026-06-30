@@ -57,6 +57,61 @@ function NfcIcon({
   );
 }
 
+// ─── Canvas-drawn gradient text — renders identically in browser AND html2canvas
+// Uses Canvas 2D API which html2canvas captures natively, bypassing font/SVG issues
+function GradientText({
+  text,
+  fromColor,
+  toColor,
+  fontSize = 22,
+  fontWeight = 900,
+}: {
+  text: string;
+  fromColor: string;
+  toColor: string;
+  fontSize?: number;
+  fontWeight?: number;
+}) {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const W = 280;
+  const H = 40;
+
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // DPR-aware for sharp rendering
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width  = `${W}px`;
+    canvas.style.height = `${H}px`;
+    ctx.scale(dpr, dpr);
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.font = `${fontWeight} ${fontSize}px 'Orbitron', sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const grad = ctx.createLinearGradient(0, 0, W, 0);
+    grad.addColorStop(0, fromColor);
+    grad.addColorStop(1, toColor);
+    ctx.fillStyle = grad;
+    ctx.fillText(text, W / 2, H / 2);
+  }, [text, fromColor, toColor, fontSize, fontWeight]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={W}
+      height={H}
+      style={{ display: "block", width: W, height: H }}
+    />
+  );
+}
+
 // ─── FRONT SIDE ───────────────────────────────────────────────────────────────
 interface FrontProps {
   data: EmployeeCard;
@@ -80,14 +135,9 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
       className="relative w-[360px] h-[570px] rounded-[18px] overflow-hidden flex-shrink-0 shadow-2xl"
       style={{
         backgroundColor: C.bg,
-        boxShadow:
-          "0 32px 64px rgba(0,0,0,0.75), inset 0 0 0 1px rgba(255,255,255,0.07)",
         fontFamily: "'Orbitron', 'Rajdhani', sans-serif",
       }}
     >
-      {/* Solid Background */}
-      <div className="absolute inset-0 z-0" style={{ backgroundColor: C.bg }} />
-
       {/* X-logo watermark */}
       <img
         src="/x-logo0bg.png"
@@ -112,7 +162,7 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
         <img
           src={data.photoUrl}
           alt={data.fullName || "Employee"}
-          className="absolute top-[14px] right-[-14px] w-[320px] h-[490px] object-cover object-top z-10"
+          className="absolute top-0 right-[-10px] w-[330px] h-[504px] object-cover object-top z-10"
         />
       ) : (
         <div
@@ -163,50 +213,32 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
         </div>
       </div>
 
-      {/* Bottom Info Panel */}
-      <div className="absolute h-[200px] bg-gradient-to-t from-[#0A0B10] via-[#0A0B10]/99 to-transparent bottom-0 left-0 right-0 z-20 flex flex-col justify-end px-5 pb-[18px]">
-        <div className="absolute top-20 w-full">
-          {/* Gradient Text - Using SVG again but with better font handling */}
-          <div
-            className="font-black text-[22px] text-center tracking-[0.01em] pb-1.5"
-            style={{ paddingLeft: "42px" }}
-          >
-            <svg
-              width="280"
-              height="38"
-              style={{ display: "block", margin: "0 auto" }}
-            >
-              <defs>
-                <linearGradient id="posGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#7B3FF5" />
-                  <stop offset="100%" stopColor="#4B9EFF" />
-                </linearGradient>
-              </defs>
-              <text
-                x="50%"
-                y="29"
-                textAnchor="middle"
-                fill="url(#posGrad)"
-                fontFamily="'Orbitron', sans-serif"
-                fontWeight="900"
-                fontSize="22.5"
-                letterSpacing="0.4px"
-                style={{
-                  paintOrder: "stroke fill",
-                  stroke: "#0A0B10",
-                  strokeWidth: "3px",
-                }}
-              >
-                {data.position || "UI/UX Lead Designer"}
-              </text>
-            </svg>
+      {/* Bottom Info Panel — FIXED GRADIENT (No visible line) */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-[125px] z-20 flex flex-col justify-end px-5 pb-[18px]"
+        style={{
+          background: `linear-gradient(to top, 
+            #0A0B10 50%, 
+            #0A0B10 70%, 
+            rgba(10, 11, 16, 0.98) 80%, 
+            rgba(10, 11, 16, 0.85) 96%, 
+            rgba(10, 11, 16, 0.65) 150%)`,
+        }}
+      >
+        <div className="absolute top-0 left-0 w-full">
+          <div className="font-black text-[22px] text-center tracking-[0.01em] pb-1.5 flex justify-center">
+            <GradientText
+              text={data.position || "UI/UX Lead Designer"}
+              fromColor={C.purple}
+              toColor={C.cyan}
+            />
           </div>
 
-          <div className="text-white text-sm pl-20 font-medium tracking-widest opacity-95 mb-2">
+          <div className="text-white text-sm pl-24 font-medium tracking-widest opacity-95 mb-2">
             ID No: {data.employeeId || "000-000-0001"}
           </div>
 
-          <div className="text-white text-sm pl-20 font-sans font-semibold opacity-80">
+          <div className="text-white text-sm pl-24 font-sans font-semibold opacity-80">
             Issue Date: {data.issueDate || "2026"}
           </div>
         </div>
@@ -239,10 +271,6 @@ export function IdCardBack({ data: _data, cardRef }: BackProps) {
     <div
       ref={cardRef}
       className="w-[360px] h-[570px] rounded-[18px] overflow-hidden flex-shrink-0 shadow-2xl relative"
-      style={{
-        boxShadow:
-          "0 32px 64px rgba(0,0,0,0.75), inset 0 0 0 1px rgba(255,255,255,0.07)",
-      }}
     >
       <img
         src="/id-card-back.png"

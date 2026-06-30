@@ -79,9 +79,44 @@ function ReadOnlyField({
 }
 
 // ─── Capture helpers ───────────────────────────────────────────────────────────
-// Waits for every <img> inside an element to finish loading before we let
-// html2canvas read it — this is the actual fix for images coming out blank
-// or misplaced in exports (the old clone-based approach didn't wait for this).
+// Fetches Orbitron font as base64 and injects it into the document so
+// html2canvas can use it for SVG <text> elements.
+let orbitronFontCss: string | null = null;
+async function ensureOrbitronEmbedded(): Promise<void> {
+  if (orbitronFontCss !== null) return; // already done
+  try {
+    // Fetch the CSS from Google Fonts
+    const cssResp = await fetch(
+      "https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap"
+    );
+    const css = await cssResp.text();
+    // Extract the woff2 URL from the CSS
+    const woffMatch = css.match(/src:\s*url\(([^)]+)\)\s*format\('woff2'\)/);
+    if (!woffMatch) return;
+    const woffUrl = woffMatch[1];
+    // Fetch the actual font binary and base64-encode it
+    const fontResp = await fetch(woffUrl);
+    const fontBuf  = await fontResp.arrayBuffer();
+    const b64      = btoa(
+      new Uint8Array(fontBuf).reduce((s, b) => s + String.fromCharCode(b), "")
+    );
+    orbitronFontCss = `@font-face {
+      font-family: 'Orbitron';
+      font-weight: 900;
+      src: url('data:font/woff2;base64,${b64}') format('woff2');
+    }`;
+    // Inject once into the real document so html2canvas picks it up
+    const style = document.createElement("style");
+    style.id = "orbitron-embedded";
+    style.textContent = orbitronFontCss;
+    document.head.appendChild(style);
+  } catch {
+    // Non-fatal — falls back to system font
+    orbitronFontCss = "";
+  }
+}
+
+// Waits for every <img> inside an element to finish loading
 async function waitForImages(el: HTMLElement): Promise<void> {
   const imgs = Array.from(el.querySelectorAll("img"));
   await Promise.all(
@@ -96,20 +131,58 @@ async function waitForImages(el: HTMLElement): Promise<void> {
 }
 
 // Captures the REAL rendered card element — no cloning, no off-screen tricks.
-// This is what guarantees the PNG/PDF match exactly what's on screen.
+// Temporarily removes Tailwind shadow class (renders as border line at 3×).
+// Also forces document fonts to load before capture.
 async function captureCard(
   el: HTMLDivElement,
   opts: { scale?: number; backgroundColor?: string | null } = {},
 ): Promise<HTMLCanvasElement> {
+  await ensureOrbitronEmbedded();
   await waitForImages(el);
-  return html2canvas(el, {
-    scale: opts.scale ?? 3,
-    useCORS: true,
-    allowTaint: true,
-    logging: false,
-    backgroundColor: opts.backgroundColor ?? "#0A0B10",
-    imageTimeout: 15000,
+
+  // Force all fonts in the document to be loaded and ready
+  await document.fonts.ready;
+
+  // Tailwind shadow-2xl is class-based — we must remove the class, not inline style
+  const hadShadow = el.classList.contains("shadow-2xl");
+  if (hadShadow) el.classList.remove("shadow-2xl");
+  // Also clear any inline box-shadow just in case
+  const originalBoxShadow = el.style.boxShadow;
+  el.style.boxShadow = "none";
+
+  // Force SVG text elements to use font-family as CSS property (not just attribute)
+  // so html2canvas resolves it through the CSS cascade where our @font-face lives
+  const svgTexts = Array.from(el.querySelectorAll<SVGTextElement>("text"));
+  svgTexts.forEach((t) => {
+    const attr = t.getAttribute("fontFamily") || t.getAttribute("font-family");
+    if (attr) t.style.fontFamily = attr;
   });
+
+  try {
+    return await html2canvas(el, {
+      scale: opts.scale ?? 3,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      backgroundColor: opts.backgroundColor ?? "#0A0B10",
+      imageTimeout: 15000,
+      onclone: (_doc, clonedEl) => {
+        // In the clone, also set font-family as CSS on SVG texts
+        clonedEl.querySelectorAll<SVGTextElement>("text").forEach((t) => {
+          const attr = t.getAttribute("fontFamily") || t.getAttribute("font-family");
+          if (attr) t.style.fontFamily = attr;
+        });
+        // Remove shadow from clone too
+        clonedEl.classList.remove("shadow-2xl");
+        clonedEl.style.boxShadow = "none";
+      },
+    });
+  } finally {
+    if (hadShadow) el.classList.add("shadow-2xl");
+    el.style.boxShadow = originalBoxShadow;
+    // Restore SVG text inline styles
+    svgTexts.forEach((t) => { t.style.fontFamily = ""; });
+  }
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
