@@ -21,7 +21,7 @@ interface CeoWorkspaceProps {
   onExport: () => void;
   isDemo: boolean;
   isOfferSent: boolean;
-  onSendOffer: () => void;
+  onSendOffer: (options?: { cardPDFdata?: string }) => Promise<void> | void;
   previewRefs: React.RefObject<HTMLDivElement | null>[];
   docType: DocType;
   employeeCard: EmployeeCard;
@@ -70,7 +70,25 @@ export default function CeoWorkspace({
       return;
     }
 
-    onSendOffer();
+    if (docType === "both") {
+      if (!idCardPdfGetterRef.current) {
+        toast.error("The ID card preview is not ready yet. Please reopen the ID Card tab and try again.");
+        handleTabChange("idCard");
+        return;
+      }
+
+      const cardPDFdata = await idCardPdfGetterRef.current();
+      if (!cardPDFdata) {
+        toast.error("Failed to prepare the ID card PDF. Please wait a moment and try again.");
+        handleTabChange("idCard");
+        return;
+      }
+
+      await onSendOffer({ cardPDFdata });
+      return;
+    }
+
+    await onSendOffer();
   };
 
   // ── "both" mode: tabbed view ──────────────────────────────────────────────
@@ -157,6 +175,7 @@ export default function CeoWorkspace({
               onPhotoChange={(dataUrl) =>
                 setEmployeeCard((p) => ({ ...p, photoUrl: dataUrl }))
               }
+              hidePhotoUpload
               onRequestPdfBase64={(getter) => {
                 idCardPdfGetterRef.current = getter;
               }}

@@ -28,6 +28,7 @@ export interface SecondParty {
   nidNumber: string;
   position: string;
   bloodGroup: string;
+  photoUrl?: string;
   signatureImg: string;
 }
 

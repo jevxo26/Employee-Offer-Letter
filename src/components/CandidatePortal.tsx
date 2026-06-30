@@ -38,12 +38,14 @@ export default function CandidatePortal({
   onIdCardRefsReady,
 }: CandidatePortalProps) {
   const [activeTab, setActiveTab] = useState<"letter" | "idcard">("letter");
-  const [candidatePhotoUrl, setCandidatePhotoUrl] = useState("");
+  const [candidatePhotoUrl, setCandidatePhotoUrl] = useState(secondParty.photoUrl || "");
 
-  // ── ID card refs — always mounted, never null ──────────────────────────────
-  // Both panels are rendered in the DOM simultaneously (hidden via CSS when inactive).
-  // This guarantees cardFrontRef/cardBackRef are always populated so
-  // buildIdCardPdfBase64 can run from page.tsx regardless of active tab.
+  // ── ID card refs ─────────────────────────────────────────────────────────────
+  // The card components are rendered in a hidden-but-visible layer (opacity:0,
+  // position:fixed at top:0/left:0) so html2canvas can fully render them at any time.
+  // This is the ONLY approach that works: visibility:hidden and display:none both
+  // produce black output; off-screen at -9999px also fails because html2canvas
+  // uses the viewport rect to determine what to render.
   const cardFrontRef = useRef<HTMLDivElement>(null);
   const cardBackRef  = useRef<HTMLDivElement>(null);
 
@@ -81,7 +83,11 @@ export default function CandidatePortal({
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => setCandidatePhotoUrl(ev.target?.result as string);
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      setCandidatePhotoUrl(dataUrl);
+      setSecondParty((prev) => ({ ...prev, photoUrl: dataUrl }));
+    };
     reader.readAsDataURL(file);
   };
 
@@ -94,6 +100,27 @@ export default function CandidatePortal({
       transition={{ duration: 0.3 }}
       className="flex-1 flex flex-col w-full relative h-screen"
     >
+      {/* ── Hidden card render layer ─────────────────────────────────────────────
+          Rendered at opacity:0 at position fixed top-0 left-0 so html2canvas sees
+          a fully rendered element. Using opacity instead of visibility/display/
+          off-screen because html2canvas only renders elements inside the viewport. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          opacity: 0,
+          pointerEvents: "none",
+          zIndex: -10,
+          display: "flex",
+          gap: "40px",
+        }}
+      >
+        <IdCardFront data={cardData} cardRef={cardFrontRef} />
+        <IdCardBack  data={cardData} cardRef={cardBackRef}  />
+      </div>
+
       {/* ── Tab bar ── */}
       <div className="sticky top-20 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-6 shrink-0">
         {[
@@ -117,112 +144,100 @@ export default function CandidatePortal({
         ))}
       </div>
 
-      {/* ── Content — BOTH panels always in the DOM, toggled via visibility ── */}
-      <div className="flex-1 min-h-0 relative overflow-hidden">
-
-        {/* ── LETTER TAB — always mounted, visible when activeTab === "letter" ── */}
-        <div
-          className="absolute inset-0 flex flex-col xl:flex-row"
-          style={{ visibility: activeTab === "letter" ? "visible" : "hidden", pointerEvents: activeTab === "letter" ? "auto" : "none" }}
-        >
-          <div className="sticky top-20 h-screen shrink-0">
-            <CandidateSidebar
+      {/* ── Visible tab content ── */}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        {activeTab === "letter" ? (
+          <div className="h-full flex flex-col xl:flex-row">
+            <div className="sticky top-20 h-screen shrink-0">
+              <CandidateSidebar
+                firstParty={firstParty}
+                secondParty={secondParty}
+                setSecondParty={setSecondParty}
+                isExporting={isExporting}
+                isCompleted={isCompleted}
+                onExport={handleConfirmSign}
+                offerId={offerId}
+                isPhotoUploaded={!!candidatePhotoUrl}
+                onSwitchToIdCard={() => setActiveTab("idcard")}
+              />
+            </div>
+            <WorkspaceCanvas
               firstParty={firstParty}
               secondParty={secondParty}
-              setSecondParty={setSecondParty}
+              settings={docSettings}
+              previewRefs={previewRefs}
               isExporting={isExporting}
-              isCompleted={isCompleted}
               onExport={handleConfirmSign}
-              offerId={offerId}
-              isPhotoUploaded={!!candidatePhotoUrl}
-              onSwitchToIdCard={() => setActiveTab("idcard")}
+              isDemo={false}
             />
           </div>
-          <WorkspaceCanvas
-            firstParty={firstParty}
-            secondParty={secondParty}
-            settings={docSettings}
-            previewRefs={previewRefs}
-            isExporting={isExporting}
-            onExport={handleConfirmSign}
-            isDemo={false}
-          />
-        </div>
-
-        {/* ── ID CARD TAB — always mounted, visible when activeTab === "idcard" ── */}
-        <div
-          className="absolute inset-0 flex flex-col items-center bg-[#1a1a2e] overflow-auto p-6 sm:p-8 gap-6"
-          style={{ visibility: activeTab === "idcard" ? "visible" : "hidden", pointerEvents: activeTab === "idcard" ? "auto" : "none" }}
-        >
-          {/* Photo upload */}
-          {!isCompleted && (
-            <div className="w-full max-w-md bg-[#F8FAFC] rounded-2xl p-5 space-y-3">
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold text-[#334155] uppercase tracking-wider flex items-center gap-1.5">
-                  <Upload className="w-3 h-3 text-[#2563EB]" />
-                  Your Photo{" "}
-                  <span className="text-rose-500 font-extrabold">* Required before signing</span>
-                </span>
-                <p className="text-[10px] text-[#64748B]">
-                  Upload a professional photo without background. This will appear on your ID card.
-                </p>
-              </div>
-              <label className="flex flex-col items-center justify-center gap-2 h-28 border-2 border-dashed border-[#DBEAFE] hover:border-[#2563EB] rounded-xl cursor-pointer bg-white transition-all group">
-                {candidatePhotoUrl ? (
-                  <img
-                    src={candidatePhotoUrl}
-                    alt="Your photo"
-                    className="h-full w-full object-cover rounded-xl"
-                  />
-                ) : (
-                  <>
-                    <Upload className="w-5 h-5 text-[#94A3B8] group-hover:text-[#2563EB] transition" />
-                    <span className="text-xs font-medium text-[#94A3B8] group-hover:text-[#2563EB] transition">
-                      Click to upload your photo
-                    </span>
-                    <span className="text-[10px] text-[#CBD5E1]">PNG, JPG — transparent or plain background recommended</span>
-                  </>
+        ) : (
+          <div className="h-full flex flex-col items-center bg-[#1a1a2e] overflow-auto p-6 sm:p-8 gap-6">
+            {/* Photo upload */}
+            {!isCompleted && (
+              <div className="w-full max-w-md bg-[#F8FAFC] rounded-2xl p-5 space-y-3">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-[#334155] uppercase tracking-wider flex items-center gap-1.5">
+                    <Upload className="w-3 h-3 text-[#2563EB]" />
+                    Your Photo{" "}
+                    <span className="text-rose-500 font-extrabold">* Required before signing</span>
+                  </span>
+                  <p className="text-[10px] text-[#64748B]">
+                    Upload a professional photo without background. This will appear on your ID card.
+                  </p>
+                </div>
+                <label className="flex flex-col items-center justify-center gap-2 h-28 border-2 border-dashed border-[#DBEAFE] hover:border-[#2563EB] rounded-xl cursor-pointer bg-white transition-all group">
+                  {candidatePhotoUrl ? (
+                    <img src={candidatePhotoUrl} alt="Your photo" className="h-full w-full object-cover rounded-xl" />
+                  ) : (
+                    <>
+                      <Upload className="w-5 h-5 text-[#94A3B8] group-hover:text-[#2563EB] transition" />
+                      <span className="text-xs font-medium text-[#94A3B8] group-hover:text-[#2563EB] transition">
+                        Click to upload your photo
+                      </span>
+                      <span className="text-[10px] text-[#CBD5E1]">PNG, JPG — transparent or plain background recommended</span>
+                    </>
+                  )}
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                </label>
+                {candidatePhotoUrl && (
+                  <button
+                    onClick={() => {
+                      setCandidatePhotoUrl("");
+                      setSecondParty((prev) => ({ ...prev, photoUrl: "" }));
+                    }}
+                    className="text-[10px] font-semibold text-red-400 hover:text-red-600 text-right w-full transition cursor-pointer"
+                  >
+                    Remove photo
+                  </button>
                 )}
-                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
-              </label>
-              {candidatePhotoUrl && (
-                <button
-                  onClick={() => setCandidatePhotoUrl("")}
-                  className="text-[10px] font-semibold text-red-400 hover:text-red-600 text-right w-full transition cursor-pointer"
-                >
-                  Remove photo
-                </button>
+              </div>
+            )}
+
+            {/* Visible card preview — separate instance for display only */}
+            <div className="flex flex-col items-center gap-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-mono">
+                Your JEVXO Employee ID Card Preview
+              </p>
+              <div className="flex flex-col xl:flex-row gap-8 items-center">
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">Front Side</span>
+                  {/* Display-only card — uses a separate ref just for visual preview */}
+                  <IdCardFront data={cardData} cardRef={React.createRef()} />
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">Back Side</span>
+                  <IdCardBack data={cardData} cardRef={React.createRef()} />
+                </div>
+              </div>
+              {!isCompleted && (
+                <p className="text-[10px] text-slate-400 mt-1 text-center max-w-sm">
+                  Upload your photo above, then go to the Appointment Letter tab to sign and confirm.
+                </p>
               )}
             </div>
-          )}
-
-          {/* Card preview — IdCardFront/Back always rendered, refs always valid */}
-          <div className="flex flex-col items-center gap-3">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-mono">
-              Your JEVXO Employee ID Card Preview
-            </p>
-            <div className="flex flex-col xl:flex-row gap-8 items-center">
-              <div className="flex flex-col items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">
-                  Front Side
-                </span>
-                <IdCardFront data={cardData} cardRef={cardFrontRef} />
-              </div>
-              <div className="flex flex-col items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">
-                  Back Side
-                </span>
-                <IdCardBack data={cardData} cardRef={cardBackRef} />
-              </div>
-            </div>
-            {!isCompleted && (
-              <p className="text-[10px] text-slate-400 mt-1 text-center max-w-sm">
-                Upload your photo above, then go to the Appointment Letter tab to sign and confirm.
-              </p>
-            )}
           </div>
-        </div>
-
+        )}
       </div>
     </motion.section>
   );

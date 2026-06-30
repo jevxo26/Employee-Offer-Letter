@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { findAgreementById } from "../../../../../lib/agreementStore";
+import { getBaseUrl, getResendFromAddress } from "../../../../../lib/emailConfig";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
 export async function POST(
   request: Request,
@@ -24,7 +24,7 @@ export async function POST(
     }
 
     const { firstParty, secondParty, docSettings } = agreement;
-    const ctaLink = `${BASE_URL}/?candidateView=${id}`;
+    const ctaLink = `${getBaseUrl()}/?candidateView=${id}`;
 
     const emailHtml = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px 20px; border: 1px solid #e2e8f0; border-radius: 20px; background-color: #ffffff; color: #0f172a;">
@@ -45,7 +45,7 @@ export async function POST(
     `;
 
     const emailResult = await resend.emails.send({
-      from: "JEVXO <info@jevxo.com>",
+      from: getResendFromAddress(),
       to: [secondParty.email],
       subject: "Reminder: JEVXO Offer Letter Pending Signature",
       html: emailHtml,

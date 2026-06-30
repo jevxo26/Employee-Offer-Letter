@@ -11,7 +11,7 @@ import {
   Briefcase,
   Hash,
   Calendar,
-  Image,
+  Image as ImageIcon,
   FileText,
 } from "lucide-react";
 import EmployeeIdCard from "./EmployeeIdCard";
@@ -26,7 +26,6 @@ const CARD_H = 570;
 const PDF_PAGE_W   = 297;                        // A4 landscape width mm
 const PDF_PAGE_H   = 210;                        // A4 landscape height mm
 const PDF_MARGIN_Y = 10;                         // top/bottom margin mm
-const PDF_MARGIN_X = 10;                         // left/right margin mm
 const PDF_GAP      = 8;                          // gap between front and back mm
 const PDF_CARD_H   = PDF_PAGE_H - PDF_MARGIN_Y * 2;          // 190mm
 const PDF_CARD_W   = PDF_CARD_H * (54 / 85.6);               // ~119.6mm — exact CR80 ratio
@@ -225,8 +224,9 @@ interface IdCardWorkspaceProps {
   initialData?: Partial<EmployeeCard>;
   controlledPhotoUrl?: string;
   onPhotoChange?: (dataUrl: string) => void;
-  /** Called by parent to request a pre-generated PDF base64 before sending offer */
   onRequestPdfBase64?: (getter: () => Promise<string>) => void;
+  /** When true, hides the photo upload section (used in founder workspace — candidate uploads their own photo) */
+  hidePhotoUpload?: boolean;
 }
 
 export default function IdCardWorkspace({
@@ -234,50 +234,33 @@ export default function IdCardWorkspace({
   controlledPhotoUrl,
   onPhotoChange,
   onRequestPdfBase64,
+  hidePhotoUpload = false,
 }: IdCardWorkspaceProps) {
   const isControlled = controlledPhotoUrl !== undefined;
-
-  const [card, setCard] = useState<EmployeeCard>({
-    fullName: initialData?.fullName || "",
-    position: initialData?.position || "",
-    employeeId: initialData?.employeeId || "000-000-0001",
-    bloodGroup: initialData?.bloodGroup || "A+",
-    department: initialData?.department || "",
-    photoUrl: isControlled ? controlledPhotoUrl : initialData?.photoUrl || "",
-    issueDate:
-      initialData?.issueDate ||
+  const defaultIssueDate = React.useMemo(
+    () =>
       new Date().toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
       }),
-    expiryDate: initialData?.expiryDate || "",
-  });
+    [],
+  );
+  const [uncontrolledPhotoUrl, setUncontrolledPhotoUrl] = useState(initialData?.photoUrl || "");
 
-  useEffect(() => {
-    if (isControlled) {
-      setCard((p) => ({ ...p, photoUrl: controlledPhotoUrl }));
-    }
-  }, [controlledPhotoUrl, isControlled]);
-
-  useEffect(() => {
-    if (initialData) {
-      setCard((p) => ({
-        ...p,
-        fullName: initialData.fullName ?? p.fullName,
-        position: initialData.position ?? p.position,
-        employeeId: initialData.employeeId ?? p.employeeId,
-        bloodGroup: initialData.bloodGroup ?? p.bloodGroup,
-        issueDate: initialData.issueDate ?? p.issueDate,
-      }));
-    }
-  }, [
-    initialData?.fullName,
-    initialData?.position,
-    initialData?.employeeId,
-    initialData?.bloodGroup,
-    initialData?.issueDate,
-  ]); // eslint-disable-line react-hooks/exhaustive-deps
+  const card: EmployeeCard = React.useMemo(
+    () => ({
+      fullName: initialData?.fullName || "",
+      position: initialData?.position || "",
+      employeeId: initialData?.employeeId || "000-000-0001",
+      bloodGroup: initialData?.bloodGroup || "A+",
+      department: initialData?.department || "",
+      photoUrl: isControlled ? controlledPhotoUrl || "" : uncontrolledPhotoUrl,
+      issueDate: initialData?.issueDate || defaultIssueDate,
+      expiryDate: initialData?.expiryDate || "",
+    }),
+    [controlledPhotoUrl, defaultIssueDate, initialData, isControlled, uncontrolledPhotoUrl],
+  );
 
   const [isExportingFront, setIsExportingFront] = useState(false);
   const [isExportingBack, setIsExportingBack] = useState(false);
@@ -326,7 +309,7 @@ export default function IdCardWorkspace({
       if (isControlled && onPhotoChange) {
         onPhotoChange(dataUrl);
       } else {
-        setCard((p) => ({ ...p, photoUrl: dataUrl }));
+        setUncontrolledPhotoUrl(dataUrl);
       }
     };
     reader.readAsDataURL(file);
@@ -438,15 +421,17 @@ export default function IdCardWorkspace({
               Employee ID Card
             </h2>
             <p className="text-[#64748B] text-xs">
-              Card details are pulled from the appointment form. Upload the
-              employee photo below.
+              {hidePhotoUpload
+                ? "Card details are pulled from the appointment form. The candidate uploads their own photo in the candidate portal."
+                : "Card details are pulled from the appointment form. Upload the employee photo below."}
             </p>
           </div>
 
           {/* Photo Upload */}
+          {!hidePhotoUpload && (
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] font-bold text-[#334155] uppercase tracking-wider flex items-center gap-1.5">
-              <Image className="w-3 h-3 text-[#2563EB]" />
+              <ImageIcon className="w-3 h-3 text-[#2563EB]" />
               Employee Photo{" "}
               <span className="text-rose-500 font-extrabold">* Required</span>
             </label>
@@ -479,7 +464,7 @@ export default function IdCardWorkspace({
               <button
                 onClick={() => {
                   if (isControlled && onPhotoChange) onPhotoChange("");
-                  else setCard((p) => ({ ...p, photoUrl: "" }));
+                  else setUncontrolledPhotoUrl("");
                 }}
                 className="text-[10px] font-semibold text-red-400 hover:text-red-600 text-right transition cursor-pointer"
               >
@@ -487,6 +472,7 @@ export default function IdCardWorkspace({
               </button>
             )}
           </div>
+          )}
 
           {/* Read-only fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-3 sm:gap-4">

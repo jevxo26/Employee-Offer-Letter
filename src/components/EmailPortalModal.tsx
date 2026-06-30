@@ -26,8 +26,8 @@ export default function EmailPortalModal({
   const [copied, setCopied] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
-  const [fromAddress, setFromAddress] = useState("JEVXO <info@jevxo.com>");
   const [apiError, setApiError] = useState("");
+  const fromAddress = "JEVXO <info@jevxo.com>";
 
   if (!isOpen) return null;
 
@@ -51,7 +51,6 @@ export default function EmailPortalModal({
           offerId,
           candidateEmail: secondParty.email,
           candidateName: secondParty.fullName,
-          fromAddress,
         }),
       });
 
@@ -103,12 +102,12 @@ export default function EmailPortalModal({
               <input
                 type="text"
                 value={fromAddress}
-                onChange={(e) => setFromAddress(e.target.value)}
+                readOnly
                 className="bg-white border border-slate-200 px-3.5 py-1.5 rounded-lg text-slate-800 flex-1 font-bold outline-none focus:border-blue-500 transition"
               />
             </div>
             <p className="text-[10px] text-slate-450 font-normal pl-[68px] leading-relaxed">
-              * Must be verified in Resend. For sandbox testing, use <strong className="text-blue-600 select-all">JEVXO &lt;onboarding@resend.dev&gt;</strong>.
+              * Offer emails now use the verified JEVXO sender configuration from the server.
             </p>
           </div>
           <div className="flex items-center gap-3">

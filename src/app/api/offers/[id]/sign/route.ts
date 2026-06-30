@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { findAgreementById, updateAgreement } from "../../../../../lib/agreementStore";
 import { generateIdCardPdf } from "../../../../../lib/idCardPdf";
+import {
+  getFounderNotificationRecipients,
+  getResendFromAddress,
+} from "../../../../../lib/emailConfig";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -12,7 +16,12 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { signatureImg, letterPDFdata: rawLetterPdf, cardPDFdata: rawCardPdf } = body;
+    const {
+      signatureImg,
+      letterPDFdata: rawLetterPdf,
+      cardPDFdata: rawCardPdf,
+      photoUrl,
+    } = body;
 
     const normalizedLetterPdf =
       typeof rawLetterPdf === "string"
@@ -37,6 +46,7 @@ export async function POST(
     const updatedSecondParty = {
       ...agreement.secondParty,
       signatureImg,
+      ...(typeof photoUrl === "string" ? { photoUrl } : {}),
     };
 
     // ── Signature-only save (not finalizing yet) ──────────────────────────────
@@ -56,8 +66,13 @@ export async function POST(
     // ── Finalizing: generate ID card PDF, update DB, send emails ─────────────
     console.log(`[Next.js API] Finalizing offer: ${id}`);
 
-    // Use client-generated pixel-perfect PDF if available; fall back to server-side generator
-    let idCardPdfBase64 = clientCardPdf;
+    // Prefer the exact client/workspace-generated PDF before using the simplified server fallback.
+    const storedCardPdf =
+      typeof agreement.cardPDFdata === "string"
+        ? agreement.cardPDFdata.replace(/^data:application\/pdf(?:;[^;]*)?;base64,/, "")
+        : "";
+
+    let idCardPdfBase64 = clientCardPdf || storedCardPdf;
     if (!idCardPdfBase64) {
       try {
         idCardPdfBase64 = await generateIdCardPdf({
@@ -68,7 +83,7 @@ export async function POST(
         console.error("[Next.js API] ID card PDF generation failed:", pdfErr);
       }
     } else {
-      console.log(`[Next.js API] Using client-generated ID card PDF for: ${id}`);
+      console.log(`[Next.js API] Using pre-generated ID card PDF for: ${id}`);
     }
 
     const updated = await updateAgreement(id, {
@@ -77,9 +92,9 @@ export async function POST(
       partnerSigned:    true,
       signedAt:         new Date().toISOString(),
       letterPDFdata:    normalizedLetterPdf,
-      letterSentToBoth: true,
+      letterSentToBoth: false,
       idCardGenerated:  idCardPdfBase64.length > 0,
-      idCardSent:       idCardPdfBase64.length > 0,
+      idCardSent:       false,
       cardPDFdata:      idCardPdfBase64 || undefined,
     });
 
@@ -89,11 +104,21 @@ export async function POST(
 
     console.log(`[Next.js API] Offer fully executed: ${id}`);
 
+    let founderEmailSent = false;
+    let partnerEmailSent = false;
+
     if (process.env.RESEND_API_KEY) {
-      const founderEmail = process.env.FOUNDER_EMAIL || updated.firstParty.email;
+      const founderRecipients = getFounderNotificationRecipients(
+        process.env.FOUNDER_EMAIL,
+        updated.firstParty.email,
+      );
       const partnerEmail = updated.secondParty.email;
       const founderName  = updated.firstParty.representedBy;
       const partnerName  = updated.secondParty.fullName;
+
+      console.log(
+        `[Next.js API] Sending emails — founder: ${founderRecipients.join(", ")}, partner: ${partnerEmail}`
+      );
 
       const attachments: { filename: string; content: string }[] = [
         { filename: `${id}-appointment.pdf`, content: normalizedLetterPdf },
@@ -102,28 +127,50 @@ export async function POST(
         attachments.push({ filename: `${id}-id-card.pdf`, content: idCardPdfBase64 });
       }
 
-      await Promise.all([
+      const [founderResult, partnerResult] = await Promise.all([
         resend.emails.send({
-          from: "JEVXO <info@jevxo.com>",
-          to: [founderEmail],
+          from: getResendFromAddress(),
+          to: founderRecipients,
           subject: "Appointment Letter Fully Executed",
           text: `Dear ${founderName},\n\nThe appointment letter for ${partnerName} has been fully executed. Please find the attached documents.\n\nBest,\nJEVXO HR System`,
           attachments,
         }),
         resend.emails.send({
-          from: "JEVXO <info@jevxo.com>",
+          from: getResendFromAddress(),
           to: [partnerEmail],
           subject: "Your Appointment Letter & ID Card from JEVXO",
           text: `Dear ${partnerName},\n\nYour appointment letter and employee ID card from JEVXO are attached.\n\nBest,\nJEVXO`,
           attachments,
         }),
       ]);
+
+      if (founderResult.error) {
+        console.error("[Next.js API] Founder email failed:", founderResult.error);
+      } else {
+        founderEmailSent = true;
+        console.log(`[Next.js API] Founder email sent: ${founderResult.data?.id}`);
+      }
+      if (partnerResult.error) {
+        console.error("[Next.js API] Partner email failed:", partnerResult.error);
+      } else {
+        partnerEmailSent = true;
+        console.log(`[Next.js API] Partner email sent: ${partnerResult.data?.id}`);
+      }
     }
+
+    const lettersSentToBoth = founderEmailSent && partnerEmailSent;
+    const idCardSentToBoth = lettersSentToBoth && idCardPdfBase64.length > 0;
+
+    await updateAgreement(id, {
+      letterSentToBoth: lettersSentToBoth,
+      idCardSent: idCardSentToBoth,
+    });
 
     return NextResponse.json({
       success: true,
-      message:
-        "Signature applied successfully! The fully executed documents have been emailed to you and the Founder.",
+      message: lettersSentToBoth
+        ? "Signature applied successfully! The fully executed documents have been emailed to you and the Founder."
+        : "Signature applied successfully! The fully executed documents were generated, but at least one email delivery failed.",
     });
   } catch (err: unknown) {
     console.error("[Next.js API] Error signing offer:", err);

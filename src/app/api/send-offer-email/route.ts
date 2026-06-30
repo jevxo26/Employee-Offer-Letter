@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { findAgreementById } from "../../../lib/agreementStore";
+import { getBaseUrl, getResendFromAddress } from "../../../lib/emailConfig";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const BASE_URL = process.env.BASE_URL;
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { offerId, candidateEmail, candidateName, fromAddress } = body;
+    const { offerId, candidateEmail, candidateName } = body;
 
     if (!offerId || !candidateEmail || !candidateName) {
       return NextResponse.json(
@@ -24,8 +24,8 @@ export async function POST(request: Request) {
 
     const { firstParty, secondParty, docSettings } = agreement;
 
-    const ctaLink = `${BASE_URL}/?candidateView=${offerId}`;
-    const sender = fromAddress || "JEVXO <info@jevxo.com>";
+    const ctaLink = `${getBaseUrl()}/?candidateView=${offerId}`;
+    const sender = getResendFromAddress();
 
     const emailHtml = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px 20px; border: 1px solid #e2e8f0; border-radius: 20px; background-color: #ffffff; color: #0f172a;">

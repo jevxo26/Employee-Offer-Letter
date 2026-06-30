@@ -51,6 +51,7 @@ const DEFAULT_SECOND_PARTY: SecondParty = {
   nidNumber: "555555555",
   position: "Web Developer",
   bloodGroup: "A+",
+  photoUrl: "",
   signatureImg: "",
 };
 
@@ -69,6 +70,7 @@ const SAMPLE_SECOND_PARTY: SecondParty = {
   nidNumber: "4229023884",
   position: "Full Stack Developer (React/Next.js)",
   bloodGroup: "B+",
+  photoUrl: "",
   signatureImg: "",
 };
 
@@ -242,10 +244,11 @@ export default function Home() {
     }));
   };
 
-  const handleSendOffer = async () => {
+  const handleSendOffer = async (options?: { cardPDFdata?: string }) => {
     const tempId = Math.random().toString(36).substring(2, 11);
     const stateToSave = { firstParty, secondParty, docSettings };
     localStorage.setItem("jevxo_offer_" + tempId, JSON.stringify(stateToSave));
+    const cardPDFdata = options?.cardPDFdata || "";
 
     let saved = false;
     let dbAgreementId = "";
@@ -260,6 +263,7 @@ export default function Home() {
             secondParty,
             docSettings,
             docType,
+            ...(cardPDFdata ? { cardPDFdata } : {}),
           }),
         });
 
@@ -388,7 +392,8 @@ export default function Home() {
           body: JSON.stringify({
             signatureImg: secondParty.signatureImg,
             letterPDFdata: pdfData,
-            ...(cardPDFdata ? { cardPDFdata } : {}),
+              ...(cardPDFdata ? { cardPDFdata } : {}),
+              ...(secondParty.photoUrl ? { photoUrl: secondParty.photoUrl } : {}),
           }),
         });
         const data = await res.json().catch(() => null);
@@ -578,7 +583,24 @@ export default function Home() {
             />
           )}
 
-          {appState === "idCard" && <IdCardWorkspace key="idCard" />}
+          {appState === "idCard" && (
+            <IdCardWorkspace
+              key="idCard"
+              initialData={{
+                fullName: secondParty.fullName || employeeCard.fullName,
+                position: secondParty.position || employeeCard.position,
+                bloodGroup: secondParty.bloodGroup || employeeCard.bloodGroup,
+                employeeId: secondParty.partnerId || employeeCard.employeeId,
+                issueDate: docSettings.date || employeeCard.issueDate,
+                expiryDate: employeeCard.expiryDate,
+              }}
+              controlledPhotoUrl={employeeCard.photoUrl}
+              onPhotoChange={(dataUrl) =>
+                setEmployeeCard((prev) => ({ ...prev, photoUrl: dataUrl }))
+              }
+              hidePhotoUpload
+            />
+          )}
 
           {appState === "candidatePortal" && (
             <CandidatePortal
