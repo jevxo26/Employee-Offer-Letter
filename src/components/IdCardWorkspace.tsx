@@ -139,8 +139,11 @@ export default function IdCardWorkspace({
       const canvas = await html2canvas(ref.current, {
         scale: 3,
         useCORS: true,
+        allowTaint: true,
         logging: false,
         backgroundColor: null,
+        imageTimeout: 15000,
+        foreignObjectRendering: false,
       });
       const link = document.createElement("a");
       link.download = filename;

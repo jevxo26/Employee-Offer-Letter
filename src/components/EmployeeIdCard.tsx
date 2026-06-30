@@ -83,7 +83,7 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
         backgroundImage: "url('/x-logo0bg.png')",
         backgroundRepeat: "no-repeat",
         backgroundSize: "175% auto",
-        backgroundPosition: "25% 100%",
+        backgroundPosition: "30% 125%",
         boxShadow:
           "0 32px 64px rgba(0,0,0,0.75), inset 0 0 0 1px rgba(255,255,255,0.07)",
         fontFamily: "'Orbitron', 'Rajdhani', sans-serif",
@@ -146,47 +146,43 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
       </div>
 
       {/* Bottom Info Panel - unchanged */}
-        <div className="absolute h-[200px] bg-gradient-to-t from-[#0A0B10] via-[#0A0B10]/99 to-transparent bottom-0 left-0 right-0  z-20 flex flex-col justify-end px-5 pb-[18px]">
-          <div className="absolute top-20">
-            <div
-              className="font-black text-[22px] text-center tracking-[0.01em] pb-1.5"
-              style={{
-                background: `linear-gradient(90deg, ${C.purple} 0%, ${C.cyan} 100%)`,
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                paddingLeft: "42px",
-              }}
-            >
-              {data.position || "UI/UX Lead Designer"}
-            </div>
-
-            <div
-              className="text-white text-sm pl-20 font-medium tracking-widest opacity-95 mb-2"
-            >
-              ID No: {data.employeeId || "000-000-0001"}
-            </div>
-
-            <div
-              className="text-white text-sm pl-20 font-sans font-semibold opacity-80"
-            >
-              Issue Date: {data.issueDate || "2026"}
-            </div>
+      <div className="absolute h-[200px] bg-gradient-to-t from-[#0A0B10] via-[#0A0B10]/99 to-transparent bottom-0 left-0 right-0  z-20 flex flex-col justify-end px-5 pb-[18px]">
+        <div className="absolute top-20">
+          <div
+            className="font-black text-[22px] text-center tracking-[0.01em] pb-1.5"
+            style={{
+              background: `linear-gradient(90deg, ${C.purple} 0%, ${C.cyan} 100%)`,
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              paddingLeft: "42px",
+            }}
+          >
+            {data.position || "UI/UX Lead Designer"}
           </div>
 
-          <div className="flex justify-between items-end">
-            <div className="bg-white p-1 rounded-md shadow-xl">
-              <QRCode
-                value={verifyUrl}
-                size={58}
-                fgColor="#000000"
-                bgColor="#ffffff"
-                level="M"
-              />
-            </div>
-            <NfcIcon color="rgba(255,255,255,0.6)" size={32} />
+          <div className="text-white text-sm pl-20 font-medium tracking-widest opacity-95 mb-2">
+            ID No: {data.employeeId || "000-000-0001"}
+          </div>
+
+          <div className="text-white text-sm pl-20 font-sans font-semibold opacity-80">
+            Issue Date: {data.issueDate || "2026"}
           </div>
         </div>
+
+        <div className="flex justify-between items-end">
+          <div className="bg-white p-1 rounded-md shadow-xl">
+            <QRCode
+              value={verifyUrl}
+              size={58}
+              fgColor="#000000"
+              bgColor="#ffffff"
+              level="M"
+            />
+          </div>
+          <NfcIcon color="rgba(255,255,255,0.6)" size={32} />
+        </div>
       </div>
+    </div>
   );
 }
 
