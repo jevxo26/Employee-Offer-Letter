@@ -21,17 +21,18 @@ import { EmployeeCard } from "../types";
 const CARD_W = 360;
 const CARD_H = 570;
 
-// ─── A4 landscape PDF geometry (mm) — must match how the two cards are laid out
-const PDF_PAGE_W = 297;
-const PDF_PAGE_H = 210;
-const PDF_MARGIN = 8;
-const PDF_GAP = 10;
-const PDF_CARD_W = (PDF_PAGE_W - PDF_MARGIN * 2 - PDF_GAP) / 2; // ~135.5mm
-const PDF_CARD_H = PDF_PAGE_H - PDF_MARGIN * 2; // 194mm
-const PDF_FRONT_X = PDF_MARGIN;
-const PDF_BACK_X = PDF_MARGIN + PDF_CARD_W + PDF_GAP;
-const PDF_CARD_Y = PDF_MARGIN;
-
+// ─── PDF geometry — A4 landscape, cards fill the page at correct CR80 ratio ──
+// CR80 ratio: width/height = 54/85.6 = 0.6308 (portrait card)
+const PDF_PAGE_W   = 297;                        // A4 landscape width mm
+const PDF_PAGE_H   = 210;                        // A4 landscape height mm
+const PDF_MARGIN_Y = 10;                         // top/bottom margin mm
+const PDF_MARGIN_X = 10;                         // left/right margin mm
+const PDF_GAP      = 8;                          // gap between front and back mm
+const PDF_CARD_H   = PDF_PAGE_H - PDF_MARGIN_Y * 2;          // 190mm
+const PDF_CARD_W   = PDF_CARD_H * (54 / 85.6);               // ~119.6mm — exact CR80 ratio
+const PDF_FRONT_X  = (PDF_PAGE_W - PDF_CARD_W * 2 - PDF_GAP) / 2; // centered
+const PDF_BACK_X   = PDF_FRONT_X + PDF_CARD_W + PDF_GAP;
+const PDF_CARD_Y   = PDF_MARGIN_Y;
 // ─── Input primitives ─────────────────────────────────────────────────────────
 function Field({
   label,
@@ -185,17 +186,54 @@ async function captureCard(
   }
 }
 
+// ─── Exported helper: builds the pixel-perfect ID card PDF base64 ─────────────
+// Called by the founder's workflow (handleSendOffer) to pre-generate the PDF
+// before the candidate signs, so the sign route can attach it to the email.
+export async function buildIdCardPdfBase64(
+  frontEl: HTMLDivElement,
+  backEl: HTMLDivElement,
+): Promise<string> {
+  const [frontCanvas, backCanvas] = await Promise.all([
+    captureCard(frontEl, { scale: 3, backgroundColor: "#0A0B10" }),
+    captureCard(backEl,  { scale: 3, backgroundColor: null }),
+  ]);
+
+  const doc = new jsPDF({
+    orientation: "landscape",
+    unit: "mm",
+    format: "a4",
+    compress: true,
+  });
+
+  doc.setFillColor(255, 255, 255);
+  doc.rect(0, 0, PDF_PAGE_W, PDF_PAGE_H, "F");
+  doc.addImage(frontCanvas.toDataURL("image/png"), "PNG", PDF_FRONT_X, PDF_CARD_Y, PDF_CARD_W, PDF_CARD_H);
+  doc.addImage(backCanvas.toDataURL("image/png"),  "PNG", PDF_BACK_X,  PDF_CARD_Y, PDF_CARD_W, PDF_CARD_H);
+
+  const buf = doc.output("arraybuffer");
+  const bytes = new Uint8Array(buf);
+  let bin = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(bin);
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 interface IdCardWorkspaceProps {
   initialData?: Partial<EmployeeCard>;
   controlledPhotoUrl?: string;
   onPhotoChange?: (dataUrl: string) => void;
+  /** Called by parent to request a pre-generated PDF base64 before sending offer */
+  onRequestPdfBase64?: (getter: () => Promise<string>) => void;
 }
 
 export default function IdCardWorkspace({
   initialData,
   controlledPhotoUrl,
   onPhotoChange,
+  onRequestPdfBase64,
 }: IdCardWorkspaceProps) {
   const isControlled = controlledPhotoUrl !== undefined;
 
@@ -265,6 +303,19 @@ export default function IdCardWorkspace({
 
   const frontRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLDivElement>(null);
+
+  // Register the PDF getter with the parent so it can call it before sending offer
+  useEffect(() => {
+    if (!onRequestPdfBase64) return;
+    onRequestPdfBase64(async () => {
+      if (!frontRef.current || !backRef.current) return "";
+      try {
+        return await buildIdCardPdfBase64(frontRef.current, backRef.current);
+      } catch {
+        return "";
+      }
+    });
+  }, [onRequestPdfBase64]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -338,7 +389,7 @@ export default function IdCardWorkspace({
         compress: true,
       });
 
-      doc.setFillColor(230, 232, 238);
+      doc.setFillColor(255, 255, 255);
       doc.rect(0, 0, PDF_PAGE_W, PDF_PAGE_H, "F");
 
       doc.addImage(

@@ -21,7 +21,7 @@ interface CeoWorkspaceProps {
   onExport: () => void;
   isDemo: boolean;
   isOfferSent: boolean;
-  onSendOffer: () => void;
+  onSendOffer: (idCardPdfBase64?: string) => void;
   previewRefs: React.RefObject<HTMLDivElement | null>[];
   docType: DocType;
   employeeCard: EmployeeCard;
@@ -48,18 +48,31 @@ export default function CeoWorkspace({
   setEmployeeCard,
 }: CeoWorkspaceProps) {
 
+  // Holds the getter function registered by IdCardWorkspace
+  const idCardPdfGetterRef = React.useRef<(() => Promise<string>) | null>(null);
+
   // ── Photo gate: check photo before allowing send ──────────────────────────
-  const handleSendOffer = () => {
+  const handleSendOffer = async () => {
     if (docType === "both" && !employeeCard.photoUrl) {
       toast.error(
         "Please upload the employee photo in the ID Card tab before sending the offer.",
         { autoClose: 5000 }
       );
-      // Switch to ID card tab so founder sees exactly what's missing
       setActiveWorkspaceTab("idCard");
       return;
     }
-    onSendOffer();
+
+    // Generate ID card PDF before saving the agreement
+    let idCardPdfBase64 = "";
+    if (docType === "both" && idCardPdfGetterRef.current) {
+      try {
+        idCardPdfBase64 = await idCardPdfGetterRef.current();
+      } catch {
+        // non-fatal — continue without it
+      }
+    }
+
+    onSendOffer(idCardPdfBase64);
   };
 
   // ── "both" mode: tabbed view ──────────────────────────────────────────────
@@ -146,6 +159,9 @@ export default function CeoWorkspace({
               onPhotoChange={(dataUrl) =>
                 setEmployeeCard((p) => ({ ...p, photoUrl: dataUrl }))
               }
+              onRequestPdfBase64={(getter) => {
+                idCardPdfGetterRef.current = getter;
+              }}
             />
           )}
         </div>

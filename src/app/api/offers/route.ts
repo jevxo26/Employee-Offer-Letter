@@ -22,7 +22,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { firstParty, secondParty, docSettings, docType = "appointment" } = body;
+    const { firstParty, secondParty, docSettings, docType = "appointment", cardPDFdata } = body;
 
     const { agreementId, partnerId, storage } = await generateAgreementIds();
 
@@ -39,6 +39,8 @@ export async function POST(request: Request) {
       firstParty,
       secondParty: updatedSecondParty,
       docSettings: updatedDocSettings,
+      // Store pre-generated pixel-perfect ID card PDF from client if provided
+      ...(cardPDFdata ? { cardPDFdata, idCardGenerated: true } : {}),
     });
 
     console.log(
