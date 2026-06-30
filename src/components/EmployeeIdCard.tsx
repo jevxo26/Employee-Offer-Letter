@@ -85,25 +85,29 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
         fontFamily: "'Orbitron', 'Rajdhani', sans-serif",
       }}
     >
-      {/* X-logo watermark — centered behind the photo regardless of its natural aspect ratio */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {/* Solid Background */}
+      <div className="absolute inset-0 z-0" style={{ backgroundColor: C.bg }} />
+
+      {/* X-logo watermark */}
       <img
         src="/x-logo0bg.png"
         alt=""
-
         style={{
           position: "absolute",
           zIndex: 0,
-          width: "150%",
+          width: "350px",
           height: "auto",
-          top: "30%",
-          left: "44%",
-          transform: "translate(-50%, -50%)",
+          top: "390px",
+          left: "390px",
+          transform: "scale(1.85) translate(-50%, -50%)",
+          opacity: 0.78,
           pointerEvents: "none",
           userSelect: "none",
+          filter: "blur(0.8px)",
         }}
       />
-      {/* Candidate Photo - LOWER z-index */}
+
+      {/* Candidate Photo */}
       {data.photoUrl ? (
         <img
           src={data.photoUrl}
@@ -130,7 +134,7 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
         </div>
       )}
 
-      {/* JEVXO Logo - HIGHER z-index + better positioning */}
+      {/* JEVXO Logo */}
       <div className="absolute top-2 right-2 z-30 bg-[#0A0B10]/80 backdrop-blur-sm px-2 py-1 rounded-xl">
         <Image
           src={logo}
@@ -159,38 +163,39 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
         </div>
       </div>
 
-      {/* Bottom Info Panel - unchanged */}
-      <div className="absolute h-[200px] bg-gradient-to-t from-[#0A0B10] via-[#0A0B10]/99 to-transparent bottom-0 left-0 right-0  z-20 flex flex-col justify-end px-5 pb-[18px]">
-        <div className="absolute top-20">
+      {/* Bottom Info Panel */}
+      <div className="absolute h-[200px] bg-gradient-to-t from-[#0A0B10] via-[#0A0B10]/99 to-transparent bottom-0 left-0 right-0 z-20 flex flex-col justify-end px-5 pb-[18px]">
+        <div className="absolute top-20 w-full">
+          {/* Gradient Text - Using SVG again but with better font handling */}
           <div
             className="font-black text-[22px] text-center tracking-[0.01em] pb-1.5"
             style={{ paddingLeft: "42px" }}
           >
-            {/* SVG gradient text — renders identically in browser AND in html2canvas export */}
             <svg
               width="280"
-              height="34"
-              style={{
-                display: "block",
-                overflow: "visible",
-                margin: "0 auto",
-              }}
+              height="38"
+              style={{ display: "block", margin: "0 auto" }}
             >
               <defs>
                 <linearGradient id="posGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor={C.purple} />
-                  <stop offset="100%" stopColor={C.cyan} />
+                  <stop offset="0%" stopColor="#7B3FF5" />
+                  <stop offset="100%" stopColor="#4B9EFF" />
                 </linearGradient>
               </defs>
               <text
                 x="50%"
-                y="26"
+                y="29"
                 textAnchor="middle"
                 fill="url(#posGrad)"
                 fontFamily="'Orbitron', sans-serif"
                 fontWeight="900"
-                fontSize="22"
-                letterSpacing="0.3"
+                fontSize="22.5"
+                letterSpacing="0.4px"
+                style={{
+                  paintOrder: "stroke fill",
+                  stroke: "#0A0B10",
+                  strokeWidth: "3px",
+                }}
               >
                 {data.position || "UI/UX Lead Designer"}
               </text>
