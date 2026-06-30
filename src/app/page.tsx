@@ -370,7 +370,7 @@ export default function Home() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             signatureImg: secondParty.signatureImg,
-            pdfData,
+            letterPDFdata: pdfData,
           }),
         });
         const data = await res.json().catch(() => null);
