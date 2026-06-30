@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion } from "motion/react";
+import { toast } from "react-toastify";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 import WorkspaceCanvas from "./WorkspaceCanvas";
 import IdCardWorkspace from "./IdCardWorkspace";
@@ -46,9 +47,25 @@ export default function CeoWorkspace({
   employeeCard,
   setEmployeeCard,
 }: CeoWorkspaceProps) {
-  // "both" mode: show tabbed view with Documents + ID Card tabs
+
+  // ── Photo gate: check photo before allowing send ──────────────────────────
+  const handleSendOffer = () => {
+    if (docType === "both" && !employeeCard.photoUrl) {
+      toast.error(
+        "Please upload the employee photo in the ID Card tab before sending the offer.",
+        { autoClose: 5000 }
+      );
+      // Switch to ID card tab so founder sees exactly what's missing
+      setActiveWorkspaceTab("idCard");
+      return;
+    }
+    onSendOffer();
+  };
+
+  // ── "both" mode: tabbed view ──────────────────────────────────────────────
   if (docType === "both") {
     const isIdCardTab = activeWorkspaceTab === "idCard";
+
     return (
       <motion.section
         key="workspace"
@@ -62,7 +79,7 @@ export default function CeoWorkspace({
         <div className="sticky top-20 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-6">
           {[
             { id: "settings", label: "📄 Appointment Docs" },
-            { id: "idCard", label: "🪪 Employee ID Card" },
+            { id: "idCard",   label: "🪪 Employee ID Card" },
           ].map(({ id, label }) => (
             <button
               key={id}
@@ -74,6 +91,10 @@ export default function CeoWorkspace({
               }`}
             >
               {label}
+              {/* Red dot indicator when photo is missing */}
+              {id === "idCard" && !employeeCard.photoUrl && (
+                <span className="ml-1.5 inline-block w-1.5 h-1.5 rounded-full bg-rose-500 align-middle" />
+              )}
             </button>
           ))}
         </div>
@@ -97,7 +118,7 @@ export default function CeoWorkspace({
                     onExport={onExport}
                     isDemo={isDemo}
                     isOfferSent={isOfferSent}
-                    onSendOffer={onSendOffer}
+                    onSendOffer={handleSendOffer}
                   />
                 </div>
               </div>
@@ -114,14 +135,17 @@ export default function CeoWorkspace({
           ) : (
             <IdCardWorkspace
               initialData={{
-                fullName: secondParty.fullName,
-                position: secondParty.position,
+                fullName:   secondParty.fullName,
+                position:   secondParty.position,
                 bloodGroup: secondParty.bloodGroup,
-                employeeId: employeeCard.employeeId,
-                issueDate: employeeCard.issueDate,
+                employeeId: secondParty.partnerId || employeeCard.employeeId,
+                issueDate:  docSettings.date || employeeCard.issueDate,
                 expiryDate: employeeCard.expiryDate,
               }}
-              onSendEmail={() => {}}
+              controlledPhotoUrl={employeeCard.photoUrl}
+              onPhotoChange={(dataUrl) =>
+                setEmployeeCard((p) => ({ ...p, photoUrl: dataUrl }))
+              }
             />
           )}
         </div>
@@ -129,7 +153,7 @@ export default function CeoWorkspace({
     );
   }
 
-  // Default: appointment only
+  // ── Appointment-only mode ─────────────────────────────────────────────────
   return (
     <motion.section
       key="workspace"
@@ -140,21 +164,21 @@ export default function CeoWorkspace({
       className="flex-1 relative h-screen flex flex-col xl:flex-row w-full"
     >
       <div className="sticky top-20 h-screen">
-      <WorkspaceSidebar
-        activeTab={activeWorkspaceTab}
-        setActiveTab={setActiveWorkspaceTab}
-        docSettings={docSettings}
-        setDocSettings={setDocSettings}
-        secondParty={secondParty}
-        setSecondParty={setSecondParty}
-        firstParty={firstParty}
-        setFirstParty={setFirstParty}
-        isExporting={isExporting}
-        onExport={onExport}
-        isDemo={isDemo}
-        isOfferSent={isOfferSent}
-        onSendOffer={onSendOffer}
-      />
+        <WorkspaceSidebar
+          activeTab={activeWorkspaceTab}
+          setActiveTab={setActiveWorkspaceTab}
+          docSettings={docSettings}
+          setDocSettings={setDocSettings}
+          secondParty={secondParty}
+          setSecondParty={setSecondParty}
+          firstParty={firstParty}
+          setFirstParty={setFirstParty}
+          isExporting={isExporting}
+          onExport={onExport}
+          isDemo={isDemo}
+          isOfferSent={isOfferSent}
+          onSendOffer={onSendOffer}
+        />
       </div>
       <WorkspaceCanvas
         firstParty={firstParty}

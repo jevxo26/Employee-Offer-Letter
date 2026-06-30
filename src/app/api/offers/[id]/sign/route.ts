@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { findAgreementById, updateAgreement } from "../../../../../lib/agreementStore";
+import { generateIdCardPdf } from "../../../../../lib/idCardPdf";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -11,15 +12,16 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { signatureImg, pdfData } = body;
-    const normalizedPdfData =
-      typeof pdfData === "string"
-        ? pdfData.replace(
+    const { signatureImg, letterPDFdata: rawLetterPdf } = body;
+
+    const normalizedLetterPdf =
+      typeof rawLetterPdf === "string"
+        ? rawLetterPdf.replace(
             /^data:application\/pdf(?:;filename=[^;]+)?;base64,/,
             ""
           )
         : "";
-    const isFinalizing = normalizedPdfData.length > 0;
+    const isFinalizing = normalizedLetterPdf.length > 0;
 
     const agreement = await findAgreementById(id);
     if (!agreement) {
@@ -31,25 +33,49 @@ export async function POST(
       signatureImg,
     };
 
+    // ── Signature-only save (not finalizing yet) ──────────────────────────────
+    if (!isFinalizing) {
+      const updated = await updateAgreement(id, {
+        secondParty: updatedSecondParty,
+      });
+
+      if (!updated) {
+        return NextResponse.json({ error: "Failed to update agreement." }, { status: 500 });
+      }
+
+      console.log(`[Next.js API] Candidate signature updated: ${id}`);
+      return NextResponse.json({ success: true, message: "Signature saved." });
+    }
+
+    // ── Finalizing: generate ID card PDF, update DB, send emails ─────────────
+    console.log(`[Next.js API] Finalizing offer: ${id}`);
+
+    // Generate ID card PDF server-side
+    let idCardPdfBase64 = "";
+    try {
+      idCardPdfBase64 = await generateIdCardPdf({
+        ...agreement,
+        secondParty: updatedSecondParty,
+      });
+    } catch (pdfErr) {
+      console.error("[Next.js API] ID card PDF generation failed:", pdfErr);
+      // Non-fatal — continue without it
+    }
+
     const updated = await updateAgreement(id, {
       secondParty: updatedSecondParty,
-      ...(isFinalizing
-        ? {
-            status: "FULLY_EXECUTED",
-            partnerSigned: true,
-            signedAt: new Date().toISOString(),
-            pdfData: normalizedPdfData,
-          }
-        : {}),
+      status:           "FULLY_EXECUTED",
+      partnerSigned:    true,
+      signedAt:         new Date().toISOString(),
+      letterPDFdata:    normalizedLetterPdf,
+      letterSentToBoth: true,
+      idCardGenerated:  idCardPdfBase64.length > 0,
+      idCardSent:       idCardPdfBase64.length > 0,
+      cardPDFdata:      idCardPdfBase64 || undefined,
     });
 
     if (!updated) {
       return NextResponse.json({ error: "Failed to update agreement." }, { status: 500 });
-    }
-
-    if (!isFinalizing) {
-      console.log(`[Next.js API] Candidate signature updated: ${id}`);
-      return NextResponse.json({ success: true, message: "Signature saved." });
     }
 
     console.log(`[Next.js API] Offer fully executed: ${id}`);
@@ -57,29 +83,38 @@ export async function POST(
     if (process.env.RESEND_API_KEY) {
       const founderEmail = process.env.FOUNDER_EMAIL || updated.firstParty.email;
       const partnerEmail = updated.secondParty.email;
-      const founderName = updated.firstParty.representedBy;
-      const partnerName = updated.secondParty.fullName;
+      const founderName  = updated.firstParty.representedBy;
+      const partnerName  = updated.secondParty.fullName;
 
-      await resend.emails.send({
-        from: "JEVXO <info@jevxo.com>",
-        to: [founderEmail],
-        subject: "Appointment Letter Fully Executed",
-        text: `Dear ${founderName},\n\nThe appointment letter for ${partnerName} has been fully executed. Please find the attached PDF.\n\nBest,\nJEVXO HR System`,
-        attachments: [{ filename: `${id}.pdf`, content: normalizedPdfData }],
-      });
+      const attachments: { filename: string; content: string }[] = [
+        { filename: `${id}-appointment.pdf`, content: normalizedLetterPdf },
+      ];
+      if (idCardPdfBase64) {
+        attachments.push({ filename: `${id}-id-card.pdf`, content: idCardPdfBase64 });
+      }
 
-      await resend.emails.send({
-        from: "JEVXO <info@jevxo.com>",
-        to: [partnerEmail],
-        subject: "Your Appointment Letter from JEVXO",
-        text: `Dear ${partnerName},\n\nYour appointment letter from JEVXO has been fully executed. Please find your copy attached.\n\nBest,\nJEVXO`,
-        attachments: [{ filename: `${id}.pdf`, content: normalizedPdfData }],
-      });
+      await Promise.all([
+        resend.emails.send({
+          from: "JEVXO <info@jevxo.com>",
+          to: [founderEmail],
+          subject: "Appointment Letter Fully Executed",
+          text: `Dear ${founderName},\n\nThe appointment letter for ${partnerName} has been fully executed. Please find the attached documents.\n\nBest,\nJEVXO HR System`,
+          attachments,
+        }),
+        resend.emails.send({
+          from: "JEVXO <info@jevxo.com>",
+          to: [partnerEmail],
+          subject: "Your Appointment Letter & ID Card from JEVXO",
+          text: `Dear ${partnerName},\n\nYour appointment letter and employee ID card from JEVXO are attached.\n\nBest,\nJEVXO`,
+          attachments,
+        }),
+      ]);
     }
 
     return NextResponse.json({
       success: true,
-      message: "Signature applied successfully! The fully executed PDF has been emailed to you and the Founder.",
+      message:
+        "Signature applied successfully! The fully executed documents have been emailed to you and the Founder.",
     });
   } catch (err: unknown) {
     console.error("[Next.js API] Error signing offer:", err);

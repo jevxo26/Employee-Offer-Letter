@@ -73,7 +73,7 @@ export async function findAgreementById(id: string) {
 
 export async function listAgreements() {
   const mongoList = await tryMongo(async () => {
-    const docs = await Agreement.find({}, "-pdfData")
+    const docs = await Agreement.find({}, "-letterPDFdata -cardPDFdata")
       .sort({ createdAt: -1 })
       .limit(200);
     return docs.map((d) => d.toObject());
@@ -81,7 +81,7 @@ export async function listAgreements() {
 
   if (mongoList) return mongoList;
   const fileList = await fileStore.fileListAgreements();
-  return fileList.map(({ pdfData: _pdf, ...rest }) => rest);
+  return fileList.map(({ letterPDFdata: _letter, cardPDFdata: _card, ...rest }) => rest);
 }
 
 export async function updateAgreement(

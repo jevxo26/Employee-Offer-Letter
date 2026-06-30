@@ -1,20 +1,9 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion } from "motion/react";
 import html2canvas from "html2canvas-pro";
-import {
-  Download,
-  Upload,
-  User,
-  Briefcase,
-  Hash,
-  Calendar,
-  Droplets,
-  Building2,
-  Mail,
-  Image,
-} from "lucide-react";
+import { Download, Upload, User, Briefcase, Hash, Calendar, Image } from "lucide-react";
 import EmployeeIdCard from "./EmployeeIdCard";
 import { EmployeeCard } from "../types";
 
@@ -39,54 +28,106 @@ function Field({
   );
 }
 
-const inputClass =
-  "w-full bg-[#F1F5F9] border border-[#DBEAFE] rounded-xl py-2.5 px-3 text-sm text-[#0F172A] font-medium focus:outline-none focus:border-[#2563EB] transition";
-
-const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+// Read-only display field — looks like an input but isn't editable
+function ReadOnlyField({
+  label,
+  icon: Icon,
+  value,
+  placeholder,
+}: {
+  label: string;
+  icon: React.FC<React.SVGProps<SVGSVGElement>>;
+  value: string;
+  placeholder?: string;
+}) {
+  return (
+    <Field label={label} icon={Icon}>
+      <div className="w-full bg-[#F1F5F9] border border-[#DBEAFE] rounded-xl py-2.5 px-3 text-sm text-[#0F172A] font-medium select-text flex items-center gap-2">
+        <span className={value ? "text-[#0F172A]" : "text-[#94A3B8]"}>
+          {value || placeholder || "—"}
+        </span>
+        <span className="ml-auto text-[9px] font-bold text-[#CBD5E1] uppercase tracking-wider">
+          Read only
+        </span>
+      </div>
+    </Field>
+  );
+}
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 interface IdCardWorkspaceProps {
   initialData?: Partial<EmployeeCard>;
-  onSendEmail?: (data: EmployeeCard) => void;
+  /** Controlled photo from parent (CeoWorkspace) when in "both" mode */
+  controlledPhotoUrl?: string;
+  onPhotoChange?: (dataUrl: string) => void;
 }
 
 export default function IdCardWorkspace({
   initialData,
-  onSendEmail,
+  controlledPhotoUrl,
+  onPhotoChange,
 }: IdCardWorkspaceProps) {
+  const isControlled = controlledPhotoUrl !== undefined;
+
   const [card, setCard] = useState<EmployeeCard>({
-    fullName: initialData?.fullName || "",
-    position: initialData?.position || "",
+    fullName:   initialData?.fullName   || "",
+    position:   initialData?.position   || "",
     employeeId: initialData?.employeeId || "000-000-0001",
     bloodGroup: initialData?.bloodGroup || "A+",
     department: initialData?.department || "",
-    photoUrl: initialData?.photoUrl || "",
-    issueDate: initialData?.issueDate || new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
-    expiryDate: initialData?.expiryDate || new Date(new Date().setFullYear(new Date().getFullYear() + 2)).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
+    photoUrl:   isControlled ? controlledPhotoUrl : (initialData?.photoUrl || ""),
+    issueDate:  initialData?.issueDate  || new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
+    expiryDate: initialData?.expiryDate || "",
   });
 
+  // Sync controlled photo from parent into local card state
+  useEffect(() => {
+    if (isControlled) {
+      setCard((p) => ({ ...p, photoUrl: controlledPhotoUrl }));
+    }
+  }, [controlledPhotoUrl, isControlled]);
+
+  // Sync initialData changes live (partnerId from appointment tab updates employeeId here)
+  useEffect(() => {
+    if (initialData) {
+      setCard((p) => ({
+        ...p,
+        fullName:   initialData.fullName   ?? p.fullName,
+        position:   initialData.position   ?? p.position,
+        employeeId: initialData.employeeId ?? p.employeeId,
+        bloodGroup: initialData.bloodGroup ?? p.bloodGroup,
+        issueDate:  initialData.issueDate  ?? p.issueDate,
+      }));
+    }
+  }, [
+    initialData?.fullName,
+    initialData?.position,
+    initialData?.employeeId,
+    initialData?.bloodGroup,
+    initialData?.issueDate,
+  ]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [isExportingFront, setIsExportingFront] = useState(false);
-  const [isExportingBack, setIsExportingBack] = useState(false);
+  const [isExportingBack,  setIsExportingBack]  = useState(false);
 
   const frontRef = useRef<HTMLDivElement>(null);
-  const backRef = useRef<HTMLDivElement>(null);
+  const backRef  = useRef<HTMLDivElement>(null);
 
-  const set = (key: keyof EmployeeCard) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-      setCard((p) => ({ ...p, [key]: e.target.value }));
-
-  // Photo upload handler
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      setCard((p) => ({ ...p, photoUrl: ev.target?.result as string }));
+      const dataUrl = ev.target?.result as string;
+      if (isControlled && onPhotoChange) {
+        onPhotoChange(dataUrl);
+      } else {
+        setCard((p) => ({ ...p, photoUrl: dataUrl }));
+      }
     };
     reader.readAsDataURL(file);
   };
 
-  // PNG export for a single card
   const exportCard = async (
     ref: React.RefObject<HTMLDivElement | null>,
     filename: string,
@@ -124,26 +165,27 @@ export default function IdCardWorkspace({
       className="flex-1 flex flex-col xl:flex-row w-full h-[calc(100vh-77px)] overflow-hidden"
     >
       {/* ── LEFT: Form Panel ────────────────────────────────────────────────── */}
-      <div className="w-full xl:w-[420px] bg-[#F8FAFC] border-r border-[#DBEAFE] flex flex-col overflow-y-auto shrink-0">
+      <div className="w-full xl:w-[400px] bg-[#F8FAFC] border-r border-[#DBEAFE] flex flex-col overflow-y-auto shrink-0">
         <div className="p-6 space-y-6">
           {/* Header */}
           <div className="space-y-1.5">
             <span className="text-[10px] bg-[#EFF6FF] border border-[#DBEAFE]/50 text-[#1E3A8A] font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block">
-              ID Card Generator
+              ID Card Preview
             </span>
-            <h2 className="text-xl font-bold text-[#0F172A]">Employee Details</h2>
+            <h2 className="text-xl font-bold text-[#0F172A]">Employee ID Card</h2>
             <p className="text-[#64748B] text-xs">
-              Fill in employee information — card updates live in the preview.
+              Card details are pulled from the appointment form. Upload the employee photo below.
             </p>
           </div>
 
-          {/* Photo Upload */}
+          {/* Photo Upload — only interactive element */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] font-bold text-[#334155] uppercase tracking-wider flex items-center gap-1.5">
               <Image className="w-3 h-3 text-[#2563EB]" />
-              Employee Photo
+              Employee Photo{" "}
+              <span className="text-rose-500 font-extrabold">* Required</span>
             </label>
-            <label className="flex flex-col items-center justify-center gap-2 h-28 border-2 border-dashed border-[#DBEAFE] hover:border-[#2563EB] rounded-xl cursor-pointer bg-white transition-all group">
+            <label className="flex flex-col items-center justify-center gap-2 h-32 border-2 border-dashed border-[#DBEAFE] hover:border-[#2563EB] rounded-xl cursor-pointer bg-white transition-all group">
               {card.photoUrl ? (
                 <img
                   src={card.photoUrl}
@@ -168,7 +210,13 @@ export default function IdCardWorkspace({
             </label>
             {card.photoUrl && (
               <button
-                onClick={() => setCard((p) => ({ ...p, photoUrl: "" }))}
+                onClick={() => {
+                  if (isControlled && onPhotoChange) {
+                    onPhotoChange("");
+                  } else {
+                    setCard((p) => ({ ...p, photoUrl: "" }));
+                  }
+                }}
                 className="text-[10px] font-semibold text-red-400 hover:text-red-600 text-right transition cursor-pointer"
               >
                 Remove photo
@@ -176,99 +224,37 @@ export default function IdCardWorkspace({
             )}
           </div>
 
-          {/* Form Fields */}
+          {/* Read-only fields */}
           <div className="space-y-4">
-            <Field label="Full Name" icon={User}>
-              <input
-                type="text"
-                placeholder="e.g. Ahsanul Haque"
-                value={card.fullName}
-                onChange={set("fullName")}
-                className={inputClass}
-              />
-            </Field>
-
-            <Field label="Position / Role" icon={Briefcase}>
-              <input
-                type="text"
-                placeholder="e.g. UI/UX Lead Designer"
-                value={card.position}
-                onChange={set("position")}
-                className={inputClass}
-              />
-            </Field>
-
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Employee ID" icon={Hash}>
-                <input
-                  type="text"
-                  placeholder="000-000-0001"
-                  value={card.employeeId}
-                  onChange={set("employeeId")}
-                  className={inputClass}
-                />
-              </Field>
-
-              <Field label="Blood Group" icon={Droplets}>
-                <select
-                  value={card.bloodGroup}
-                  onChange={set("bloodGroup")}
-                  className={inputClass}
-                >
-                  {BLOOD_GROUPS.map((bg) => (
-                    <option key={bg} value={bg}>
-                      {bg}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            </div>
-
-            <Field label="Department" icon={Building2}>
-              <input
-                type="text"
-                placeholder="e.g. Design & Creative"
-                value={card.department}
-                onChange={set("department")}
-                className={inputClass}
-              />
-            </Field>
-
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Issue Date" icon={Calendar}>
-                <input
-                  type="text"
-                  placeholder="June 13, 2026"
-                  value={card.issueDate}
-                  onChange={set("issueDate")}
-                  className={inputClass}
-                />
-              </Field>
-
-              <Field label="Expiry Date" icon={Calendar}>
-                <input
-                  type="text"
-                  placeholder="June 13, 2028"
-                  value={card.expiryDate}
-                  onChange={set("expiryDate")}
-                  className={inputClass}
-                />
-              </Field>
-            </div>
+            <ReadOnlyField
+              label="Full Name"
+              icon={User}
+              value={card.fullName}
+              placeholder="From appointment form"
+            />
+            <ReadOnlyField
+              label="Position / Role"
+              icon={Briefcase}
+              value={card.position}
+              placeholder="From appointment form"
+            />
+            <ReadOnlyField
+              label="Partner ID"
+              icon={Hash}
+              value={card.employeeId}
+              placeholder="From appointment form"
+            />
+            <ReadOnlyField
+              label="Issue Date"
+              icon={Calendar}
+              value={card.issueDate}
+              placeholder="From appointment form"
+            />
           </div>
         </div>
 
-        {/* Export Footer */}
+        {/* Download Footer */}
         <div className="p-6 border-t border-[#DBEAFE] space-y-3 mt-auto shrink-0 bg-[#F8FAFC]">
-          {onSendEmail && (
-            <button
-              onClick={() => onSendEmail(card)}
-              className="w-full py-3.5 px-6 bg-[#2563EB] hover:bg-[#1D4ED8] font-bold text-white text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-[#2563EB]/10 hover:shadow-[#2563EB]/25 cursor-pointer"
-            >
-              <Mail className="w-4 h-4" />
-              Send ID Card via Email
-            </button>
-          )}
           <button
             onClick={() =>
               exportCard(frontRef, `${name} - JEVXO ID Card Front.png`, setIsExportingFront)
