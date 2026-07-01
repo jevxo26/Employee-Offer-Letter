@@ -30,7 +30,7 @@ export default function DocTypeSelector({ onSelect, onOpenAdmin }: DocTypeSelect
             Create New Partner Document
           </h1>
           <p className="text-sm text-[#64748B]">
-            Generates the appointment letter and employee ID card together in one session.
+            Generates the appointment letter and ID card together in one session.
           </p>
         </div>
 
@@ -55,10 +55,10 @@ export default function DocTypeSelector({ onSelect, onOpenAdmin }: DocTypeSelect
             {/* Content */}
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-[#0F172A] text-base leading-snug">
-                Appointment Letter & Employee ID Card
+                Appointment Letter & ID Card
               </h3>
               <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">
-                Full partner onboarding package — legal appointment letter with NDA and equity clause, plus a dual-sided employee ID card with QR verification.
+                Full partner onboarding package — legal appointment letter with NDA and equity clause, plus a dual-sided ID card with QR verification.
               </p>
 
               {/* Two tag rows */}

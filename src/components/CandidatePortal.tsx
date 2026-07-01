@@ -329,7 +329,7 @@ export default function CandidatePortal({
             {/* Visible card preview — separate instance for display only */}
             <div className="flex flex-col items-center gap-3">
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-mono">
-                Your JEVXO Employee ID Card Preview
+                Your JEVXO ID Card Preview
               </p>
               <div className="flex flex-col xl:flex-row gap-8 items-center">
                 <div className="flex flex-col items-center gap-2">

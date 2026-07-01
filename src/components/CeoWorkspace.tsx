@@ -130,7 +130,7 @@ export default function CeoWorkspace({
         <div className="sticky top-15 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-6">
           {[
             { id: "settings", label: "📄 Appointment Docs" },
-            { id: "idCard", label: "🪪 Employee ID Card" },
+            { id: "idCard", label: "🪪 Partner ID Card" },
           ].map(({ id, label }) => (
             <button
               key={id}

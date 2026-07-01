@@ -5,7 +5,7 @@ import ToastProvider from "../components/ToastProvider";
 
 export const metadata: Metadata = {
   title: "JEVXO — HR Document Engine",
-  description: "Automated offer letter, partnership agreement and employee ID card generator for JEVXO HR.",
+  description: "Automated Documents generator for JEVXO HR.",
 };
 
 export default function RootLayout({

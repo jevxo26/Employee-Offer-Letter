@@ -512,12 +512,12 @@ export default function IdCardWorkspace({
               ID Card Preview
             </span>
             <h2 className="text-lg sm:text-xl font-bold text-[#0F172A]">
-              Employee ID Card
+              Partner ID Card
             </h2>
             <p className="text-[#64748B] text-xs">
               {hidePhotoUpload
                 ? "Card details are pulled from the appointment form. The candidate uploads their own photo in the candidate portal."
-                : "Card details are pulled from the appointment form. Upload the employee photo below."}
+                : "Card details are pulled from the appointment form. Upload the partner photo below."}
             </p>
           </div>
 
@@ -526,7 +526,7 @@ export default function IdCardWorkspace({
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-bold text-[#334155] uppercase tracking-wider flex items-center gap-1.5">
                 <ImageIcon className="w-3 h-3 text-[#2563EB]" />
-                Employee Photo{" "}
+                Partner Photo{" "}
                 <span className="text-rose-500 font-extrabold">* Required</span>
               </label>
               <label className="flex flex-col items-center justify-center gap-2 h-28 border-2 border-dashed border-[#DBEAFE] hover:border-[#2563EB] rounded-xl cursor-pointer bg-white transition-all group">

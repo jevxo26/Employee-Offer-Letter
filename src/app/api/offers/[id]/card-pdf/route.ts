@@ -66,6 +66,7 @@ export async function POST(
       const partnerEmail = agreement.secondParty.email;
       const founderName  = agreement.firstParty.representedBy;
       const partnerName  = agreement.secondParty.fullName;
+      const partnerID    = agreement.secondParty.partnerId;
 
       console.log(
         `[card-pdf] Sending combined emails — founder: ${founderRecipients.join(", ")}, partner: ${partnerEmail}`
@@ -84,14 +85,14 @@ export async function POST(
           from: getResendFromAddress(),
           to: founderRecipients,
           subject: "Appointment Letter Fully Executed",
-          text: `Dear ${founderName},\n\nThe appointment letter for ${partnerName} has been fully executed. Please find the attached documents.\n\nBest,\nJEVXO HR System`,
+          text: `Dear ${founderName},\n\nThe appointment letter for ${partnerName} (ID: ${partnerID}) has been fully executed. Please find the attached documents.\n\nBest,\nJEVXO HR System`,
           attachments,
         }),
         resend.emails.send({
           from: getResendFromAddress(),
           to: [partnerEmail],
           subject: "Your Appointment Letter & ID Card from JEVXO",
-          text: `Dear ${partnerName},\n\nYour appointment letter and employee ID card from JEVXO are attached.\n\nBest,\nJEVXO`,
+          text: `Dear ${partnerName},\n\nYour appointment letter and ID card from JEVXO are attached.\n\nBest,\nJEVXO`,
           attachments,
         }),
       ]);
