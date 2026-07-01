@@ -148,7 +148,8 @@ export default function EmailPortalModal({
           <ol className="list-decimal pl-5 space-y-2 font-medium text-slate-600">
             <li>Review the full letter of appointment terms.</li>
             <li>Apply your digital signature to the signature block.</li>
-            <li>Download your counter-signed, final PDF document for your records.</li>
+            <li>Add your professional photo without background to the id card tab.</li>
+            <li>And then, after checking everything is correct, Press the Confirm button.</li>
           </ol>
 
           {/* Styled Link Card */}

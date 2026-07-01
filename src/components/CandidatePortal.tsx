@@ -21,7 +21,7 @@ interface CandidatePortalProps {
   previewRefs: React.RefObject<HTMLDivElement | null>[];
   onIdCardRefsReady?: (
     frontRef: React.RefObject<HTMLDivElement | null>,
-    backRef:  React.RefObject<HTMLDivElement | null>,
+    backRef: React.RefObject<HTMLDivElement | null>,
   ) => void;
 }
 
@@ -38,7 +38,9 @@ export default function CandidatePortal({
   onIdCardRefsReady,
 }: CandidatePortalProps) {
   const [activeTab, setActiveTab] = useState<"letter" | "idcard">("letter");
-  const [candidatePhotoUrl, setCandidatePhotoUrl] = useState(secondParty.photoUrl || "");
+  const [candidatePhotoUrl, setCandidatePhotoUrl] = useState(
+    secondParty.photoUrl || "",
+  );
   const [isSavingPhotoAssets, setIsSavingPhotoAssets] = useState(false);
   const lastSavedPhotoRef = useRef<string | null>(null);
 
@@ -49,13 +51,13 @@ export default function CandidatePortal({
   // produce black output; off-screen at -9999px also fails because html2canvas
   // uses the viewport rect to determine what to render.
   const cardFrontRef = useRef<HTMLDivElement>(null);
-  const cardBackRef  = useRef<HTMLDivElement>(null);
+  const cardBackRef = useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (onIdCardRefsReady) {
       onIdCardRefsReady(cardFrontRef, cardBackRef);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(() => {
@@ -91,7 +93,9 @@ export default function CandidatePortal({
       } catch (error) {
         console.error("Failed to persist candidate photo assets:", error);
         if (!cancelled) {
-          toast.error("We could not save your ID card photo. Please upload it again.");
+          toast.error(
+            "We could not save your ID card photo. Please upload it again.",
+          );
         }
       } finally {
         if (!cancelled) {
@@ -108,13 +112,13 @@ export default function CandidatePortal({
   }, [candidatePhotoUrl, isCompleted, offerId]);
 
   const cardData: EmployeeCard = {
-    fullName:   secondParty.fullName   || "",
-    position:   secondParty.position   || "",
-    employeeId: secondParty.partnerId  || "",
-    bloodGroup: secondParty.bloodGroup || "A+",
+    fullName: secondParty.fullName || "",
+    position: secondParty.position || "",
+    employeeId: secondParty.partnerId || "",
+    bloodGroup: secondParty.bloodGroup || "Select",
     department: "",
-    photoUrl:   candidatePhotoUrl,
-    issueDate:  docSettings.date       || "",
+    photoUrl: candidatePhotoUrl,
+    issueDate: docSettings.date || "",
     expiryDate: "",
   };
 
@@ -122,13 +126,15 @@ export default function CandidatePortal({
     if (!candidatePhotoUrl) {
       toast.error(
         "Please upload your photo in the ID Card tab before signing.",
-        { autoClose: 5000 }
+        { autoClose: 5000 },
       );
       setActiveTab("idcard");
       return;
     }
     if (isSavingPhotoAssets) {
-      toast.info("Your ID card photo is still being prepared. Please wait a moment and try again.");
+      toast.info(
+        "Your ID card photo is still being prepared. Please wait a moment and try again.",
+      );
       return;
     }
     onExport();
@@ -142,7 +148,11 @@ export default function CandidatePortal({
         img.onload = () => {
           const maxWidth = 640;
           const maxHeight = 960;
-          const scale = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
+          const scale = Math.min(
+            maxWidth / img.width,
+            maxHeight / img.height,
+            1,
+          );
           const width = Math.max(1, Math.round(img.width * scale));
           const height = Math.max(1, Math.round(img.height * scale));
           const canvas = document.createElement("canvas");
@@ -205,7 +215,7 @@ export default function CandidatePortal({
         }}
       >
         <IdCardFront data={cardData} cardRef={cardFrontRef} />
-        <IdCardBack  data={cardData} cardRef={cardBackRef}  />
+        <IdCardBack data={cardData} cardRef={cardBackRef} />
       </div>
 
       {/* ── Tab bar ── */}
@@ -235,7 +245,7 @@ export default function CandidatePortal({
       <div className="flex-1 min-h-0 overflow-hidden">
         {activeTab === "letter" ? (
           <div className="h-full flex flex-col xl:flex-row">
-            <div className="sticky top-20 h-screen shrink-0">
+            <div className="sticky top-0 h-screen shrink-0">
               <CandidateSidebar
                 firstParty={firstParty}
                 secondParty={secondParty}
@@ -267,25 +277,39 @@ export default function CandidatePortal({
                   <span className="text-[10px] font-bold text-[#334155] uppercase tracking-wider flex items-center gap-1.5">
                     <Upload className="w-3 h-3 text-[#2563EB]" />
                     Your Photo{" "}
-                    <span className="text-rose-500 font-extrabold">* Required before signing</span>
+                    <span className="text-rose-500 font-extrabold">
+                      * Required before signing
+                    </span>
                   </span>
                   <p className="text-[10px] text-[#64748B]">
-                    Upload a professional photo without background. This will appear on your ID card.
+                    Upload a professional photo without background. This will
+                    appear on your ID card.
                   </p>
                 </div>
                 <label className="flex flex-col items-center justify-center gap-2 h-28 border-2 border-dashed border-[#DBEAFE] hover:border-[#2563EB] rounded-xl cursor-pointer bg-white transition-all group">
                   {candidatePhotoUrl ? (
-                    <img src={candidatePhotoUrl} alt="Your photo" className="h-full w-full object-cover rounded-xl" />
+                    <img
+                      src={candidatePhotoUrl}
+                      alt="Your photo"
+                      className="h-full w-full object-cover rounded-xl"
+                    />
                   ) : (
                     <>
                       <Upload className="w-5 h-5 text-[#94A3B8] group-hover:text-[#2563EB] transition" />
                       <span className="text-xs font-medium text-[#94A3B8] group-hover:text-[#2563EB] transition">
                         Click to upload your photo
                       </span>
-                      <span className="text-[10px] text-[#CBD5E1]">PNG, JPG — transparent or plain background recommended</span>
+                      <span className="text-[10px] text-[#CBD5E1]">
+                        PNG, JPG — transparent or plain background recommended
+                      </span>
                     </>
                   )}
-                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                  />
                 </label>
                 {candidatePhotoUrl && (
                   <button
@@ -309,18 +333,23 @@ export default function CandidatePortal({
               </p>
               <div className="flex flex-col xl:flex-row gap-8 items-center">
                 <div className="flex flex-col items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">Front Side</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">
+                    Front Side
+                  </span>
                   {/* Display-only card — uses a separate ref just for visual preview */}
                   <IdCardFront data={cardData} cardRef={React.createRef()} />
                 </div>
                 <div className="flex flex-col items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">Back Side</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">
+                    Back Side
+                  </span>
                   <IdCardBack data={cardData} cardRef={React.createRef()} />
                 </div>
               </div>
               {!isCompleted && (
                 <p className="text-[10px] text-slate-400 mt-1 text-center max-w-sm">
-                  Upload your photo above, then go to the Appointment Letter tab to sign and confirm.
+                  Upload your photo above, then go to the Appointment Letter tab
+                  to sign and confirm.
                 </p>
               )}
             </div>

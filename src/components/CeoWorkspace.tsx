@@ -6,7 +6,13 @@ import WorkspaceSidebar from "./WorkspaceSidebar";
 import WorkspaceCanvas from "./WorkspaceCanvas";
 import IdCardWorkspace, { buildIdCardPdfBase64 } from "./IdCardWorkspace";
 import { IdCardFront, IdCardBack } from "./EmployeeIdCard";
-import { FirstParty, SecondParty, DocSettings, DocType, EmployeeCard } from "../types";
+import {
+  FirstParty,
+  SecondParty,
+  DocSettings,
+  DocType,
+  EmployeeCard,
+} from "../types";
 
 interface CeoWorkspaceProps {
   activeWorkspaceTab: string;
@@ -21,6 +27,7 @@ interface CeoWorkspaceProps {
   onExport: () => void;
   isDemo: boolean;
   isOfferSent: boolean;
+  isOpeningModal?: boolean;
   onSendOffer: (options?: { cardPDFdata?: string }) => Promise<void> | void;
   previewRefs: React.RefObject<HTMLDivElement | null>[];
   docType: DocType;
@@ -41,6 +48,7 @@ export default function CeoWorkspace({
   onExport,
   isDemo,
   isOfferSent,
+  isOpeningModal = false,
   onSendOffer,
   previewRefs,
   docType,
@@ -54,7 +62,7 @@ export default function CeoWorkspace({
     () => ({
       fullName: secondParty.fullName,
       position: secondParty.position,
-      bloodGroup: secondParty.bloodGroup || "A+",
+      bloodGroup: secondParty.bloodGroup || "Select",
       employeeId: secondParty.partnerId || employeeCard.employeeId,
       department: employeeCard.department,
       photoUrl: employeeCard.photoUrl,
@@ -74,7 +82,10 @@ export default function CeoWorkspace({
             hiddenCardBackRef.current,
           );
         } catch (error) {
-          console.warn("Founder ID card pre-generation failed, continuing without cached PDF.", error);
+          console.warn(
+            "Founder ID card pre-generation failed, continuing without cached PDF.",
+            error,
+          );
         }
       }
 
@@ -119,7 +130,7 @@ export default function CeoWorkspace({
         <div className="sticky top-15 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-6">
           {[
             { id: "settings", label: "📄 Appointment Docs" },
-            { id: "idCard",   label: "🪪 Employee ID Card" },
+            { id: "idCard", label: "🪪 Employee ID Card" },
           ].map(({ id, label }) => (
             <button
               key={id}
@@ -154,6 +165,7 @@ export default function CeoWorkspace({
                     onExport={onExport}
                     isDemo={isDemo}
                     isOfferSent={isOfferSent}
+                    isOpeningModal={isOpeningModal}
                     onSendOffer={handleSendOffer}
                   />
                 </div>
@@ -171,11 +183,11 @@ export default function CeoWorkspace({
           ) : (
             <IdCardWorkspace
               initialData={{
-                fullName:   secondParty.fullName,
-                position:   secondParty.position,
+                fullName: secondParty.fullName,
+                position: secondParty.position,
                 bloodGroup: secondParty.bloodGroup,
                 employeeId: secondParty.partnerId || employeeCard.employeeId,
-                issueDate:  docSettings.date || employeeCard.issueDate,
+                issueDate: docSettings.date || employeeCard.issueDate,
                 expiryDate: employeeCard.expiryDate,
               }}
               controlledPhotoUrl={employeeCard.photoUrl}
@@ -200,7 +212,7 @@ export default function CeoWorkspace({
       transition={{ duration: 0.3 }}
       className="flex-1 relative h-screen flex flex-col xl:flex-row w-full"
     >
-      <div className="sticky top-20 h-screen">
+      <div className="sticky top-15 h-screen">
         <WorkspaceSidebar
           activeTab={activeWorkspaceTab}
           setActiveTab={setActiveWorkspaceTab}
@@ -214,6 +226,7 @@ export default function CeoWorkspace({
           onExport={onExport}
           isDemo={isDemo}
           isOfferSent={isOfferSent}
+          isOpeningModal={isOpeningModal}
           onSendOffer={onSendOffer}
         />
       </div>

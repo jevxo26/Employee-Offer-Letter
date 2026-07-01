@@ -19,15 +19,24 @@ import IdCardWorkspace from "../components/IdCardWorkspace";
 import AdminDashboard from "../components/AdminDashboard";
 import { buildIdCardPdfBase64 } from "../components/IdCardWorkspace";
 
-import { FirstParty, SecondParty, DocSettings, AppState, DocType, EmployeeCard } from "../types";
-
+import {
+  FirstParty,
+  SecondParty,
+  DocSettings,
+  AppState,
+  DocType,
+  EmployeeCard,
+} from "../types";
 
 // ─── Default state values ────────────────────────────────────────────────────
 const DEFAULT_FIRST_PARTY: FirstParty = {
   companyName: "JEVXO",
   representedBy: "Md. Shahid Hasan",
-  role: "Founder",  ceoName: "Imtiaz Ahmed Tuhin",
-  ceoMobile: "01840017065",  currentAddress: "9th floor, Silicon Tower, Hi-tech park, Rajshahi, Bangladesh",
+  role: "Founder",
+  ceoName: "Imtiaz Ahmed Tuhin",
+  ceoMobile: "01840017065",
+  currentAddress:
+    "9th floor, Silicon Tower, Hi-tech park, Rajshahi, Bangladesh",
   permanentAddress: "Gopalpur, Sapahar, Naogaon, Bangladesh.",
   mobileNumber: "01844532000",
   nidNumber: "2874935543",
@@ -50,7 +59,7 @@ const DEFAULT_SECOND_PARTY: SecondParty = {
   dob: "",
   nidNumber: "",
   position: "",
-  bloodGroup: "A+",
+  bloodGroup: "Select",
   photoUrl: "",
   signatureImg: "",
 };
@@ -114,10 +123,11 @@ export default function Home() {
   const [isDemo, setIsDemo] = useState(false);
 
   const [firstParty, setFirstParty] = useState<FirstParty>(DEFAULT_FIRST_PARTY);
-  const [secondParty, setSecondParty] = useState<SecondParty>(DEFAULT_SECOND_PARTY);
+  const [secondParty, setSecondParty] =
+    useState<SecondParty>(DEFAULT_SECOND_PARTY);
   const [docSettings, setDocSettings] = useState<DocSettings>({
     date: getDefaultIssueDate(),
-    minimumServicePeriod: 4,
+    minimumServicePeriod: 3,
     equityShare: 7,
     noticePeriod: 15,
   });
@@ -127,7 +137,7 @@ export default function Home() {
     fullName: "",
     position: "",
     employeeId: "000-000-0001",
-    bloodGroup: "A+",
+    bloodGroup: "Select",
     department: "",
     photoUrl: "",
     issueDate: getDefaultIssueDate(),
@@ -136,6 +146,8 @@ export default function Home() {
 
   const [sameAddress, setSameAddress] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isOpeningModal, setisOpeningModal] = useState(false);
+  const [isLoadingOffer, setIsLoadingOffer] = useState(false);
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState("settings");
   const [validationError, setValidationError] = useState("");
   const [isCandidateSigned, setIsCandidateSigned] = useState(false);
@@ -150,11 +162,19 @@ export default function Home() {
   const previewRef2 = useRef<HTMLDivElement>(null);
   const previewRef3 = useRef<HTMLDivElement>(null);
   const previewRef4 = useRef<HTMLDivElement>(null);
-  const previewRefs = [previewRef0, previewRef1, previewRef2, previewRef3, previewRef4];
+  const previewRefs = [
+    previewRef0,
+    previewRef1,
+    previewRef2,
+    previewRef3,
+    previewRef4,
+  ];
 
   // ID card refs — populated by CandidatePortal when it mounts
-  const candidateCardFrontRef = useRef<React.RefObject<HTMLDivElement | null> | null>(null);
-  const candidateCardBackRef  = useRef<React.RefObject<HTMLDivElement | null> | null>(null);
+  const candidateCardFrontRef =
+    useRef<React.RefObject<HTMLDivElement | null> | null>(null);
+  const candidateCardBackRef =
+    useRef<React.RefObject<HTMLDivElement | null> | null>(null);
 
   // Initial fetching of ID
   useEffect(() => {
@@ -185,6 +205,7 @@ export default function Home() {
     const params = new URLSearchParams(window.location.search);
     const candidateViewId = params.get("candidateView");
     if (candidateViewId) {
+      setIsLoadingOffer(true);
       fetch(`/api/offers/${candidateViewId}`)
         .then((res) => {
           if (!res.ok) throw new Error("Offer not found on backend.");
@@ -194,13 +215,19 @@ export default function Home() {
           setFirstParty(data.firstParty);
           setSecondParty(data.secondParty);
           setDocSettings(data.docSettings);
-          setIsCandidateSigned(Boolean(data.partnerSigned || data.status === "FULLY_EXECUTED"));
+          setIsCandidateSigned(
+            Boolean(data.partnerSigned || data.status === "FULLY_EXECUTED"),
+          );
           setOfferId(candidateViewId);
           setIsDemo(false);
           setAppState("candidatePortal");
+          setIsLoadingOffer(false);
         })
         .catch((err) => {
-          console.warn("Backend fetch failed, trying localStorage fallback:", err);
+          console.warn(
+            "Backend fetch failed, trying localStorage fallback:",
+            err,
+          );
           const stored = localStorage.getItem("jevxo_offer_" + candidateViewId);
           if (stored) {
             try {
@@ -208,7 +235,9 @@ export default function Home() {
               setFirstParty(data.firstParty);
               setSecondParty(data.secondParty);
               setDocSettings(data.docSettings);
-              setIsCandidateSigned(Boolean(data.partnerSigned || data.status === "FULLY_EXECUTED"));
+              setIsCandidateSigned(
+                Boolean(data.partnerSigned || data.status === "FULLY_EXECUTED"),
+              );
               setOfferId(candidateViewId);
               setIsDemo(false);
               setAppState("candidatePortal");
@@ -216,6 +245,7 @@ export default function Home() {
               console.error("Error loading offer data from localStorage", e);
             }
           }
+          setIsLoadingOffer(false);
         });
     }
   }, []);
@@ -240,11 +270,12 @@ export default function Home() {
       ...prev,
       fullName: secondParty.fullName,
       position: secondParty.position,
-      bloodGroup: secondParty.bloodGroup || "A+",
+      bloodGroup: secondParty.bloodGroup || "Select",
     }));
   };
 
   const handleSendOffer = async (options?: { cardPDFdata?: string }) => {
+    setisOpeningModal(true);
     const tempId = Math.random().toString(36).substring(2, 11);
     const stateToSave = { firstParty, secondParty, docSettings };
     localStorage.setItem("jevxo_offer_" + tempId, JSON.stringify(stateToSave));
@@ -252,7 +283,7 @@ export default function Home() {
 
     let saved = false;
     let dbAgreementId = "";
-    
+
     for (let i = 0; i < 3; i++) {
       try {
         const res = await fetch("/api/offers", {
@@ -279,6 +310,8 @@ export default function Home() {
       await new Promise((r) => setTimeout(r, 300));
     }
 
+    setisOpeningModal(false);
+
     if (!saved || !dbAgreementId) {
       alert("Failed to save offer to database. Please try again.");
       return;
@@ -299,22 +332,29 @@ export default function Home() {
       if (!p.nidNumber.trim()) return "National ID (NID) is required.";
       if (!p.position.trim()) return "Company role position is required.";
     } else if (activeStep === 2) {
-      if (!p.guardianName.trim()) return `${p.guardianRelation}'s Name is required.`;
-      if (!p.guardianMobile.trim()) return "Guardian Mobile Number is required.";
+      if (!p.guardianName.trim())
+        return `${p.guardianRelation}'s Name is required.`;
+      if (!p.guardianMobile.trim())
+        return "Guardian Mobile Number is required.";
     } else if (activeStep === 3) {
       if (!p.mobileNumber.trim()) return "Candidate Mobile Number is required.";
       if (!p.email.trim()) return "Candidate Email Address is required.";
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(p.email.trim())) return "Please enter a valid email address.";
+      if (!emailRegex.test(p.email.trim()))
+        return "Please enter a valid email address.";
       if (!p.presentAddress.trim()) return "Present Address is required.";
       if (!p.permanentAddress.trim()) return "Permanent Address is required.";
     } else if (activeStep === 4) {
       if (!docSettings.date.trim()) return "Signing Date is required.";
-      if (!secondParty.partnerIdSerial?.trim()) return "Partner ID serial is required.";
-      if (!docSettings.refIdSerial?.trim()) return "Agreement ID serial is required.";
+      if (!secondParty.partnerIdSerial?.trim())
+        return "Partner ID serial is required.";
+      if (!docSettings.refIdSerial?.trim())
+        return "Agreement ID serial is required.";
       if (!docSettings.equityShare) return "Equity Share is required.";
-      if (docSettings.equityShare < 1 || docSettings.equityShare > 100) return "Equity Share must be between 1% and 100%.";
-      if (!docSettings.minimumServicePeriod) return "Minimum Service Period is required.";
+      if (docSettings.equityShare < 1 || docSettings.equityShare > 100)
+        return "Equity Share must be between 1% and 100%.";
+      if (!docSettings.minimumServicePeriod)
+        return "Minimum Service Period is required.";
       if (!docSettings.noticePeriod) return "Notice Period is required.";
     } else if (activeStep === 5) {
       if (!firstParty.signatureImg)
@@ -326,7 +366,10 @@ export default function Home() {
   // ── Wizard nav ──────────────────────────────────────────────────────────────
   const handleNext = () => {
     const error = validateStep();
-    if (error) { setValidationError(error); return; }
+    if (error) {
+      setValidationError(error);
+      return;
+    }
     setValidationError("");
     if (activeStep < TOTAL_STEPS) {
       setActiveStep((s) => s + 1);
@@ -344,19 +387,29 @@ export default function Home() {
   // ── Address toggle ──────────────────────────────────────────────────────────
   const handleAddressToggle = (checked: boolean) => {
     setSameAddress(checked);
-    if (checked) setSecondParty((p) => ({ ...p, permanentAddress: p.presentAddress }));
+    if (checked)
+      setSecondParty((p) => ({ ...p, permanentAddress: p.presentAddress }));
   };
 
   // ── PDF export ──────────────────────────────────────────────────────────────
   const handleExportPDF = async () => {
-    if (isExporting || (appState === "candidatePortal" && isCandidateSigned)) return;
+    if (isExporting || (appState === "candidatePortal" && isCandidateSigned))
+      return;
     setIsExporting(true);
     document.documentElement.classList.add("a4-exporting");
     try {
-      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+      const pdf = new jsPDF({
+        orientation: "p",
+        unit: "mm",
+        format: "a4",
+        compress: true,
+      });
       const pages = previewRefs
         .map((ref) => ref.current)
-        .filter((el): el is HTMLDivElement => el != null && el.style.display !== "none");
+        .filter(
+          (el): el is HTMLDivElement =>
+            el != null && el.style.display !== "none",
+        );
       if (!pages.length) {
         throw new Error("No document pages were available for PDF generation.");
       }
@@ -368,7 +421,16 @@ export default function Home() {
           allowTaint: false,
           backgroundColor: "#ffffff",
         });
-        pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, 210, 297, undefined, "FAST");
+        pdf.addImage(
+          canvas.toDataURL("image/jpeg", 0.95),
+          "JPEG",
+          0,
+          0,
+          210,
+          297,
+          undefined,
+          "FAST",
+        );
         if (i < pages.length - 1) pdf.addPage();
       }
       if (appState === "candidatePortal") {
@@ -385,7 +447,10 @@ export default function Home() {
         });
         const data = await res.json().catch(() => null);
         if (!res.ok) {
-          throw new Error(data?.error || "Failed to finalize the agreement. Please try again.");
+          throw new Error(
+            data?.error ||
+              "Failed to finalize the agreement. Please try again.",
+          );
         }
 
         setIsCandidateSigned(true);
@@ -395,10 +460,12 @@ export default function Home() {
         // Wait one animation frame so React flushes the isCandidateSigned state
         // update before we capture the hidden card DOM — ensures the photo is
         // still rendered in the hidden layer at the time of capture.
-        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => resolve()),
+        );
 
         const frontEl = candidateCardFrontRef.current?.current;
-        const backEl  = candidateCardBackRef.current?.current;
+        const backEl = candidateCardBackRef.current?.current;
         if (frontEl && backEl) {
           try {
             const cardPDFdata = await buildIdCardPdfBase64(frontEl, backEl);
@@ -411,7 +478,7 @@ export default function Home() {
               const cardData = await cardRes.json().catch(() => null);
               toast.success(
                 cardData?.message ||
-                  "The fully executed documents have been emailed to you and the Founder."
+                  "The fully executed documents have been emailed to you and the Founder.",
               );
             }
           } catch (cardErr) {
@@ -419,7 +486,9 @@ export default function Home() {
           }
         }
       } else {
-        const partnerName = secondParty.fullName ? secondParty.fullName.trim() : "Partner";
+        const partnerName = secondParty.fullName
+          ? secondParty.fullName.trim()
+          : "Partner";
         pdf.save(`${partnerName} - Appointment Letter.pdf`);
       }
     } catch (err: unknown) {
@@ -443,15 +512,80 @@ export default function Home() {
   };
 
   const handleHeaderBack = () => {
-    if (appState === "form") { setAppState("docTypeSelect"); }
-    else if (appState === "workspace") { setAppState("form"); setActiveStep(5); }
-    else if (appState === "idCard") { setAppState("docTypeSelect"); }
-    else if (appState === "docTypeSelect") { setAppState("home"); }
-    else if (appState === "adminDashboard") { setAppState("docTypeSelect"); }
+    if (appState === "form") {
+      setAppState("docTypeSelect");
+    } else if (appState === "workspace") {
+      setAppState("form");
+      setActiveStep(5);
+    } else if (appState === "idCard") {
+      setAppState("docTypeSelect");
+    } else if (appState === "docTypeSelect") {
+      setAppState("home");
+    } else if (appState === "adminDashboard") {
+      setAppState("docTypeSelect");
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col font-sans selection:bg-[#2563EB]/20">
+      {/* ── Full-page loading overlay — shown while fetching the candidate offer ── */}
+      {isLoadingOffer && (
+        <div className="fixed inset-0 z-[9999] bg-[#F8FAFC]/90 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+          <svg
+            className="w-10 h-10 text-[#2563EB] animate-spin"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+            />
+          </svg>
+          <p className="text-sm font-bold text-[#334155] uppercase tracking-wider">
+            Loading your offer…
+          </p>
+        </div>
+      )}
+
+      {/* ── Finalize loading overlay — shown while generating + emailing PDFs ── */}
+      {isExporting && appState === "candidatePortal" && (
+        <div className="fixed inset-0 z-[9999] bg-[#0F172A]/70 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+          <svg
+            className="w-12 h-12 text-white animate-spin"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+            />
+          </svg>
+          <p className="text-sm font-bold text-white uppercase tracking-wider">
+            Finalizing your documents…
+          </p>
+          <p className="text-xs text-white/60">
+            Generating PDFs and sending to email. Please wait.
+          </p>
+        </div>
+      )}
       {/* Header */}
       <header className="border-b border-[#DBEAFE] bg-[#F8FAFC]/80 backdrop-blur-md sticky top-0 z-40 px-6 py-2 flex justify-between items-center">
         <div
@@ -587,6 +721,7 @@ export default function Home() {
               onExport={handleExportPDF}
               isDemo={isDemo}
               isOfferSent={isOfferSent}
+              isOpeningModal={isOpeningModal}
               onSendOffer={handleSendOffer}
               previewRefs={previewRefs}
               docType={docType}
@@ -627,7 +762,7 @@ export default function Home() {
               previewRefs={previewRefs}
               onIdCardRefsReady={(frontRef, backRef) => {
                 candidateCardFrontRef.current = frontRef;
-                candidateCardBackRef.current  = backRef;
+                candidateCardBackRef.current = backRef;
               }}
             />
           )}

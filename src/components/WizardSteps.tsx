@@ -124,13 +124,13 @@ export function Step1({ secondParty, setSecondParty }: Step1Props) {
         <Field label="Blood Group *">
           <div className="relative">
             <select
-              value={secondParty.bloodGroup || "A+"}
+              value={secondParty.bloodGroup || "Select"}
               onChange={(e) =>
                 setSecondParty((p) => ({ ...p, bloodGroup: e.target.value }))
               }
               className="w-full bg-[#F8FAFC] border border-[#DBEAFE] focus:border-[#2563EB] rounded-xl py-3 pl-4 pr-10 text-sm text-[#0F172A] focus:outline-none transition appearance-none cursor-pointer"
             >
-              {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bg) => (
+              {["Select", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bg) => (
                 <option key={bg} value={bg}>{bg}</option>
               ))}
             </select>
@@ -141,7 +141,7 @@ export function Step1({ secondParty, setSecondParty }: Step1Props) {
             </div>
           </div>
           <p className="text-[10px] text-[#64748B] italic">
-            Used on employee ID card for emergency reference.
+            Saved on our database securely for emergency reference.
           </p>
         </Field>
       </div>

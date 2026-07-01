@@ -23,15 +23,15 @@ const CARD_H = 570;
 
 // ─── PDF geometry — A4 landscape, cards fill the page at correct CR80 ratio ──
 // CR80 ratio: width/height = 54/85.6 = 0.6308 (portrait card)
-const PDF_PAGE_W   = 297;                        // A4 landscape width mm
-const PDF_PAGE_H   = 210;                        // A4 landscape height mm
-const PDF_MARGIN_Y = 10;                         // top/bottom margin mm
-const PDF_GAP      = 8;                          // gap between front and back mm
-const PDF_CARD_H   = PDF_PAGE_H - PDF_MARGIN_Y * 2;          // 190mm
-const PDF_CARD_W   = PDF_CARD_H * (54 / 85.6);               // ~119.6mm — exact CR80 ratio
-const PDF_FRONT_X  = (PDF_PAGE_W - PDF_CARD_W * 2 - PDF_GAP) / 2; // centered
-const PDF_BACK_X   = PDF_FRONT_X + PDF_CARD_W + PDF_GAP;
-const PDF_CARD_Y   = PDF_MARGIN_Y;
+const PDF_PAGE_W = 297; // A4 landscape width mm
+const PDF_PAGE_H = 210; // A4 landscape height mm
+const PDF_MARGIN_Y = 10; // top/bottom margin mm
+const PDF_GAP = 8; // gap between front and back mm
+const PDF_CARD_H = PDF_PAGE_H - PDF_MARGIN_Y * 2; // 190mm
+const PDF_CARD_W = PDF_CARD_H * (54 / 85.6); // ~119.6mm — exact CR80 ratio
+const PDF_FRONT_X = (PDF_PAGE_W - PDF_CARD_W * 2 - PDF_GAP) / 2; // centered
+const PDF_BACK_X = PDF_FRONT_X + PDF_CARD_W + PDF_GAP;
+const PDF_CARD_Y = PDF_MARGIN_Y;
 // ─── Input primitives ─────────────────────────────────────────────────────────
 function Field({
   label,
@@ -78,6 +78,37 @@ function ReadOnlyField({
   );
 }
 
+function EditableField({
+  label,
+  icon: Icon,
+  value,
+  placeholder,
+  onChange,
+  hint,
+}: {
+  label: string;
+  icon: React.FC<React.SVGProps<SVGSVGElement>>;
+  value: string;
+  placeholder?: string;
+  onChange: (v: string) => void;
+  hint?: string;
+}) {
+  return (
+    <Field label={label} icon={Icon}>
+      <input
+        type="text"
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-white border border-[#DBEAFE] focus:border-[#2563EB] rounded-xl py-2.5 px-3 text-sm text-[#0F172A] font-medium focus:outline-none transition"
+      />
+      {hint && (
+        <p className="text-[10px] text-[#64748B] italic mt-0.5">{hint}</p>
+      )}
+    </Field>
+  );
+}
+
 // ─── Capture helpers ───────────────────────────────────────────────────────────
 // Fetches Orbitron font as base64 and injects it into the document so
 // html2canvas can use it for SVG <text> elements.
@@ -87,7 +118,7 @@ async function ensureOrbitronEmbedded(): Promise<void> {
   try {
     // Fetch the CSS from Google Fonts
     const cssResp = await fetch(
-      "https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap"
+      "https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap",
     );
     const css = await cssResp.text();
     // Extract the woff2 URL from the CSS
@@ -96,9 +127,9 @@ async function ensureOrbitronEmbedded(): Promise<void> {
     const woffUrl = woffMatch[1];
     // Fetch the actual font binary and base64-encode it
     const fontResp = await fetch(woffUrl);
-    const fontBuf  = await fontResp.arrayBuffer();
-    const b64      = btoa(
-      new Uint8Array(fontBuf).reduce((s, b) => s + String.fromCharCode(b), "")
+    const fontBuf = await fontResp.arrayBuffer();
+    const b64 = btoa(
+      new Uint8Array(fontBuf).reduce((s, b) => s + String.fromCharCode(b), ""),
     );
     orbitronFontCss = `@font-face {
       font-family: 'Orbitron';
@@ -146,7 +177,9 @@ async function captureCard(
   // 3. Force-redraw every GradientText canvas now that Orbitron is guaranteed loaded.
   //    Without this, canvases drawn at mount time use a fallback font in the PDF.
   el.querySelectorAll<HTMLCanvasElement>("canvas").forEach((canvas) => {
-    const redraw = (canvas as HTMLCanvasElement & { __gradientRedraw?: () => void }).__gradientRedraw;
+    const redraw = (
+      canvas as HTMLCanvasElement & { __gradientRedraw?: () => void }
+    ).__gradientRedraw;
     if (typeof redraw === "function") redraw();
   });
 
@@ -179,13 +212,18 @@ async function captureCard(
       imageTimeout: 15000,
       onclone: (_doc, clonedEl) => {
         // In the clone: re-run all gradient redraws so the cloned canvases are fresh
-        clonedEl.querySelectorAll<HTMLCanvasElement>("canvas").forEach((canvas) => {
-          const redraw = (canvas as HTMLCanvasElement & { __gradientRedraw?: () => void }).__gradientRedraw;
-          if (typeof redraw === "function") redraw();
-        });
+        clonedEl
+          .querySelectorAll<HTMLCanvasElement>("canvas")
+          .forEach((canvas) => {
+            const redraw = (
+              canvas as HTMLCanvasElement & { __gradientRedraw?: () => void }
+            ).__gradientRedraw;
+            if (typeof redraw === "function") redraw();
+          });
         // In the clone, also set font-family as CSS on SVG texts
         clonedEl.querySelectorAll<SVGTextElement>("text").forEach((t) => {
-          const attr = t.getAttribute("fontFamily") || t.getAttribute("font-family");
+          const attr =
+            t.getAttribute("fontFamily") || t.getAttribute("font-family");
           if (attr) t.style.fontFamily = attr;
         });
         // Remove shadow from clone too
@@ -197,7 +235,9 @@ async function captureCard(
     if (hadShadow) el.classList.add("shadow-2xl");
     el.style.boxShadow = originalBoxShadow;
     // Restore SVG text inline styles
-    svgTexts.forEach((t) => { t.style.fontFamily = ""; });
+    svgTexts.forEach((t) => {
+      t.style.fontFamily = "";
+    });
   }
 }
 
@@ -218,7 +258,7 @@ export async function buildIdCardPdfBase64(
   const imageQuality = options?.imageQuality ?? 0.92;
   const [frontCanvas, backCanvas] = await Promise.all([
     captureCard(frontEl, { scale, backgroundColor: "#0A0B10" }),
-    captureCard(backEl,  { scale, backgroundColor: null }),
+    captureCard(backEl, { scale, backgroundColor: null }),
   ]);
   const mimeType = imageFormat === "JPEG" ? "image/jpeg" : "image/png";
   const frontImage = frontCanvas.toDataURL(mimeType, imageQuality);
@@ -233,8 +273,22 @@ export async function buildIdCardPdfBase64(
 
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, PDF_PAGE_W, PDF_PAGE_H, "F");
-  doc.addImage(frontImage, imageFormat, PDF_FRONT_X, PDF_CARD_Y, PDF_CARD_W, PDF_CARD_H);
-  doc.addImage(backImage, imageFormat, PDF_BACK_X, PDF_CARD_Y, PDF_CARD_W, PDF_CARD_H);
+  doc.addImage(
+    frontImage,
+    imageFormat,
+    PDF_FRONT_X,
+    PDF_CARD_Y,
+    PDF_CARD_W,
+    PDF_CARD_H,
+  );
+  doc.addImage(
+    backImage,
+    imageFormat,
+    PDF_BACK_X,
+    PDF_CARD_Y,
+    PDF_CARD_W,
+    PDF_CARD_H,
+  );
 
   const buf = doc.output("arraybuffer");
   const bytes = new Uint8Array(buf);
@@ -273,20 +327,33 @@ export default function IdCardWorkspace({
       }),
     [],
   );
-  const [uncontrolledPhotoUrl, setUncontrolledPhotoUrl] = useState(initialData?.photoUrl || "");
+  const [uncontrolledPhotoUrl, setUncontrolledPhotoUrl] = useState(
+    initialData?.photoUrl || "",
+  );
+  // Allows trimming/adjusting the display name to fit the ID card without
+  // touching the underlying secondParty data in the parent form
+  const [overrideName, setOverrideName] = useState("");
 
   const card: EmployeeCard = React.useMemo(
     () => ({
-      fullName: initialData?.fullName || "",
+      fullName:
+        overrideName !== "" ? overrideName : initialData?.fullName || "",
       position: initialData?.position || "",
       employeeId: initialData?.employeeId || "000-000-0001",
-      bloodGroup: initialData?.bloodGroup || "A+",
+      bloodGroup: initialData?.bloodGroup || "Select",
       department: initialData?.department || "",
       photoUrl: isControlled ? controlledPhotoUrl || "" : uncontrolledPhotoUrl,
       issueDate: initialData?.issueDate || defaultIssueDate,
       expiryDate: initialData?.expiryDate || "",
     }),
-    [controlledPhotoUrl, defaultIssueDate, initialData, isControlled, uncontrolledPhotoUrl],
+    [
+      controlledPhotoUrl,
+      defaultIssueDate,
+      initialData,
+      isControlled,
+      overrideName,
+      uncontrolledPhotoUrl,
+    ],
   );
 
   const [isExportingFront, setIsExportingFront] = useState(false);
@@ -456,58 +523,62 @@ export default function IdCardWorkspace({
 
           {/* Photo Upload */}
           {!hidePhotoUpload && (
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-[#334155] uppercase tracking-wider flex items-center gap-1.5">
-              <ImageIcon className="w-3 h-3 text-[#2563EB]" />
-              Employee Photo{" "}
-              <span className="text-rose-500 font-extrabold">* Required</span>
-            </label>
-            <label className="flex flex-col items-center justify-center gap-2 h-28 border-2 border-dashed border-[#DBEAFE] hover:border-[#2563EB] rounded-xl cursor-pointer bg-white transition-all group">
-              {card.photoUrl ? (
-                <img
-                  src={card.photoUrl}
-                  alt="Preview"
-                  className="h-full w-full object-cover rounded-xl"
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-[#334155] uppercase tracking-wider flex items-center gap-1.5">
+                <ImageIcon className="w-3 h-3 text-[#2563EB]" />
+                Employee Photo{" "}
+                <span className="text-rose-500 font-extrabold">* Required</span>
+              </label>
+              <label className="flex flex-col items-center justify-center gap-2 h-28 border-2 border-dashed border-[#DBEAFE] hover:border-[#2563EB] rounded-xl cursor-pointer bg-white transition-all group">
+                {card.photoUrl ? (
+                  <img
+                    src={card.photoUrl}
+                    alt="Preview"
+                    className="h-full w-full object-cover rounded-xl"
+                  />
+                ) : (
+                  <>
+                    <Upload className="w-5 h-5 text-[#94A3B8] group-hover:text-[#2563EB] transition" />
+                    <span className="text-xs font-medium text-[#94A3B8] group-hover:text-[#2563EB] transition">
+                      Click to upload photo
+                    </span>
+                    <span className="text-[10px] text-[#CBD5E1]">
+                      PNG, JPG — recommended 400×600px
+                    </span>
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoUpload}
                 />
-              ) : (
-                <>
-                  <Upload className="w-5 h-5 text-[#94A3B8] group-hover:text-[#2563EB] transition" />
-                  <span className="text-xs font-medium text-[#94A3B8] group-hover:text-[#2563EB] transition">
-                    Click to upload photo
-                  </span>
-                  <span className="text-[10px] text-[#CBD5E1]">
-                    PNG, JPG — recommended 400×600px
-                  </span>
-                </>
+              </label>
+              {card.photoUrl && (
+                <button
+                  onClick={() => {
+                    if (isControlled && onPhotoChange) onPhotoChange("");
+                    else setUncontrolledPhotoUrl("");
+                  }}
+                  className="text-[10px] font-semibold text-red-400 hover:text-red-600 text-right transition cursor-pointer"
+                >
+                  Remove photo
+                </button>
               )}
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handlePhotoUpload}
-              />
-            </label>
-            {card.photoUrl && (
-              <button
-                onClick={() => {
-                  if (isControlled && onPhotoChange) onPhotoChange("");
-                  else setUncontrolledPhotoUrl("");
-                }}
-                className="text-[10px] font-semibold text-red-400 hover:text-red-600 text-right transition cursor-pointer"
-              >
-                Remove photo
-              </button>
-            )}
-          </div>
+            </div>
           )}
 
-          {/* Read-only fields */}
+          {/* Fields — Full Name is editable for ID card display trimming */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-3 sm:gap-4">
-            <ReadOnlyField
-              label="Full Name"
+            <EditableField
+              label="Full Name (ID Card Display)"
               icon={User}
-              value={card.fullName}
-              placeholder="From appointment form"
+              value={
+                overrideName !== "" ? overrideName : initialData?.fullName || ""
+              }
+              placeholder={initialData?.fullName || "From appointment form"}
+              onChange={setOverrideName}
+              hint="Edit to shorten long names for the card layout."
             />
             <ReadOnlyField
               label="Position / Role"

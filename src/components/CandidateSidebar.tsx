@@ -48,16 +48,11 @@ export default function CandidateSidebar({
         }
       }
 
-      // Save signature to backend
       fetch(`/api/offers/${offerId}/sign`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ signatureImg: dataUrl }),
-      }).catch((err) =>
-        console.error("Failed to save signature to backend:", err),
-      );
+      }).catch((err) => console.error("Failed to save signature:", err));
 
       return updated;
     });
@@ -80,16 +75,11 @@ export default function CandidateSidebar({
         }
       }
 
-      // Clear signature on backend
       fetch(`/api/offers/${offerId}/sign`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ signatureImg: "" }),
-      }).catch((err) =>
-        console.error("Failed to clear signature on backend:", err),
-      );
+      }).catch((err) => console.error("Failed to clear signature:", err));
 
       return updated;
     });
@@ -114,7 +104,9 @@ export default function CandidateSidebar({
       return;
     }
     if (!isPhotoUploaded) {
-      setSigError("Please upload your photo in the ID Card tab before signing.");
+      setSigError(
+        "Please upload your photo in the ID Card tab before signing.",
+      );
       if (onSwitchToIdCard) onSwitchToIdCard();
       return;
     }
@@ -123,9 +115,9 @@ export default function CandidateSidebar({
   };
 
   return (
-    <div className="w-full xl:w-[420px] bg-[#F8FAFC] border-r border-[#DBEAFE] flex flex-col h-full overflow-hidden shrink-0">
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+    <div className="w-full xl:w-[420px] bg-[#F8FAFC] border-r border-[#DBEAFE] flex flex-col h-screen sticky top-0 overflow-hidden shrink-0">
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
         {/* Header */}
         <div className="space-y-2">
           <span className="text-[10px] bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block">
@@ -162,7 +154,7 @@ export default function CandidateSidebar({
           </div>
         </div>
 
-        {/* Signature Pad */}
+        {/* Signature Pad Section */}
         <div className="space-y-4">
           <div className="border-b border-[#DBEAFE] pb-1">
             <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-wide">
@@ -244,8 +236,10 @@ export default function CandidateSidebar({
             )}
           </div>
         </div>
-      {/* Action footer */}
-      <div className="p-6 bg-[#F8FAFC] border-t border-[#DBEAFE] space-y-3 shrink-0 mb-12">
+      </div>
+
+      {/* Fixed Action Footer */}
+      <div className="p-6 bg-[#F8FAFC] border-t border-[#DBEAFE] space-y-3 shrink-0">
         <button
           onClick={handleActionClick}
           disabled={isExporting || isCompleted}
@@ -271,8 +265,6 @@ export default function CandidateSidebar({
           <span>Dual signatures included</span>
         </div>
       </div>
-      </div>
-
     </div>
   );
 }
