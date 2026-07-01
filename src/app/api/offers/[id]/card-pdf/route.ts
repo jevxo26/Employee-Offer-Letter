@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { findAgreementById, updateAgreement } from "../../../../../lib/agreementStore";
+import {
+  findAgreementById,
+  updateAgreement,
+} from "../../../../../lib/agreementStore";
 import {
   getFounderNotificationRecipients,
   getResendFromAddress,
@@ -21,7 +24,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
  */
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -30,29 +33,37 @@ export async function POST(
     const rawCardPdf: string = body.cardPDFdata || "";
     const cardPDFdata = rawCardPdf.replace(
       /^data:application\/pdf(?:;[^;]*)?;base64,/,
-      ""
+      "",
     );
 
     if (!cardPDFdata) {
-      return NextResponse.json({ error: "No card PDF data provided." }, { status: 400 });
+      return NextResponse.json(
+        { error: "No card PDF data provided." },
+        { status: 400 },
+      );
     }
 
     const agreement = await findAgreementById(id);
     if (!agreement) {
-      return NextResponse.json({ error: "Agreement not found." }, { status: 404 });
+      return NextResponse.json(
+        { error: "Agreement not found." },
+        { status: 404 },
+      );
     }
 
     // Pull the appointment letter that /sign already saved to the DB
     const letterPDFdata =
       typeof agreement.letterPDFdata === "string"
-        ? agreement.letterPDFdata.replace(/^data:application\/pdf(?:;[^;]*)?;base64,/, "")
+        ? agreement.letterPDFdata.replace(
+            /^data:application\/pdf(?:;[^;]*)?;base64,/,
+            "",
+          )
         : "";
 
     // Save the correct (candidate-photo) card PDF to DB
     await updateAgreement(id, {
       cardPDFdata,
       idCardGenerated: true,
-      idCardSent: false,
     });
 
     let founderEmailSent = false;
@@ -64,12 +75,12 @@ export async function POST(
         agreement.firstParty.email,
       );
       const partnerEmail = agreement.secondParty.email;
-      const founderName  = agreement.firstParty.representedBy;
-      const partnerName  = agreement.secondParty.fullName;
-      const partnerID    = agreement.secondParty.partnerId;
+      const founderName = agreement.firstParty.representedBy;
+      const partnerName = agreement.secondParty.fullName;
+      const partnerID = agreement.secondParty.partnerId;
 
       console.log(
-        `[card-pdf] Sending combined emails — founder: ${founderRecipients.join(", ")}, partner: ${partnerEmail}`
+        `[card-pdf] Sending combined emails — founder: ${founderRecipients.join(", ")}, partner: ${partnerEmail}`,
       );
 
       // Build attachments — always include the card; add letter if available
@@ -77,7 +88,10 @@ export async function POST(
         { filename: `${id}-id-card.pdf`, content: cardPDFdata },
       ];
       if (letterPDFdata) {
-        attachments.unshift({ filename: `${id}-appointment.pdf`, content: letterPDFdata });
+        attachments.unshift({
+          filename: `${id}-appointment.pdf`,
+          content: letterPDFdata,
+        });
       }
 
       const [founderResult, partnerResult] = await Promise.all([
@@ -97,17 +111,24 @@ export async function POST(
         }),
       ]);
 
-      if (founderResult.error) console.error("[card-pdf] Founder email failed:", founderResult.error);
-      else { founderEmailSent = true; console.log(`[card-pdf] Founder email sent: ${founderResult.data?.id}`); }
+      if (founderResult.error)
+        console.error("[card-pdf] Founder email failed:", founderResult.error);
+      else {
+        founderEmailSent = true;
+        console.log(`[card-pdf] Founder email sent: ${founderResult.data?.id}`);
+      }
 
-      if (partnerResult.error) console.error("[card-pdf] Partner email failed:", partnerResult.error);
-      else { partnerEmailSent = true; console.log(`[card-pdf] Partner email sent: ${partnerResult.data?.id}`); }
+      if (partnerResult.error)
+        console.error("[card-pdf] Partner email failed:", partnerResult.error);
+      else {
+        partnerEmailSent = true;
+        console.log(`[card-pdf] Partner email sent: ${partnerResult.data?.id}`);
+      }
     }
 
     const sentToBoth = founderEmailSent && partnerEmailSent;
     await updateAgreement(id, {
       letterSentToBoth: sentToBoth,
-      idCardSent: sentToBoth,
     });
 
     return NextResponse.json({
@@ -118,6 +139,9 @@ export async function POST(
     });
   } catch (err: unknown) {
     console.error("[card-pdf] Error:", err);
-    return NextResponse.json({ error: "Failed to process card PDF." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to process card PDF." },
+      { status: 500 },
+    );
   }
 }

@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
-import { findAgreementById, updateAgreement } from "../../../../../lib/agreementStore";
+import {
+  findAgreementById,
+  updateAgreement,
+} from "../../../../../lib/agreementStore";
 import { generateIdCardPdf } from "../../../../../lib/idCardPdf";
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -20,7 +23,7 @@ export async function POST(
       typeof rawLetterPdf === "string"
         ? rawLetterPdf.replace(
             /^data:application\/pdf(?:;filename=[^;]+)?;base64,/,
-            ""
+            "",
           )
         : "";
 
@@ -49,7 +52,10 @@ export async function POST(
       });
 
       if (!updated) {
-        return NextResponse.json({ error: "Failed to update agreement." }, { status: 500 });
+        return NextResponse.json(
+          { error: "Failed to update agreement." },
+          { status: 500 },
+        );
       }
 
       console.log(`[Next.js API] Candidate signature updated: ${id}`);
@@ -62,7 +68,10 @@ export async function POST(
     // Prefer the exact client/workspace-generated PDF before using the simplified server fallback.
     const storedCardPdf =
       typeof agreement.cardPDFdata === "string"
-        ? agreement.cardPDFdata.replace(/^data:application\/pdf(?:;[^;]*)?;base64,/, "")
+        ? agreement.cardPDFdata.replace(
+            /^data:application\/pdf(?:;[^;]*)?;base64,/,
+            "",
+          )
         : "";
 
     let idCardPdfBase64 = clientCardPdf || storedCardPdf;
@@ -81,18 +90,20 @@ export async function POST(
 
     const updated = await updateAgreement(id, {
       secondParty: updatedSecondParty,
-      status:           "FULLY_EXECUTED",
-      partnerSigned:    true,
-      signedAt:         new Date().toISOString(),
-      letterPDFdata:    normalizedLetterPdf,
+      status: "FULLY_EXECUTED",
+      partnerSigned: true,
+      signedAt: new Date().toISOString(),
+      letterPDFdata: normalizedLetterPdf,
       letterSentToBoth: false,
-      idCardGenerated:  idCardPdfBase64.length > 0,
-      idCardSent:       false,
-      cardPDFdata:      idCardPdfBase64 || undefined,
+      idCardGenerated: idCardPdfBase64.length > 0,
+      cardPDFdata: idCardPdfBase64 || undefined,
     });
 
     if (!updated) {
-      return NextResponse.json({ error: "Failed to update agreement." }, { status: 500 });
+      return NextResponse.json(
+        { error: "Failed to update agreement." },
+        { status: 500 },
+      );
     }
 
     console.log(`[Next.js API] Offer fully executed: ${id}`);
@@ -113,7 +124,7 @@ export async function POST(
     console.error("[Next.js API] Error signing offer:", err);
     return NextResponse.json(
       { error: "Failed to apply signature and finalize." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

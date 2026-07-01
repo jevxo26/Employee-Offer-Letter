@@ -11,7 +11,7 @@ async function tryMongo<T>(fn: () => Promise<T>): Promise<T | null> {
   } catch (err: unknown) {
     console.warn(
       "[agreementStore] MongoDB unavailable, using local file store:",
-      (err as Error).message
+      (err as Error).message,
     );
     return null;
   }
@@ -81,12 +81,14 @@ export async function listAgreements() {
 
   if (mongoList) return mongoList;
   const fileList = await fileStore.fileListAgreements();
-  return fileList.map(({ letterPDFdata: _letter, cardPDFdata: _card, ...rest }) => rest);
+  return fileList.map(
+    ({ letterPDFdata: _letter, cardPDFdata: _card, ...rest }) => rest,
+  );
 }
 
 export async function updateAgreement(
   agreementId: string,
-  updates: Record<string, unknown>
+  updates: Record<string, unknown>,
 ) {
   const mongoDoc = await tryMongo(async () => {
     const agreement = await Agreement.findOne({ agreementId });
@@ -112,9 +114,17 @@ export function toAgreementSummary(agreement: Record<string, unknown>) {
     partnerSigned: agreement.partnerSigned,
     signedAt: agreement.signedAt,
     createdAt: agreement.createdAt,
-    partnerName: (agreement.secondParty as Record<string, string> | undefined)?.fullName || "",
-    partnerEmail: (agreement.secondParty as Record<string, string> | undefined)?.email || "",
-    companyName: (agreement.firstParty as Record<string, string> | undefined)?.companyName || "",
-    position: (agreement.secondParty as Record<string, string> | undefined)?.position || "",
+    partnerName:
+      (agreement.secondParty as Record<string, string> | undefined)?.fullName ||
+      "",
+    partnerEmail:
+      (agreement.secondParty as Record<string, string> | undefined)?.email ||
+      "",
+    companyName:
+      (agreement.firstParty as Record<string, string> | undefined)
+        ?.companyName || "",
+    position:
+      (agreement.secondParty as Record<string, string> | undefined)?.position ||
+      "",
   };
 }
