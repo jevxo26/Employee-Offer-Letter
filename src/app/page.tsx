@@ -12,6 +12,7 @@ import Hero from "../components/Hero";
 import Login from "../components/Login";
 import DocTypeSelector from "../components/DocTypeSelector";
 import FormWizard from "../components/FormWizard";
+import InternshipFormWizard from "../components/InternshipFormWizard";
 import CeoWorkspace from "../components/CeoWorkspace";
 import CandidatePortal from "../components/CandidatePortal";
 import EmailPortalModal from "../components/EmailPortalModal";
@@ -25,6 +26,7 @@ import {
   DocSettings,
   AppState,
   DocType,
+  AgreementTemplate,
   EmployeeCard,
 } from "../types";
 
@@ -118,7 +120,8 @@ function arrayBufferToBase64(buffer: ArrayBuffer) {
 
 export default function Home() {
   const [appState, setAppState] = useState<AppState>("home");
-  const [docType, setDocType] = useState<DocType>("appointment");
+  const [docType, setDocType] = useState<DocType>("both");
+  const [agreementTemplate, setAgreementTemplate] = useState<AgreementTemplate>("partner");
   const [activeStep, setActiveStep] = useState(1);
   const [isDemo, setIsDemo] = useState(false);
 
@@ -130,6 +133,7 @@ export default function Home() {
     minimumServicePeriod: 3,
     equityShare: 7,
     noticePeriod: 15,
+    agreementTemplate: "partner",
   });
 
   // Derived employee card from secondParty data (for "both" mode)
@@ -215,6 +219,10 @@ export default function Home() {
           setFirstParty(data.firstParty);
           setSecondParty(data.secondParty);
           setDocSettings(data.docSettings);
+          setAgreementTemplate(
+            (data.docSettings?.agreementTemplate as AgreementTemplate) ||
+              "partner",
+          );
           setIsCandidateSigned(
             Boolean(data.partnerSigned || data.status === "FULLY_EXECUTED"),
           );
@@ -235,6 +243,11 @@ export default function Home() {
               setFirstParty(data.firstParty);
               setSecondParty(data.secondParty);
               setDocSettings(data.docSettings);
+              setAgreementTemplate(
+                (data.agreementTemplate as AgreementTemplate) ||
+                  data.docSettings?.agreementTemplate ||
+                  "partner",
+              );
               setIsCandidateSigned(
                 Boolean(data.partnerSigned || data.status === "FULLY_EXECUTED"),
               );
@@ -251,17 +264,14 @@ export default function Home() {
   }, []);
 
   // ── When docType selector chooses a type ────────────────────────────────────
-  const handleDocTypeSelect = (type: DocType) => {
-    setDocType(type);
+  const handleTemplateSelect = (template: AgreementTemplate) => {
+    setAgreementTemplate(template);
+    // Internship never has an ID card — all other templates keep the "both" mode
+    setDocType(template === "internship" ? "appointment" : "both");
+    setDocSettings((prev) => ({ ...prev, agreementTemplate: template }));
     setIsOfferSent(false);
-    if (type === "idCard") {
-      // Skip the full form wizard, go straight to ID card workspace
-      setAppState("idCard");
-    } else {
-      // appointment or both — go through full form wizard
-      setActiveStep(1);
-      setAppState("form");
-    }
+    setActiveStep(1);
+    setAppState("form");
   };
 
   // ── Sync employee card from secondParty data when entering workspace ─────────
@@ -277,7 +287,7 @@ export default function Home() {
   const handleSendOffer = async (options?: { cardPDFdata?: string }) => {
     setisOpeningModal(true);
     const tempId = Math.random().toString(36).substring(2, 11);
-    const stateToSave = { firstParty, secondParty, docSettings };
+    const stateToSave = { firstParty, secondParty, docSettings, agreementTemplate };
     localStorage.setItem("jevxo_offer_" + tempId, JSON.stringify(stateToSave));
     const cardPDFdata = options?.cardPDFdata || "";
 
@@ -326,6 +336,30 @@ export default function Home() {
   // ── Validation ──────────────────────────────────────────────────────────────
   const validateStep = () => {
     const p = secondParty;
+    const isInternship = agreementTemplate === "internship";
+
+    if (isInternship) {
+      if (activeStep === 1) {
+        if (!p.fullName.trim()) return "Full Name is required.";
+        if (!p.nidNumber.trim()) return "National ID (NID) is required.";
+        if (!p.position.trim()) return "Internship position is required.";
+        if (!p.email.trim()) return "Email address is required.";
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(p.email.trim())) return "Please enter a valid email address.";
+        if (!p.mobileNumber.trim()) return "Phone number is required.";
+      } else if (activeStep === 2) {
+        if (!docSettings.date.trim()) return "Offer date is required.";
+        if (!docSettings.internshipDuration?.trim()) return "Internship duration is required.";
+        if (docSettings.isPaid === undefined) return "Please select paid or unpaid.";
+        if (!docSettings.internIdSerial?.trim()) return "Intern ID serial is required.";
+        if (!docSettings.internRefIdSerial?.trim()) return "Reference ID serial is required.";
+      } else if (activeStep === 3) {
+        if (!firstParty.signatureImg) return "Founder/CEO signature is required to issue the offer letter.";
+      }
+      return "";
+    }
+
+    // ── Partner / countrySeller / countryAgent (5-step) ──────────────────────
     if (activeStep === 1) {
       if (!p.fullName.trim()) return "Full Name is required.";
       if (!p.dob) return "Date of Birth is required.";
@@ -364,6 +398,8 @@ export default function Home() {
   };
 
   // ── Wizard nav ──────────────────────────────────────────────────────────────
+  const ACTIVE_TOTAL_STEPS = agreementTemplate === "internship" ? 3 : TOTAL_STEPS;
+
   const handleNext = () => {
     const error = validateStep();
     if (error) {
@@ -371,7 +407,7 @@ export default function Home() {
       return;
     }
     setValidationError("");
-    if (activeStep < TOTAL_STEPS) {
+    if (activeStep < ACTIVE_TOTAL_STEPS) {
       setActiveStep((s) => s + 1);
     } else {
       setIsOfferSent(false);
@@ -436,7 +472,7 @@ export default function Home() {
       if (appState === "candidatePortal") {
         const pdfData = arrayBufferToBase64(pdf.output("arraybuffer"));
 
-        // Step 1: Sign with letter PDF only — keeps payload under Vercel's 4.5MB limit
+        // Step 1: Sign with letter PDF — keeps payload under Vercel's 4.5MB limit
         const res = await fetch(`/api/offers/${offerId}/sign`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -456,34 +492,37 @@ export default function Home() {
         setIsCandidateSigned(true);
         toast.info("Signature applied! Preparing your documents…");
 
-        // Step 2: Generate and send ID card PDF separately (avoids payload limit).
-        // Wait one animation frame so React flushes the isCandidateSigned state
-        // update before we capture the hidden card DOM — ensures the photo is
-        // still rendered in the hidden layer at the time of capture.
-        await new Promise<void>((resolve) =>
-          requestAnimationFrame(() => resolve()),
-        );
+        // Step 2: For internship, no ID card PDF — /card-pdf sends the letter + card.
+        // For non-internship, generate and send ID card PDF separately.
+        if (agreementTemplate !== "internship") {
+          await new Promise<void>((resolve) =>
+            requestAnimationFrame(() => resolve()),
+          );
 
-        const frontEl = candidateCardFrontRef.current?.current;
-        const backEl = candidateCardBackRef.current?.current;
-        if (frontEl && backEl) {
-          try {
-            const cardPDFdata = await buildIdCardPdfBase64(frontEl, backEl);
-            if (cardPDFdata) {
-              const cardRes = await fetch(`/api/offers/${offerId}/card-pdf`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ cardPDFdata }),
-              });
-              const cardData = await cardRes.json().catch(() => null);
-              toast.success(
-                cardData?.message ||
-                  "The fully executed documents have been emailed to you and the Founder.",
-              );
+          const frontEl = candidateCardFrontRef.current?.current;
+          const backEl = candidateCardBackRef.current?.current;
+          if (frontEl && backEl) {
+            try {
+              const cardPDFdata = await buildIdCardPdfBase64(frontEl, backEl);
+              if (cardPDFdata) {
+                const cardRes = await fetch(`/api/offers/${offerId}/card-pdf`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ cardPDFdata }),
+                });
+                const cardData = await cardRes.json().catch(() => null);
+                toast.success(
+                  cardData?.message ||
+                    "The fully executed documents have been emailed to you and the Founder.",
+                );
+              }
+            } catch (cardErr) {
+              console.warn("ID card PDF generation skipped:", cardErr);
             }
-          } catch (cardErr) {
-            console.warn("ID card PDF generation skipped:", cardErr);
           }
+        } else {
+          // Internship: /sign already sends the letter PDF to both parties
+          toast.success("Your signed offer letter has been emailed to you and the Founder.");
         }
       } else {
         const partnerName = secondParty.fullName
@@ -659,7 +698,12 @@ export default function Home() {
                 setSecondParty(SAMPLE_SECOND_PARTY);
                 setSameAddress(false);
                 setAppState("form");
-                setDocType("appointment");
+                setDocType("both");
+                setAgreementTemplate("partner");
+                setDocSettings((prev) => ({
+                  ...prev,
+                  agreementTemplate: "partner",
+                }));
                 setIsDemo(true);
               }}
             />
@@ -676,7 +720,7 @@ export default function Home() {
           {appState === "docTypeSelect" && (
             <DocTypeSelector
               key="docTypeSelect"
-              onSelect={handleDocTypeSelect}
+              onSelect={handleTemplateSelect}
               onOpenAdmin={() => setAppState("adminDashboard")}
             />
           )}
@@ -689,22 +733,39 @@ export default function Home() {
           )}
 
           {appState === "form" && (
-            <FormWizard
-              key="form"
-              activeStep={activeStep}
-              secondParty={secondParty}
-              setSecondParty={setSecondParty}
-              firstParty={firstParty}
-              setFirstParty={setFirstParty}
-              sameAddress={sameAddress}
-              onAddressToggle={handleAddressToggle}
-              validationError={validationError}
-              onClearError={() => setValidationError("")}
-              onNext={handleNext}
-              onPrev={handlePrev}
-              docSettings={docSettings}
-              setDocSettings={setDocSettings}
-            />
+            agreementTemplate === "internship" ? (
+              <InternshipFormWizard
+                key="internshipForm"
+                activeStep={activeStep}
+                secondParty={secondParty}
+                setSecondParty={setSecondParty}
+                firstParty={firstParty}
+                setFirstParty={setFirstParty}
+                validationError={validationError}
+                onClearError={() => setValidationError("")}
+                onNext={handleNext}
+                onPrev={handlePrev}
+                docSettings={docSettings}
+                setDocSettings={setDocSettings}
+              />
+            ) : (
+              <FormWizard
+                key="form"
+                activeStep={activeStep}
+                secondParty={secondParty}
+                setSecondParty={setSecondParty}
+                firstParty={firstParty}
+                setFirstParty={setFirstParty}
+                sameAddress={sameAddress}
+                onAddressToggle={handleAddressToggle}
+                validationError={validationError}
+                onClearError={() => setValidationError("")}
+                onNext={handleNext}
+                onPrev={handlePrev}
+                docSettings={docSettings}
+                setDocSettings={setDocSettings}
+              />
+            )
           )}
 
           {appState === "workspace" && (
@@ -725,6 +786,7 @@ export default function Home() {
               onSendOffer={handleSendOffer}
               previewRefs={previewRefs}
               docType={docType}
+              agreementTemplate={agreementTemplate}
               employeeCard={employeeCard}
               setEmployeeCard={setEmployeeCard}
             />
@@ -760,6 +822,7 @@ export default function Home() {
               onExport={handleExportPDF}
               offerId={offerId}
               previewRefs={previewRefs}
+              agreementTemplate={agreementTemplate}
               onIdCardRefsReady={(frontRef, backRef) => {
                 candidateCardFrontRef.current = frontRef;
                 candidateCardBackRef.current = backRef;

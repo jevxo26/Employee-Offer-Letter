@@ -43,7 +43,52 @@ export async function generateAgreementIds() {
   return { ...fileIds, storage: "file" as const };
 }
 
-export async function saveAgreement(data: Record<string, unknown>) {
+export async function generateInternIds() {
+  const currentYearStr = new Date().getFullYear().toString().slice(-2);
+
+  const mongoIds = await tryMongo(async () => {
+    // Find the latest intern agreement by its agreementId prefix
+    const latestIntern = await Agreement.findOne({
+      agreementId: new RegExp(`^JVX-INT-${currentYearStr}-`),
+    }).sort({ createdAt: -1 });
+
+    let nextSequence = 1;
+    if (latestIntern) {
+      const parts = latestIntern.agreementId.split("-");
+      const lastSequence = parseInt(parts[parts.length - 1], 10);
+      if (!isNaN(lastSequence)) nextSequence = lastSequence + 1;
+    }
+
+    const seq = nextSequence.toString().padStart(3, "0");
+    return {
+      internId:    `JVX-INT-${currentYearStr}-${seq}`,
+      internRefId: `JVX-INT-REF-${currentYearStr}-${seq}`,
+    };
+  });
+
+  if (mongoIds) return { ...mongoIds, storage: "mongodb" as const };
+
+  // File fallback — read local intern agreements to find next sequence
+  const fileList = await fileStore.fileListAgreements();
+  const internPrefix = `JVX-INT-${currentYearStr}-`;
+  const internAgreements = fileList.filter((a) =>
+    typeof a.agreementId === "string" && a.agreementId.startsWith(internPrefix)
+  );
+  let nextSeq = 1;
+  if (internAgreements.length > 0) {
+    const sequences = internAgreements.map((a) => {
+      const parts = (a.agreementId as string).split("-");
+      return parseInt(parts[parts.length - 1], 10) || 0;
+    });
+    nextSeq = Math.max(...sequences) + 1;
+  }
+  const seq = nextSeq.toString().padStart(3, "0");
+  return {
+    internId:    `JVX-INT-${currentYearStr}-${seq}`,
+    internRefId: `JVX-INT-REF-${currentYearStr}-${seq}`,
+    storage: "file" as const,
+  };
+}export async function saveAgreement(data: Record<string, unknown>) {
   const mongoDoc = await tryMongo(async () => {
     const doc = new Agreement(data);
     await doc.save();
@@ -109,6 +154,9 @@ export function toAgreementSummary(agreement: Record<string, unknown>) {
     agreementId: agreement.agreementId,
     partnerId: agreement.partnerId,
     docType: agreement.docType || "appointment",
+    agreementTemplate:
+      (agreement.docSettings as Record<string, string> | undefined)
+        ?.agreementTemplate || undefined,
     status: agreement.status,
     founderSigned: agreement.founderSigned,
     partnerSigned: agreement.partnerSigned,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   generateAgreementIds,
+  generateInternIds,
   listAgreements,
   saveAgreement,
   toAgreementSummary,
@@ -22,12 +23,43 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { firstParty, secondParty, docSettings, docType = "appointment", cardPDFdata } = body;
+    const {
+      firstParty,
+      secondParty,
+      docSettings,
+      docType = "appointment",
+      agreementTemplate,
+      cardPDFdata,
+    } = body;
 
-    const { agreementId, partnerId, storage } = await generateAgreementIds();
+    const resolvedTemplate = agreementTemplate || docSettings?.agreementTemplate || "partner";
+    const isInternship = resolvedTemplate === "internship";
+
+    let agreementId: string;
+    let partnerId: string;
+    let storage: string;
+
+    if (isInternship) {
+      // Use intern-prefixed IDs; prefer the ones already in docSettings (set by the form)
+      const generated = await generateInternIds();
+      agreementId = docSettings?.internRefId || generated.internId;
+      partnerId   = docSettings?.internId    || generated.internId;
+      storage     = generated.storage;
+    } else {
+      const generated = await generateAgreementIds();
+      agreementId = generated.agreementId;
+      partnerId   = generated.partnerId;
+      storage     = generated.storage;
+    }
 
     const updatedSecondParty = { ...secondParty, partnerId };
-    const updatedDocSettings = { ...docSettings, refId: agreementId };
+    const updatedDocSettings = {
+      ...docSettings,
+      agreementTemplate: resolvedTemplate,
+      ...(isInternship
+        ? { internRefId: agreementId, internId: partnerId }
+        : { refId: agreementId }),
+    };
 
     await saveAgreement({
       agreementId,
@@ -39,13 +71,10 @@ export async function POST(request: Request) {
       firstParty,
       secondParty: updatedSecondParty,
       docSettings: updatedDocSettings,
-      // Store pre-generated pixel-perfect ID card PDF from client if provided
       ...(cardPDFdata ? { cardPDFdata, idCardGenerated: true } : {}),
     });
 
-    console.log(
-      `[Next.js API] Agreement saved (${storage}): ${agreementId}`
-    );
+    console.log(`[Next.js API] Agreement saved (${storage}): ${agreementId}`);
     return NextResponse.json({ success: true, agreementId, partnerId, storage });
   } catch (err: unknown) {
     console.error("[Next.js API] Error saving agreement:", err);

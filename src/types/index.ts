@@ -32,13 +32,27 @@ export interface SecondParty {
   signatureImg: string;
 }
 
+export type AgreementTemplate =
+  | 'partner'
+  | 'internship'
+  | 'countrySeller'
+  | 'countryAgent';
+
 export interface DocSettings {
   date: string;
   minimumServicePeriod: number;
   equityShare: number;
   noticePeriod: number;
-  refId?: string; // e.g. "JVX/AGREEMENT/2026/001"
+  refId?: string;
   refIdSerial?: string;
+  agreementTemplate?: AgreementTemplate;
+  // ── Internship-specific ──────────────────────────────────────────────────
+  internId?: string;        // e.g. "JVX-INT-26-001"
+  internIdSerial?: string;
+  internRefId?: string;     // e.g. "JVX-INT-REF-26-001"
+  internRefIdSerial?: string;
+  internshipDuration?: string; // e.g. "3 months"
+  isPaid?: boolean;
 }
 
 export interface EmployeeCard {
@@ -71,6 +85,7 @@ export interface AgreementSummary {
   agreementId: string;
   partnerId: string;
   docType: DocType;
+  agreementTemplate?: AgreementTemplate;
   status: AgreementStatus;
   founderSigned: boolean;
   partnerSigned: boolean;

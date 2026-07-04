@@ -3,10 +3,10 @@
 import React from "react";
 import { motion } from "motion/react";
 import { ArrowRight, LayoutDashboard, FileText, CreditCard } from "lucide-react";
-import { DocType } from "../types";
+import { AgreementTemplate } from "../types";
 
 interface DocTypeSelectorProps {
-  onSelect: (type: DocType) => void;
+  onSelect: (template: AgreementTemplate) => void;
   onOpenAdmin?: () => void;
 }
 
@@ -27,82 +27,134 @@ export default function DocTypeSelector({ onSelect, onOpenAdmin }: DocTypeSelect
             Step 2 of 2
           </span>
           <h1 className="text-2xl font-bold text-[#0F172A]">
-            Create New Partner Document
+            Select Agreement Template
           </h1>
           <p className="text-sm text-[#64748B]">
-            Generates the appointment letter and ID card together in one session.
+            Each template generates a tailored appointment letter. The ID card is included in every package.
           </p>
         </div>
 
-        {/* Single merged option card */}
-        <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-          onClick={() => onSelect("both")}
-          className="w-full text-left p-6 rounded-2xl border-2 border-[#2563EB] bg-[#EFF6FF] shadow-md shadow-[#2563EB]/10 cursor-pointer group transition-all hover:shadow-lg hover:shadow-[#2563EB]/15"
-        >
-          <div className="flex items-start gap-4">
-            {/* Dual icon stack */}
-            <div className="flex flex-col gap-1.5 shrink-0">
-              <div className="p-2.5 rounded-xl bg-[#2563EB]/15">
-                <FileText className="w-5 h-5 text-[#2563EB]" />
-              </div>
-              <div className="p-2.5 rounded-xl bg-[#7C3AED]/15">
-                <CreditCard className="w-5 h-5 text-[#7C3AED]" />
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-[#0F172A] text-base leading-snug">
-                Appointment Letter & ID Card
-              </h3>
-              <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">
-                Full partner onboarding package — legal appointment letter with NDA and equity clause, plus a dual-sided ID card with QR verification.
-              </p>
-
-              {/* Two tag rows */}
-              <div className="mt-3 space-y-2">
-                <div className="flex flex-wrap gap-1.5">
-                  {["PDF Export", "Email Delivery", "Multi-page", "Legal", "Digital Signature"].map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#2563EB]/10 text-[#2563EB]"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+        <div className="grid gap-4">
+          {/* Partner */}
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={() => onSelect("partner")}
+            className="w-full text-left p-6 rounded-2xl border-2 border-[#2563EB] bg-[#EFF6FF] shadow-md shadow-[#2563EB]/10 cursor-pointer group transition-all hover:shadow-lg hover:shadow-[#2563EB]/15"
+          >
+            <div className="flex items-start gap-4">
+              <div className="flex flex-col gap-1.5 shrink-0">
+                <div className="p-2.5 rounded-xl bg-[#2563EB]/15">
+                  <FileText className="w-5 h-5 text-[#2563EB]" />
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {["PNG Export", "Front + Back", "QR Verification", "NFC Layout", "HR"].map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#7C3AED]/10 text-[#7C3AED]"
-                    >
-                      {tag}
-                    </span>
+                <div className="p-2.5 rounded-xl bg-[#7C3AED]/15">
+                  <CreditCard className="w-5 h-5 text-[#7C3AED]" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-[#0F172A] text-base leading-snug">
+                  Partner Agreement & ID Card
+                </h3>
+                <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">
+                  Standard partner onboarding — appointment letter with equity, NDA, and ID card.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {["Equity Clause", "NDA", "PDF Export", "Digital Signature", "ID Card"].map((tag) => (
+                    <span key={tag} className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#2563EB]/10 text-[#2563EB]">{tag}</span>
                   ))}
                 </div>
               </div>
+              <ArrowRight className="w-5 h-5 shrink-0 mt-1 text-[#2563EB] group-hover:translate-x-0.5 transition-transform" />
             </div>
+          </motion.button>
 
-            <ArrowRight className="w-5 h-5 shrink-0 mt-1 text-[#2563EB] group-hover:translate-x-0.5 transition-transform" />
-          </div>
-        </motion.button>
+          {/* Internship */}
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={() => onSelect("internship")}
+            className="w-full text-left p-6 rounded-2xl border border-[#DBEAFE] bg-white shadow-sm cursor-pointer group transition-all hover:border-[#0EA5E9] hover:shadow-md hover:shadow-[#0EA5E9]/10"
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 rounded-xl bg-[#0EA5E9]/10 shrink-0">
+                <FileText className="w-5 h-5 text-[#0EA5E9]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-[#0F172A] text-base leading-snug">
+                  Internship Offer Letter
+                </h3>
+                <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">
+                  Internship appointment with learning objectives, duration, and ID card.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {["Internship Duration", "NDA", "PDF Export", "ID Card"].map((tag) => (
+                    <span key={tag} className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#0EA5E9]/10 text-[#0EA5E9]">{tag}</span>
+                  ))}
+                </div>
+              </div>
+              <ArrowRight className="w-5 h-5 shrink-0 mt-1 text-[#0EA5E9] group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </motion.button>
 
-        {/* Proceed button */}
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => onSelect("both")}
-          className="w-full py-4 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2.5 transition-all cursor-pointer bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-lg shadow-[#2563EB]/20 hover:shadow-[#2563EB]/35"
-        >
-          Proceed to Form
-          <ArrowRight className="w-4 h-4" />
-        </motion.button>
+          {/* Country Seller */}
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={() => onSelect("countrySeller")}
+            className="w-full text-left p-6 rounded-2xl border border-[#DBEAFE] bg-white shadow-sm cursor-pointer group transition-all hover:border-[#10B981] hover:shadow-md hover:shadow-[#10B981]/10"
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 rounded-xl bg-[#10B981]/10 shrink-0">
+                <FileText className="w-5 h-5 text-[#10B981]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-[#0F172A] text-base leading-snug">
+                  Country Seller Partnership
+                </h3>
+                <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">
+                  Local seller partner agreement with commission structure and ID card.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {["Commission Terms", "Territory", "NDA", "PDF Export", "ID Card"].map((tag) => (
+                    <span key={tag} className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#10B981]/10 text-[#10B981]">{tag}</span>
+                  ))}
+                </div>
+              </div>
+              <ArrowRight className="w-5 h-5 shrink-0 mt-1 text-[#10B981] group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </motion.button>
+
+          {/* Country Agent */}
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={() => onSelect("countryAgent")}
+            className="w-full text-left p-6 rounded-2xl border border-[#DBEAFE] bg-white shadow-sm cursor-pointer group transition-all hover:border-[#F59E0B] hover:shadow-md hover:shadow-[#F59E0B]/10"
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 rounded-xl bg-[#F59E0B]/10 shrink-0">
+                <FileText className="w-5 h-5 text-[#F59E0B]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-[#0F172A] text-base leading-snug">
+                  Country Agent Partnership
+                </h3>
+                <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">
+                  Agent partnership agreement with referral terms and ID card.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {["Referral Terms", "Territory", "NDA", "PDF Export", "ID Card"].map((tag) => (
+                    <span key={tag} className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#F59E0B]/10 text-[#F59E0B]">{tag}</span>
+                  ))}
+                </div>
+              </div>
+              <ArrowRight className="w-5 h-5 shrink-0 mt-1 text-[#F59E0B] group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </motion.button>
+        </div>
 
         <p className="text-center text-[11px] text-[#94A3B8]">
-          More document types coming soon — the system is modular and extensible.
+          All templates use the same document theme and PDF/email pipeline.
         </p>
 
         {onOpenAdmin && (

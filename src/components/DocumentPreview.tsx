@@ -3,7 +3,7 @@ import JevxoLogo from "./JevxoLogo";
 import XLogo from "../../assets/x-logo.jpg";
 import Image from "next/image";
 import QRCode from "react-qr-code";
-import { FirstParty, SecondParty, DocSettings } from "../types";
+import { FirstParty, SecondParty, DocSettings, AgreementTemplate } from "../types";
 import { A4_WIDTH, A4_HEIGHT } from "./A4DocumentScaler";
 import { buildVerifyUrl } from "../lib/verifyUrl";
 import { TOTAL_DOCUMENT_PAGES } from "../lib/documentConstants";
@@ -14,6 +14,7 @@ interface DocumentPreviewProps {
   settings: DocSettings;
   previewRefs?: React.RefObject<HTMLDivElement | null>[];
   isDemo?: boolean;
+  agreementTemplate?: AgreementTemplate;
 }
 
 const pageStyle: React.CSSProperties = {
@@ -110,6 +111,7 @@ export default function DocumentPreview({
   secondParty,
   settings,
   previewRefs = [],
+  agreementTemplate = "partner",
 }: DocumentPreviewProps) {
   const safeData = {
     documentId: settings.refId || "JVX-AGR-26-0001",
@@ -141,6 +143,215 @@ export default function DocumentPreview({
   };
 
   const verifyUrl = buildVerifyUrl(safeData.documentId);
+
+  // ── Template-specific document metadata ────────────────────────────────────
+  const templateMeta = {
+    partner: {
+      docTitle: "Letter of Appointment",
+      docSubtitle: "& Partnership Agreement",
+      secondPartyLabel: "Second Party (Partner)",
+      secondPartyLabelColor: "text-sky-600",
+      secondPartyAccent: "bg-sky-500",
+      appointmentBody: (
+        <>
+          Dear{" "}
+          <strong className="text-slate-900 text-[13.5px] font-semibold">{safeData.partnerName}</strong>, <br />
+          We are pleased to formally appoint you as a{" "}
+          <strong className="text-slate-900 font-semibold">{safeData.partnerPosition}</strong>{" "}
+          at{" "}
+          <strong className="text-slate-900 font-semibold">{safeData.companyName}</strong>{" "}
+          (ID: <strong className="text-slate-900 font-semibold">{safeData.partnerId}</strong>). <br />
+          Your appointment reflects our confidence in your technical abilities, professional integrity and potential contribution to the long-term growth of the company.
+        </>
+      ),
+      responsibilitiesBody: (
+        <p className="text-slate-600">
+          <strong className="text-slate-800 font-medium">{safeData.companyName}</strong>{" "}
+          operates under a partnership-based model. As a Partner, you are expected to demonstrate an{" "}
+          <strong>ownership mindset</strong>, take responsibility and contribute actively toward the{" "}
+          <strong>Company&apos;s growth</strong>, sustainability, and objectives while maintaining the highest standards of
+          <strong> professionalism</strong>, integrity, accountability and ethical conduct. <br />
+          The partner shall perform assigned duties and responsibilities diligently and in accordance with the Company&apos;s policies, operational requirements and strategic objectives.
+        </p>
+      ),
+      equityLabel: "Partnership Equity",
+      equityNote: "Agreed permanent equity share",
+      minServiceLabel: "Minimum Service Period",
+      minServiceBody: (
+        <>
+          To become eligible for partnership equity, you must successfully perform your responsibilities for a minimum period of{" "}
+          <strong className="text-indigo-900 font-bold">{safeData.minServicePeriod}</strong>.
+        </>
+      ),
+      equityBodyText: (
+        <p>
+          The allocation of the agreed{" "}
+          <strong className="text-indigo-600 font-bold">{safeData.equityShare}</strong>{" "}
+          equity share shall be executed through a separate legally binding agreement. This agreement will clearly define the ownership structure, rights, responsibilities, vesting conditions and all other relevant terms and conditions associated with the equity. Once granted, the equity share shall remain valid and effective subject to compliance with company policies, shareholder agreements and relevant legal terms.
+        </p>
+      ),
+      acceptanceText: (
+        <>
+          I,{" "}
+          <strong className="text-slate-800 font-bold">{safeData.partnerName}</strong>
+          , hereby acknowledge that I have read, understood, and agreed to all the terms and conditions set forth in this Appointment Letter and Partnership Policy of{" "}
+          <strong className="text-slate-800 font-bold">{safeData.companyName}</strong>
+          . I further undertake to comply with and uphold all obligations, responsibilities, and policies contained herein.
+        </>
+      ),
+    },
+    internship: {
+      docTitle: "Internship Offer Letter",
+      docSubtitle: "& Learning Agreement",
+      secondPartyLabel: "Second Party (Intern)",
+      secondPartyLabelColor: "text-sky-600",
+      secondPartyAccent: "bg-sky-500",
+      appointmentBody: (
+        <>
+          Dear{" "}
+          <strong className="text-slate-900 text-[13.5px] font-semibold">{safeData.partnerName}</strong>, <br />
+          We are pleased to offer you an internship position as{" "}
+          <strong className="text-slate-900 font-semibold">{safeData.partnerPosition}</strong>{" "}
+          at{" "}
+          <strong className="text-slate-900 font-semibold">{safeData.companyName}</strong>{" "}
+          (Intern ID: <strong className="text-slate-900 font-semibold">{safeData.partnerId}</strong>). <br />
+          This internship is designed to provide you with hands-on industry experience, mentorship, and the opportunity to contribute meaningfully to real-world projects. Your internship period will commence on {safeData.date} and shall run for a minimum of{" "}
+          <strong className="text-slate-900 font-semibold">{safeData.minServicePeriod}</strong>.
+        </>
+      ),
+      responsibilitiesBody: (
+        <p className="text-slate-600">
+          As an intern at <strong className="text-slate-800 font-medium">{safeData.companyName}</strong>, you are expected to actively participate in assigned projects, attend scheduled meetings, and deliver quality work within agreed timelines. You shall follow all company policies and guidelines, demonstrate a proactive learning attitude, and maintain professionalism at all times. <br />
+          The intern shall be supervised by a designated mentor and performance will be reviewed at the end of each month.
+        </p>
+      ),
+      equityLabel: "Internship Stipend",
+      equityNote: "Monthly stipend (if applicable)",
+      minServiceLabel: "Internship Duration",
+      minServiceBody: (
+        <>
+          This internship engagement is for a minimum period of{" "}
+          <strong className="text-indigo-900 font-bold">{safeData.minServicePeriod}</strong>, subject to satisfactory performance review.
+        </>
+      ),
+      equityBodyText: (
+        <p>
+          Upon successful completion of the internship, {safeData.companyName} may consider the intern for a full-time engagement based on performance and available openings. Any stipend, certificate of completion, or letter of recommendation shall be provided as mutually agreed. This internship does not constitute an employment contract.
+        </p>
+      ),
+      acceptanceText: (
+        <>
+          I,{" "}
+          <strong className="text-slate-800 font-bold">{safeData.partnerName}</strong>
+          , hereby acknowledge that I have read, understood, and agreed to all the terms and conditions set forth in this Internship Offer Letter issued by{" "}
+          <strong className="text-slate-800 font-bold">{safeData.companyName}</strong>
+          . I undertake to fulfil all responsibilities and abide by all guidelines outlined herein.
+        </>
+      ),
+    },
+    countrySeller: {
+      docTitle: "Country Seller Agreement",
+      docSubtitle: "& Partnership Deed",
+      secondPartyLabel: "Second Party (Country Seller)",
+      secondPartyLabelColor: "text-sky-600",
+      secondPartyAccent: "bg-sky-500",
+      appointmentBody: (
+        <>
+          Dear{" "}
+          <strong className="text-slate-900 text-[13.5px] font-semibold">{safeData.partnerName}</strong>, <br />
+          We are pleased to appoint you as an authorised{" "}
+          <strong className="text-slate-900 font-semibold">Country Seller Partner</strong>{" "}
+          for <strong className="text-slate-900 font-semibold">{safeData.companyName}</strong> products and services{" "}
+          (Seller ID: <strong className="text-slate-900 font-semibold">{safeData.partnerId}</strong>). <br />
+          You are authorised to market, promote, and sell {safeData.companyName}&apos;s subscription-based offerings within your designated territory, effective from {safeData.date}.
+        </>
+      ),
+      responsibilitiesBody: (
+        <p className="text-slate-600">
+          As an authorised Country Seller Partner, you are responsible for actively promoting and selling{" "}
+          <strong className="text-slate-800 font-medium">{safeData.companyName}</strong>&apos;s products within the designated territory. You shall maintain accurate sales records, onboard customers as per company guidelines, and uphold the brand standards of {safeData.companyName} at all times. <br />
+          All leads, customer data, and sales transactions must be reported through official company channels. The seller shall not engage in activities that conflict with or harm {safeData.companyName}&apos;s interests.
+        </p>
+      ),
+      equityLabel: "Commission Rate",
+      equityNote: "Agreed commission on sales",
+      minServiceLabel: "Minimum Active Period",
+      minServiceBody: (
+        <>
+          The seller partnership shall remain active for a minimum period of{" "}
+          <strong className="text-indigo-900 font-bold">{safeData.minServicePeriod}</strong>, after which performance will be reviewed for renewal or upgrade.
+        </>
+      ),
+      equityBodyText: (
+        <p>
+          The agreed commission of{" "}
+          <strong className="text-indigo-600 font-bold">{safeData.equityShare}</strong>{" "}
+          on verified sales will be disbursed on a monthly basis via the agreed payment method. Commission is payable only on fully completed and verified transactions. Any disputed or refunded transactions shall be deducted from the applicable commission cycle. Detailed commission structure and payment terms will be defined in the supplementary schedule.
+        </p>
+      ),
+      acceptanceText: (
+        <>
+          I,{" "}
+          <strong className="text-slate-800 font-bold">{safeData.partnerName}</strong>
+          , hereby acknowledge that I have read, understood, and agreed to all terms and conditions set forth in this Country Seller Partnership Agreement with{" "}
+          <strong className="text-slate-800 font-bold">{safeData.companyName}</strong>
+          . I confirm my intent to represent the company&apos;s products honestly and professionally within the designated territory.
+        </>
+      ),
+    },
+    countryAgent: {
+      docTitle: "Country Agent Agreement",
+      docSubtitle: "& Representation Deed",
+      secondPartyLabel: "Second Party (Country Agent)",
+      secondPartyLabelColor: "text-sky-600",
+      secondPartyAccent: "bg-sky-500",
+      appointmentBody: (
+        <>
+          Dear{" "}
+          <strong className="text-slate-900 text-[13.5px] font-semibold">{safeData.partnerName}</strong>, <br />
+          We are pleased to appoint you as an authorised{" "}
+          <strong className="text-slate-900 font-semibold">Country Agent</strong>{" "}
+          representing <strong className="text-slate-900 font-semibold">{safeData.companyName}</strong> in your region{" "}
+          (Agent ID: <strong className="text-slate-900 font-semibold">{safeData.partnerId}</strong>). <br />
+          You are authorised to act as the official representative of {safeData.companyName}, referring and facilitating business relationships, onboarding partners, and promoting the company brand from {safeData.date}.
+        </>
+      ),
+      responsibilitiesBody: (
+        <p className="text-slate-600">
+          As an authorised Country Agent, you are responsible for identifying and referring qualified business leads and potential partners to{" "}
+          <strong className="text-slate-800 font-medium">{safeData.companyName}</strong>. You shall represent the company in a professional manner, accurately communicate the company&apos;s value proposition, and assist in onboarding processes as directed. <br />
+          The agent shall not bind the company to any contractual obligations without prior written authorisation. All referrals must be submitted through official company channels and are subject to verification.
+        </p>
+      ),
+      equityLabel: "Referral Commission",
+      equityNote: "Agreed referral rate per deal",
+      minServiceLabel: "Minimum Agency Period",
+      minServiceBody: (
+        <>
+          This agency arrangement shall be maintained for a minimum period of{" "}
+          <strong className="text-indigo-900 font-bold">{safeData.minServicePeriod}</strong>, subject to satisfactory performance and compliance with company policies.
+        </>
+      ),
+      equityBodyText: (
+        <p>
+          A referral commission of{" "}
+          <strong className="text-indigo-600 font-bold">{safeData.equityShare}</strong>{" "}
+          shall be payable for each successfully closed deal that originates from a verified referral by the agent. Commission will be processed within 30 days of deal confirmation. The agent acknowledges that commission is contingent on successful deal closure and full payment receipt by {safeData.companyName}. Detailed referral terms are defined in the supplementary schedule attached to this agreement.
+        </p>
+      ),
+      acceptanceText: (
+        <>
+          I,{" "}
+          <strong className="text-slate-800 font-bold">{safeData.partnerName}</strong>
+          , hereby acknowledge that I have read, understood, and agreed to all terms and conditions set forth in this Country Agent Agreement with{" "}
+          <strong className="text-slate-800 font-bold">{safeData.companyName}</strong>
+          . I confirm my commitment to represent the company professionally and in accordance with all guidelines herein.
+        </>
+      ),
+    },
+  } as const;
+
+  const tpl = templateMeta[agreementTemplate] ?? templateMeta.partner;
 
   return (
     <div
@@ -183,12 +394,12 @@ export default function DocumentPreview({
 
           <div id="doc-title-container" className="text-center">
             <h1 className="font-sans font-black text-[26px] tracking-wide text-slate-900 uppercase">
-              Letter of Appointment
+              {tpl.docTitle}
             </h1>
             <div className="flex items-center justify-center gap-2 mt-0.5">
               <div className="h-[1.5px] w-8 bg-slate-300" />
               <h2 className="font-sans text-[14px] font-bold tracking-[0.25em] text-indigo-600 uppercase">
-                &amp; Partnership Agreement
+                {tpl.docSubtitle}
               </h2>
               <div className="h-[1.5px] w-8 bg-slate-300" />
             </div>
@@ -269,8 +480,8 @@ export default function DocumentPreview({
               className="bg-slate-50/50 border border-slate-100 rounded-lg p-3 shadow-sm relative"
             >
               <div className="absolute top-0 left-0 w-12 h-[3px] bg-sky-500" />
-              <span className="text-[11px] uppercase tracking-wider font-extrabold text-sky-600 font-mono block mb-1">
-                Second Party (Partner)
+              <span className={`text-[11px] uppercase tracking-wider font-extrabold font-mono block mb-1 ${tpl.secondPartyLabelColor}`}>
+                {tpl.secondPartyLabel}
               </span>
               <h3 className="font-sans font-extrabold text-slate-900 text-[15px] mb-1.5 border-b border-slate-200/60 pb-0.5">
                 {safeData.partnerName}
@@ -332,25 +543,7 @@ export default function DocumentPreview({
               </h4>
               <div className="text-[13px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-3 rounded-md shadow-sm">
                 <p className="mb-1">
-                  Dear{" "}
-                  <strong className="text-slate-900 text-[13.5px] font-semibold">
-                    {safeData.partnerName}
-                  </strong>
-                  , <br /> We are pleased to formally appoint you as a{" "}
-                  <strong className="text-slate-900 font-semibold">
-                    {safeData.partnerPosition}
-                  </strong>{" "}
-                  at{" "}
-                  <strong className="text-slate-900 font-semibold">
-                    {safeData.companyName}
-                  </strong>{" "}
-                  (ID:{" "}
-                  <strong className="text-slate-900 font-semibold">
-                    {safeData.partnerId}
-                  </strong>
-                  ). <br /> Your appointment reflects our confidence in your
-                  technical abilities, professional integrity and potential
-                  contribution to the long-term growth of the company.
+                  {tpl.appointmentBody}
                 </p>
               </div>
             </section>
@@ -363,22 +556,7 @@ export default function DocumentPreview({
                 Professional Responsibilities
               </h4>
               <div className="text-[13px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-3 rounded-md shadow-sm">
-                <p className="text-slate-600">
-                  <strong className="text-slate-800 font-medium">
-                    {safeData.companyName}
-                  </strong>{" "}
-                  operates under a partnership-based model. As a Partner, you
-                  are expected to demonstrate an{" "}
-                  <strong>ownership mindset</strong>, take responsibility and
-                  contribute actively toward the{" "}
-                  <strong>Company&apos;s growth</strong>, sustainability, and
-                  objectives while maintaining the highest standards of
-                  <strong> professionalism</strong>, integrity, accountability
-                  and ethical conduct. <br />
-                  The partner shall perform assigned duties and responsibilities
-                  diligently and in accordance with the Company's policies,
-                  operational requirements and strategic objectives.
-                </p>
+                {tpl.responsibilitiesBody}
               </div>
             </section>
 
@@ -392,45 +570,26 @@ export default function DocumentPreview({
               <div className="grid grid-cols-3 gap-3 font-sans text-[12px] mb-2">
                 <div className="bg-emerald-50/30 border border-emerald-100/60 shadow-sm rounded-md p-2.5 flex flex-col justify-center">
                   <span className="text-[11px] uppercase font-bold text-emerald-800 block mb-0.5">
-                    Partnership Equity
+                    {tpl.equityLabel}
                   </span>
                   <span className="text-xl font-black text-emerald-700 tracking-tight block">
                     {safeData.equityShare}
                   </span>
                   <p className="text-[10px] text-slate-500 leading-tight mt-0.5">
-                    Agreed permanent equity share
+                    {tpl.equityNote}
                   </p>
                 </div>
                 <div className="bg-indigo-50/30 border shadow-sm border-indigo-100/60 rounded-md p-2.5 col-span-2 flex flex-col justify-center">
                   <span className="text-[11px] uppercase font-bold text-indigo-800 block mb-0.5">
-                    Minimum Service Period
+                    {tpl.minServiceLabel}
                   </span>
                   <p className="text-slate-700 leading-snug">
-                    To become eligible for partnership equity, you must
-                    successfully perform your responsibilities for a minimum
-                    period of{" "}
-                    <strong className="text-indigo-900 font-bold">
-                      {safeData.minServicePeriod}
-                    </strong>
-                    .
+                    {tpl.minServiceBody}
                   </p>
                 </div>
               </div>
               <div className="text-[13px] text-slate-600 leading-relaxed text-justify bg-white/50 border border-slate-100 p-3 rounded-md shadow-sm">
-                <p>
-                  The allocation of the agreed{" "}
-                  <strong className="text-indigo-600 font-bold">
-                    {safeData.equityShare}
-                  </strong>{" "}
-                  equity share shall be executed through a separate legally
-                  binding agreement. This agreement will clearly define the
-                  ownership structure, rights, responsibilities, vesting
-                  conditions and all other relevant terms and conditions
-                  associated with the equity. Once granted, the equity share
-                  shall remain valid and effective subject to compliance with
-                  company policies, shareholder agreements and relevant legal
-                  terms.
-                </p>
+                {tpl.equityBodyText}
               </div>
             </section>
           </div>
@@ -567,18 +726,7 @@ export default function DocumentPreview({
                 Acceptance &amp; Executory Signatures
               </h4>
               <p className="text-[13px] text-slate-600 leading-relaxed font-sans bg-white/50 p-3 rounded-md border border-slate-100 shadow-sm text-justify">
-                I,{" "}
-                <strong className="text-slate-800 font-bold">
-                  {safeData.partnerName}
-                </strong>
-                , hereby acknowledge that I have read, understood, and agreed to
-                all the terms and conditions set forth in this Appointment
-                Letter and Partnership Policy of{" "}
-                <strong className="text-slate-800 font-bold">
-                  {safeData.companyName}
-                </strong>
-                . I further undertake to comply with and uphold all obligations,
-                responsibilities, and policies contained herein.
+                {tpl.acceptanceText}
               </p>
 
               <div className="grid grid-cols-2 gap-12 pt-6 font-sans text-[13px]">

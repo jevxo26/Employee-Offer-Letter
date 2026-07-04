@@ -7,7 +7,7 @@ import { Upload } from "lucide-react";
 import CandidateSidebar from "./CandidateSidebar";
 import WorkspaceCanvas from "./WorkspaceCanvas";
 import { IdCardFront, IdCardBack } from "./EmployeeIdCard";
-import { FirstParty, SecondParty, DocSettings, EmployeeCard } from "../types";
+import { FirstParty, SecondParty, DocSettings, AgreementTemplate, EmployeeCard } from "../types";
 
 interface CandidatePortalProps {
   firstParty: FirstParty;
@@ -19,6 +19,7 @@ interface CandidatePortalProps {
   onExport: () => void;
   offerId: string;
   previewRefs: React.RefObject<HTMLDivElement | null>[];
+  agreementTemplate?: AgreementTemplate;
   onIdCardRefsReady?: (
     frontRef: React.RefObject<HTMLDivElement | null>,
     backRef: React.RefObject<HTMLDivElement | null>,
@@ -35,6 +36,7 @@ export default function CandidatePortal({
   onExport,
   offerId,
   previewRefs,
+  agreementTemplate,
   onIdCardRefsReady,
 }: CandidatePortalProps) {
   const [activeTab, setActiveTab] = useState<"letter" | "idcard">("letter");
@@ -122,8 +124,11 @@ export default function CandidatePortal({
     expiryDate: "",
   };
 
+  const isInternship = agreementTemplate === "internship";
+
   const handleConfirmSign = () => {
-    if (!candidatePhotoUrl) {
+    // Internship offer letters don't require a photo
+    if (!isInternship && !candidatePhotoUrl) {
       toast.error(
         "Please upload your photo in the ID Card tab before signing.",
         { autoClose: 5000 },
@@ -131,7 +136,7 @@ export default function CandidatePortal({
       setActiveTab("idcard");
       return;
     }
-    if (isSavingPhotoAssets) {
+    if (!isInternship && isSavingPhotoAssets) {
       toast.info(
         "Your ID card photo is still being prepared. Please wait a moment and try again.",
       );
@@ -197,33 +202,35 @@ export default function CandidatePortal({
       transition={{ duration: 0.3 }}
       className="flex-1 flex flex-col w-full relative h-screen"
     >
-      {/* ── Hidden card render layer ─────────────────────────────────────────────
-          Rendered at opacity:0 at position fixed top-0 left-0 so html2canvas sees
-          a fully rendered element. Using opacity instead of visibility/display/
-          off-screen because html2canvas only renders elements inside the viewport. */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          opacity: 0,
-          pointerEvents: "none",
-          zIndex: 0,
-          display: "flex",
-          gap: "40px",
-        }}
-      >
-        <IdCardFront data={cardData} cardRef={cardFrontRef} />
-        <IdCardBack data={cardData} cardRef={cardBackRef} />
-      </div>
+      {/* ── Hidden card render layer — only needed for non-internship templates ── */}
+      {!isInternship && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            opacity: 0,
+            pointerEvents: "none",
+            zIndex: 0,
+            display: "flex",
+            gap: "40px",
+          }}
+        >
+          <IdCardFront data={cardData} cardRef={cardFrontRef} />
+          <IdCardBack data={cardData} cardRef={cardBackRef} />
+        </div>
+      )}
 
-      {/* ── Tab bar ── */}
+      {/* ── Tab bar — ID card tab hidden for internship ── */}
       <div className="sticky top-15 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-6 shrink-0">
-        {[
-          { id: "letter" as const, label: "📄 Appointment Letter" },
-          { id: "idcard" as const, label: "🪪 Your ID Card" },
-        ].map(({ id, label }) => (
+        {(isInternship
+          ? [{ id: "letter" as const, label: "📄 Internship Offer Letter" }]
+          : [
+              { id: "letter" as const, label: "📄 Appointment Letter" },
+              { id: "idcard" as const, label: "🪪 Your ID Card" },
+            ]
+        ).map(({ id, label }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
@@ -254,8 +261,8 @@ export default function CandidatePortal({
                 isCompleted={isCompleted}
                 onExport={handleConfirmSign}
                 offerId={offerId}
-                isPhotoUploaded={!!candidatePhotoUrl}
-                onSwitchToIdCard={() => setActiveTab("idcard")}
+                isPhotoUploaded={isInternship ? true : !!candidatePhotoUrl}
+                onSwitchToIdCard={isInternship ? undefined : () => setActiveTab("idcard")}
               />
             </div>
             <WorkspaceCanvas
@@ -266,6 +273,7 @@ export default function CandidatePortal({
               isExporting={isExporting}
               onExport={handleConfirmSign}
               isDemo={false}
+              agreementTemplate={agreementTemplate}
             />
           </div>
         ) : (

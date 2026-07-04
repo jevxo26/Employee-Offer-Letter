@@ -11,6 +11,7 @@ import {
   SecondParty,
   DocSettings,
   DocType,
+  AgreementTemplate,
   EmployeeCard,
 } from "../types";
 
@@ -31,6 +32,7 @@ interface CeoWorkspaceProps {
   onSendOffer: (options?: { cardPDFdata?: string }) => Promise<void> | void;
   previewRefs: React.RefObject<HTMLDivElement | null>[];
   docType: DocType;
+  agreementTemplate?: AgreementTemplate;
   employeeCard: EmployeeCard;
   setEmployeeCard: React.Dispatch<React.SetStateAction<EmployeeCard>>;
 }
@@ -52,6 +54,7 @@ export default function CeoWorkspace({
   onSendOffer,
   previewRefs,
   docType,
+  agreementTemplate,
   employeeCard,
   setEmployeeCard,
 }: CeoWorkspaceProps) {
@@ -178,6 +181,7 @@ export default function CeoWorkspace({
                 isExporting={isExporting}
                 onExport={onExport}
                 isDemo={isDemo}
+                agreementTemplate={agreementTemplate}
               />
             </>
           ) : (
@@ -238,6 +242,7 @@ export default function CeoWorkspace({
         isExporting={isExporting}
         onExport={onExport}
         isDemo={isDemo}
+        agreementTemplate={agreementTemplate}
       />
     </motion.section>
   );

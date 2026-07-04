@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { generateAgreementIds, listAgreements } from "../../../lib/agreementStore";
+import { generateAgreementIds, generateInternIds, listAgreements } from "../../../lib/agreementStore";
 
 export async function GET(request: Request) {
   try {
@@ -9,6 +9,11 @@ export async function GET(request: Request) {
     if (action === "next") {
       const { agreementId, partnerId, storage } = await generateAgreementIds();
       return NextResponse.json({ agreementId, partnerId, storage });
+    }
+
+    if (action === "nextIntern") {
+      const { internId, internRefId, storage } = await generateInternIds();
+      return NextResponse.json({ internId, internRefId, storage });
     }
 
     if (action === "check") {

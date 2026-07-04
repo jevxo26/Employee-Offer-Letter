@@ -28,6 +28,8 @@ export async function GET(
       agreementId: agreement.agreementId,
       partnerId: agreement.partnerId,
       docType: agreement.docType || "appointment",
+      agreementTemplate:
+        agreement.docSettings?.agreementTemplate || "partner",
       companyName: agreement.firstParty?.companyName || "",
       partnerName: agreement.secondParty?.fullName || "",
       position: agreement.secondParty?.position || "",
