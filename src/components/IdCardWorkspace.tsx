@@ -308,6 +308,8 @@ interface IdCardWorkspaceProps {
   onRequestPdfBase64?: (getter: () => Promise<string>) => void;
   /** When true, hides the photo upload section (used in founder workspace — candidate uploads their own photo) */
   hidePhotoUpload?: boolean;
+  /** Override the "ID No" label on the card front — e.g. "Internee ID" */
+  idLabel?: string;
 }
 
 export default function IdCardWorkspace({
@@ -316,6 +318,7 @@ export default function IdCardWorkspace({
   onPhotoChange,
   onRequestPdfBase64,
   hidePhotoUpload = false,
+  idLabel,
 }: IdCardWorkspaceProps) {
   const isControlled = controlledPhotoUrl !== undefined;
   const defaultIssueDate = React.useMemo(
@@ -512,12 +515,12 @@ export default function IdCardWorkspace({
               ID Card Preview
             </span>
             <h2 className="text-lg sm:text-xl font-bold text-[#0F172A]">
-              Partner ID Card
+              {idLabel === "Internee ID" ? "Internee ID Card" : "Partner ID Card"}
             </h2>
             <p className="text-[#64748B] text-xs">
               {hidePhotoUpload
-                ? "Card details are pulled from the appointment form. The candidate uploads their own photo in the candidate portal."
-                : "Card details are pulled from the appointment form. Upload the partner photo below."}
+                ? `Card details are pulled from the appointment form. The ${idLabel === "Internee ID" ? "intern" : "candidate"} uploads their own photo in the candidate portal.`
+                : "Card details are pulled from the appointment form. Upload the employee photo below."}
             </p>
           </div>
 
@@ -526,7 +529,7 @@ export default function IdCardWorkspace({
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-bold text-[#334155] uppercase tracking-wider flex items-center gap-1.5">
                 <ImageIcon className="w-3 h-3 text-[#2563EB]" />
-                Partner Photo{" "}
+                {idLabel === "Internee ID" ? "Intern Photo" : "Partner Photo"}{" "}
                 <span className="text-rose-500 font-extrabold">* Required</span>
               </label>
               <label className="flex flex-col items-center justify-center gap-2 h-28 border-2 border-dashed border-[#DBEAFE] hover:border-[#2563EB] rounded-xl cursor-pointer bg-white transition-all group">
@@ -587,7 +590,7 @@ export default function IdCardWorkspace({
               placeholder="From appointment form"
             />
             <ReadOnlyField
-              label="Partner ID"
+              label={idLabel === "Internee ID" ? "Internee ID" : "Partner ID"}
               icon={Hash}
               value={card.employeeId}
               placeholder="From appointment form"
@@ -658,7 +661,7 @@ export default function IdCardWorkspace({
               left: 0,
             }}
           >
-            <EmployeeIdCard data={card} frontRef={frontRef} backRef={backRef} />
+            <EmployeeIdCard data={card} frontRef={frontRef} backRef={backRef} idLabel={idLabel} />
           </div>
         </div>
       </div>

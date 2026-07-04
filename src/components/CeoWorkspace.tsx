@@ -125,7 +125,7 @@ export default function CeoWorkspace({
             gap: "40px",
           }}
         >
-          <IdCardFront data={founderCardData} cardRef={hiddenCardFrontRef} />
+          <IdCardFront data={founderCardData} cardRef={hiddenCardFrontRef} idLabel={agreementTemplate === "internship" ? "Internee ID" : undefined} />
           <IdCardBack data={founderCardData} cardRef={hiddenCardBackRef} />
         </div>
 
@@ -133,7 +133,7 @@ export default function CeoWorkspace({
         <div className="sticky top-15 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-6">
           {[
             { id: "settings", label: "📄 Appointment Docs" },
-            { id: "idCard", label: "🪪 Partner ID Card" },
+            { id: "idCard", label: agreementTemplate === "internship" ? "🪪 Internee ID Card" : "🪪 Partner ID Card" },
           ].map(({ id, label }) => (
             <button
               key={id}
@@ -170,6 +170,7 @@ export default function CeoWorkspace({
                     isOfferSent={isOfferSent}
                     isOpeningModal={isOpeningModal}
                     onSendOffer={handleSendOffer}
+                    agreementTemplate={agreementTemplate}
                   />
                 </div>
               </div>
@@ -199,6 +200,7 @@ export default function CeoWorkspace({
                 setEmployeeCard((p) => ({ ...p, photoUrl: dataUrl }))
               }
               hidePhotoUpload
+              idLabel={agreementTemplate === "internship" ? "Internee ID" : undefined}
             />
           )}
         </div>
@@ -232,6 +234,7 @@ export default function CeoWorkspace({
           isOfferSent={isOfferSent}
           isOpeningModal={isOpeningModal}
           onSendOffer={onSendOffer}
+          agreementTemplate={agreementTemplate}
         />
       </div>
       <WorkspaceCanvas

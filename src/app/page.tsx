@@ -180,7 +180,7 @@ export default function Home() {
   const candidateCardBackRef =
     useRef<React.RefObject<HTMLDivElement | null> | null>(null);
 
-  // Initial fetching of ID
+  // Initial fetching of IDs — partner agreement IDs loaded once on mount
   useEffect(() => {
     async function fetchNextIds() {
       try {
@@ -204,6 +204,37 @@ export default function Home() {
     }
     fetchNextIds();
   }, []);
+
+  // Pre-load intern IDs whenever the template switches to internship
+  useEffect(() => {
+    if (agreementTemplate !== "internship") return;
+    async function fetchNextInternIds() {
+      try {
+        const res = await fetch("/api/check-id?action=nextIntern");
+        if (res.ok) {
+          const data = await res.json();
+          const internSerial = data.internId?.split("-").pop() || "001";
+          const refSerial    = data.internRefId?.split("-").pop() || "001";
+          setDocSettings((p) => ({
+            ...p,
+            internId:           data.internId,
+            internIdSerial:     internSerial,
+            internRefId:        data.internRefId,
+            internRefIdSerial:  refSerial,
+          }));
+          setSecondParty((p) => ({
+            ...p,
+            partnerId:       data.internId,
+            partnerIdSerial: internSerial,
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch next intern IDs", err);
+      }
+    }
+    fetchNextInternIds();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agreementTemplate]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -266,8 +297,8 @@ export default function Home() {
   // ── When docType selector chooses a type ────────────────────────────────────
   const handleTemplateSelect = (template: AgreementTemplate) => {
     setAgreementTemplate(template);
-    // Internship never has an ID card — all other templates keep the "both" mode
-    setDocType(template === "internship" ? "appointment" : "both");
+    // All templates use "both" — internship now includes an ID card too
+    setDocType("both");
     setDocSettings((prev) => ({ ...prev, agreementTemplate: template }));
     setIsOfferSent(false);
     setActiveStep(1);
@@ -281,6 +312,9 @@ export default function Home() {
       fullName: secondParty.fullName,
       position: secondParty.position,
       bloodGroup: secondParty.bloodGroup || "Select",
+      ...(agreementTemplate === "internship" && docSettings.internExpiryDate
+        ? { expiryDate: docSettings.internExpiryDate }
+        : {}),
     }));
   };
 

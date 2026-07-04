@@ -146,9 +146,9 @@ export function InternStep2({ docSettings, setDocSettings, secondParty, setSecon
     [currentYearStr],
   );
 
-  // Auto-load next intern IDs on mount
+  // Always fetch fresh next intern IDs on mount — never skip even if pre-filled,
+  // because page.tsx might have pre-filled a stale ID from a previous session.
   React.useEffect(() => {
-    if (docSettings.internIdSerial && docSettings.internRefIdSerial) return;
     let cancelled = false;
     fetch("/api/check-id?action=nextIntern")
       .then((r) => r.json())
@@ -237,16 +237,59 @@ export function InternStep2({ docSettings, setDocSettings, secondParty, setSecon
           </Field>
         </div>
 
-        {/* Duration */}
-        <Field label="Internship Duration *">
-          <IconInput
-            icon={Calendar}
-            type="text"
-            placeholder="e.g. 3 months"
-            value={docSettings.internshipDuration || ""}
-            onChange={(e) => setDocSettings((p) => ({ ...p, internshipDuration: e.target.value }))}
-          />
-        </Field>
+        {/* Duration — slider, auto-calculates ID card expiry date */}
+        <div className="col-span-1 md:col-span-2 p-4 bg-[#F8FAFC] border border-[#DBEAFE] rounded-2xl flex flex-col gap-2">
+          <div className="flex justify-between items-center">
+            <label className="text-[11px] font-bold text-[#334155] uppercase tracking-wider">
+              Internship Duration
+            </label>
+            <span className="text-sm text-[#2563EB] font-extrabold bg-[#EFF6FF] px-2 py-0.5 border border-[#DBEAFE] rounded-md">
+              {Number(docSettings.internshipDuration) || 1} Months
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="range"
+              min={1}
+              max={12}
+              value={Number(docSettings.internshipDuration) || 1}
+              onChange={(e) => {
+                const months = parseInt(e.target.value, 10);
+                const expiry = new Date();
+                expiry.setMonth(expiry.getMonth() + months);
+                const expiryStr = expiry.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+                setDocSettings((p) => ({
+                  ...p,
+                  internshipDuration: String(months),
+                  internExpiryDate: expiryStr,
+                }));
+              }}
+              className="flex-1 accent-[#2563EB] cursor-pointer"
+            />
+            <input
+              type="number"
+              min={1}
+              max={12}
+              value={Number(docSettings.internshipDuration) || 1}
+              onChange={(e) => {
+                const months = Math.min(12, Math.max(1, parseInt(e.target.value) || 1));
+                const expiry = new Date();
+                expiry.setMonth(expiry.getMonth() + months);
+                const expiryStr = expiry.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+                setDocSettings((p) => ({
+                  ...p,
+                  internshipDuration: String(months),
+                  internExpiryDate: expiryStr,
+                }));
+              }}
+              className="w-[60px] text-center bg-white border border-[#DBEAFE] rounded-xl py-1.5 text-[#0F172A] text-xs font-bold focus:outline-none focus:border-[#2563EB]"
+            />
+          </div>
+          <p className="text-[10px] text-[#64748B] italic">
+            ID card expiry auto-set to:{" "}
+            <strong className="text-[#2563EB]">{docSettings.internExpiryDate || "—"}</strong>
+          </p>
+        </div>
 
         {/* Paid / Unpaid */}
         <Field label="Compensation Type *">

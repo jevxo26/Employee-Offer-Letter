@@ -217,7 +217,7 @@ export default function CandidatePortal({
             gap: "40px",
           }}
         >
-          <IdCardFront data={cardData} cardRef={cardFrontRef} />
+          <IdCardFront data={cardData} cardRef={cardFrontRef} idLabel={isInternship ? "Internee ID" : undefined} />
           <IdCardBack data={cardData} cardRef={cardBackRef} />
         </div>
       )}
@@ -345,7 +345,7 @@ export default function CandidatePortal({
                     Front Side
                   </span>
                   {/* Display-only card — uses a separate ref just for visual preview */}
-                  <IdCardFront data={cardData} cardRef={React.createRef()} />
+                  <IdCardFront data={cardData} cardRef={React.createRef()} idLabel={isInternship ? "Internee ID" : undefined} />
                 </div>
                 <div className="flex flex-col items-center gap-2">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">

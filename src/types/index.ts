@@ -53,6 +53,7 @@ export interface DocSettings {
   internRefIdSerial?: string;
   internshipDuration?: string; // e.g. "3 months"
   isPaid?: boolean;
+  internExpiryDate?: string;  // expiry date shown on the internee ID card
 }
 
 export interface EmployeeCard {

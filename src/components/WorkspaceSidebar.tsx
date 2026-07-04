@@ -8,8 +8,9 @@ import {
   Download,
   RefreshCw,
   Mail,
+  Calendar,
 } from "lucide-react";
-import { FirstParty, SecondParty, DocSettings } from "../types";
+import { FirstParty, SecondParty, DocSettings, AgreementTemplate } from "../types";
 
 // ─── Small reusable input primitives ─────────────────────────────────────────
 interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -110,6 +111,105 @@ function SliderField({
         />
       </div>
       {hint && <p className="text-[10px] text-[#64748B] italic">{hint}</p>}
+    </div>
+  );
+}
+
+// ─── Internship settings tab ─────────────────────────────────────────────────
+interface InternshipSettingsTabProps {
+  docSettings: DocSettings;
+  setDocSettings: React.Dispatch<React.SetStateAction<DocSettings>>;
+}
+
+function InternshipSettingsTab({ docSettings, setDocSettings }: InternshipSettingsTabProps) {
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-1.5">
+        <label className="text-[11px] font-bold text-[#334155] uppercase tracking-wider">Offer Date</label>
+        <input
+          type="text"
+          placeholder="e.g. July 4, 2026"
+          value={docSettings.date}
+          onChange={(e) => setDocSettings((p) => ({ ...p, date: e.target.value }))}
+          className="w-full bg-[#F1F5F9] border border-[#DBEAFE] focus:border-[#2563EB] rounded-xl py-2.5 px-3 text-xs md:text-sm text-[#0F172A] focus:outline-none transition"
+        />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <div className="flex justify-between items-center">
+          <label className="text-[11px] font-bold text-[#334155] uppercase tracking-wider">Internship Duration</label>
+          <span className="text-xs text-[#2563EB] font-extrabold">{Number(docSettings.internshipDuration) || 1} Months</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <input
+            type="range"
+            min={1}
+            max={12}
+            value={Number(docSettings.internshipDuration) || 1}
+            onChange={(e) => {
+              const months = parseInt(e.target.value, 10);
+              const expiry = new Date();
+              expiry.setMonth(expiry.getMonth() + months);
+              const expiryStr = expiry.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+              setDocSettings((p) => ({ ...p, internshipDuration: String(months), internExpiryDate: expiryStr }));
+            }}
+            className="flex-1 accent-[#2563EB] cursor-pointer"
+          />
+          <input
+            type="number"
+            min={1}
+            max={12}
+            value={Number(docSettings.internshipDuration) || 1}
+            onChange={(e) => {
+              const months = Math.min(12, Math.max(1, parseInt(e.target.value) || 1));
+              const expiry = new Date();
+              expiry.setMonth(expiry.getMonth() + months);
+              const expiryStr = expiry.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+              setDocSettings((p) => ({ ...p, internshipDuration: String(months), internExpiryDate: expiryStr }));
+            }}
+            className="w-[60px] text-center bg-[#F1F5F9] border border-[#DBEAFE] rounded-lg py-1 text-[#0F172A] text-xs font-bold"
+          />
+        </div>
+        <p className="text-[10px] text-[#64748B] italic">
+          ID card expiry: <strong className="text-[#2563EB]">{docSettings.internExpiryDate || "—"}</strong>
+        </p>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-[11px] font-bold text-[#334155] uppercase tracking-wider">Compensation Type</label>
+        <div className="grid grid-cols-2 gap-2">
+          {[true, false].map((paid) => (
+            <button
+              key={String(paid)}
+              type="button"
+              onClick={() => setDocSettings((p) => ({ ...p, isPaid: paid }))}
+              className={`py-2.5 text-xs font-bold rounded-xl border transition cursor-pointer ${
+                docSettings.isPaid === paid
+                  ? "bg-[#2563EB]/10 border-[#2563EB] text-[#2563EB]"
+                  : "bg-white border-[#DBEAFE] text-[#334155] hover:border-[#2563EB]"
+              }`}
+            >
+              {paid ? "Paid" : "Unpaid"}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-semibold text-[#334155] uppercase tracking-wide">Intern ID</label>
+        <input
+          type="text"
+          value={docSettings.internId || ""}
+          readOnly
+          className="w-full bg-[#F1F5F9] border border-[#DBEAFE] rounded-lg py-2 px-3 text-xs text-[#0F172A] font-mono font-bold"
+        />
+      </div>
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-semibold text-[#334155] uppercase tracking-wide">Reference ID</label>
+        <input
+          type="text"
+          value={docSettings.internRefId || ""}
+          readOnly
+          className="w-full bg-[#F1F5F9] border border-[#DBEAFE] rounded-lg py-2 px-3 text-xs text-[#0F172A] font-mono font-bold"
+        />
+      </div>
     </div>
   );
 }
@@ -312,10 +412,16 @@ function FirstPartyTab({ firstParty, setFirstParty }: FirstPartyTabProps) {
 }
 
 // ─── Main sidebar ─────────────────────────────────────────────────────────────
-const TABS = [
+const PARTNER_TABS = [
   { id: "settings", label: "Agreement Cl.", icon: Settings },
   { id: "secondParty", label: "2nd Party (You)", icon: User },
   { id: "firstParty", label: "1st Party (Jevxo)", icon: BookOpen },
+];
+
+const INTERN_TABS = [
+  { id: "settings", label: "Offer Terms", icon: Settings },
+  { id: "secondParty", label: "Intern Details", icon: User },
+  { id: "firstParty", label: "Company Info", icon: BookOpen },
 ];
 
 interface WorkspaceSidebarProps {
@@ -333,6 +439,7 @@ interface WorkspaceSidebarProps {
   isOfferSent: boolean;
   onSendOffer: () => void;
   isOpeningModal?: boolean;
+  agreementTemplate?: AgreementTemplate;
 }
 
 export default function WorkspaceSidebar({
@@ -350,27 +457,30 @@ export default function WorkspaceSidebar({
   isOfferSent,
   onSendOffer,
   isOpeningModal = false,
+  agreementTemplate,
 }: WorkspaceSidebarProps) {
+  const isInternship = agreementTemplate === "internship";
   return (
     <div className="w-full xl:w-[500px] bg-[#F8FAFC] border-r border-[#DBEAFE] flex flex-col h-full overflow-hidden shrink-0">
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Header */}
         <div className="space-y-2">
-          <span className="text-[10px] bg-[#EFF6FF] border border-[#DBEAFE]/50 text-[#1E3A8A] font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block">
-            Agreement ready!
+          <span className={`text-[10px] border font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block ${isInternship ? "bg-[#F0F9FF] border-[#BAE6FD] text-[#0EA5E9]" : "bg-[#EFF6FF] border-[#DBEAFE]/50 text-[#1E3A8A]"}`}>
+            {isInternship ? "Internship Offer Ready!" : "Agreement ready!"}
           </span>
           <h2 className="text-xl font-bold text-[#0F172A]">
             Document Workspace
           </h2>
           <p className="text-[#64748B] text-xs">
-            Fine-tune standard clause parameters with real-time browser preview
-            compilation.
+            {isInternship
+              ? "Adjust internship offer details with live preview."
+              : "Fine-tune standard clause parameters with real-time browser preview compilation."}
           </p>
         </div>
 
         {/* Tab headers */}
         <div className="flex border-b border-[#DBEAFE]">
-          {TABS.map(({ id, label, icon: Icon }) => (
+          {(isInternship ? INTERN_TABS : PARTNER_TABS).map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
@@ -389,22 +499,17 @@ export default function WorkspaceSidebar({
         {/* Tab content */}
         <div className="space-y-5">
           {activeTab === "settings" && (
-            <SettingsTab
-              docSettings={docSettings}
-              setDocSettings={setDocSettings}
-            />
+            isInternship ? (
+              <InternshipSettingsTab docSettings={docSettings} setDocSettings={setDocSettings} />
+            ) : (
+              <SettingsTab docSettings={docSettings} setDocSettings={setDocSettings} />
+            )
           )}
           {activeTab === "secondParty" && (
-            <SecondPartyTab
-              secondParty={secondParty}
-              setSecondParty={setSecondParty}
-            />
+            <SecondPartyTab secondParty={secondParty} setSecondParty={setSecondParty} />
           )}
           {activeTab === "firstParty" && (
-            <FirstPartyTab
-              firstParty={firstParty}
-              setFirstParty={setFirstParty}
-            />
+            <FirstPartyTab firstParty={firstParty} setFirstParty={setFirstParty} />
           )}
         </div>
         {/* Export footer */}
@@ -437,7 +542,7 @@ export default function WorkspaceSidebar({
           )}
           <div className="flex justify-between text-[11px] text-[#64748B] px-1 font-semibold">
             <span>A4 dimensions output</span>
-            <span>{isDemo ? "1 page" : "2 pages"} automatic layout</span>
+            <span>{isDemo ? "1 page" : isInternship ? "1 page" : "2 pages"} automatic layout</span>
           </div>
         </div>
       </div>

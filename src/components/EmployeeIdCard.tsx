@@ -87,9 +87,9 @@ function GradientText({
 
     // DPR-aware for sharp rendering
     const dpr = window.devicePixelRatio || 1;
-    canvas.width  = W * dpr;
+    canvas.width = W * dpr;
     canvas.height = H * dpr;
-    canvas.style.width  = `${W}px`;
+    canvas.style.width = `${W}px`;
     canvas.style.height = `${H}px`;
     ctx.scale(dpr, dpr);
 
@@ -115,9 +115,12 @@ function GradientText({
   // after ensuring Orbitron is loaded — guarantees correct font in PDF exports
   const refCallback = React.useCallback(
     (el: HTMLCanvasElement | null) => {
-      (canvasRef as React.MutableRefObject<HTMLCanvasElement | null>).current = el;
+      (canvasRef as React.MutableRefObject<HTMLCanvasElement | null>).current =
+        el;
       if (el) {
-        (el as HTMLCanvasElement & { __gradientRedraw?: () => void }).__gradientRedraw = draw;
+        (
+          el as HTMLCanvasElement & { __gradientRedraw?: () => void }
+        ).__gradientRedraw = draw;
       }
     },
     [draw],
@@ -137,9 +140,10 @@ function GradientText({
 interface FrontProps {
   data: EmployeeCard;
   cardRef: React.RefObject<HTMLDivElement | null>;
+  idLabel?: string; // default "ID No" — override to "Internee ID" for interns
 }
 
-export function IdCardFront({ data, cardRef }: FrontProps) {
+export function IdCardFront({ data, cardRef, idLabel = "ID No" }: FrontProps) {
   const verifyUrl = buildVerifyUrl(
     data.employeeId || "000-000-0001",
     "https://www.jevxo.com",
@@ -235,35 +239,84 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
       </div>
 
       {/* Bottom Info Panel — FIXED GRADIENT (No visible line) */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-[125px] z-20 flex flex-col justify-end px-5 pb-[18px]"
-        style={{
-          background: `linear-gradient(to top, 
-            #0A0B10 50%, 
-            #0A0B10 70%, 
-            rgba(10, 11, 16, 0.98) 80%, 
-            rgba(10, 11, 16, 0.85) 96%, 
-            rgba(10, 11, 16, 0.65) 150%)`,
-        }}
-      >
-        <div className="absolute top-0 left-0 w-full">
-          <div className="font-black text-[22px] text-center tracking-[0.01em] pb-1.5 flex justify-center">
-            <GradientText
-              text={data.position || "UI/UX Lead Designer"}
-              fromColor={C.purple}
-              toColor={C.cyan}
-            />
-          </div>
+      {idLabel == "Internee ID" ? (
+        <div
+          className="absolute bottom-0 left-0 right-0 h-[125px] z-20 flex flex-col justify-end px-5 pb-[18px]"
+          style={{
+            background: `linear-gradient(to top, 
+        #0A0B10 50%, 
+        #0A0B10 70%, 
+        rgba(10, 11, 16, 0.98) 80%, 
+        rgba(10, 11, 16, 0.85) 96%, 
+        rgba(10, 11, 16, 0.65) 150%)`,
+          }}
+        >
+          <div className="absolute top-0 left-0 w-full">
+            <div className="font-black text-[22px] text-center tracking-[0.01em] pb-1.5 flex justify-center">
+              <GradientText
+                text={data.position || "UI/UX Lead Designer"}
+                fromColor={C.purple}
+                toColor={C.cyan}
+              />
+            </div>
 
-          <div className="text-white text-sm pl-24 font-medium tracking-widest opacity-95 mb-2">
-            ID No: {data.employeeId || "000-000-0001"}
-          </div>
+            <div className="text-white text-sm text-center font-medium tracking-widest opacity-95 mb-2">
+              {idLabel}: {data.employeeId || "000-000-0001"}
+            </div>
 
-          <div className="text-white text-sm pl-24 font-sans font-semibold opacity-80">
-            Issue Date: {data.issueDate || "2026"}
+            <div className="flex justify-around">
+              <div className="text-white text-sm font-sans font-semibold opacity-55">
+                Issue Date: {data.issueDate || "2026"}
+              </div>
+
+              {data.expiryDate && (
+                <div className="text-white text-sm font-sans font-semibold opacity-55">
+                  Expiry: {data.expiryDate}
+                </div>
+              )}
+            </div>
           </div>
         </div>
+      ) : (
+        // <-- Fixed the missing ) here and wrapped the second block in ( ) for balance
+        <div
+          className="absolute bottom-0 left-0 right-0 h-[125px] z-20 flex flex-col justify-end px-5 pb-[18px]"
+          style={{
+            background: `linear-gradient(to top, 
+        #0A0B10 50%, 
+        #0A0B10 70%, 
+        rgba(10, 11, 16, 0.98) 80%, 
+        rgba(10, 11, 16, 0.85) 96%, 
+        rgba(10, 11, 16, 0.65) 150%)`,
+          }}
+        >
+          <div className="absolute top-0 left-0 w-full">
+            <div className="font-black text-[22px] text-center tracking-[0.01em] pb-1.5 flex justify-center">
+              <GradientText
+                text={data.position || "UI/UX Lead Designer"}
+                fromColor={C.purple}
+                toColor={C.cyan}
+              />
+            </div>
 
+            <div className="text-white text-sm pl-24 font-medium tracking-widest opacity-95 mb-2">
+              {idLabel}: {data.employeeId || "000-000-0001"}
+            </div>
+
+            <div className="text-white text-sm pl-24 font-sans font-semibold opacity-80">
+              Issue Date: {data.issueDate || "2026"}
+            </div>
+
+            {data.expiryDate && (
+              <div className="text-white text-sm pl-24 font-sans font-semibold opacity-80">
+                Expiry: {data.expiryDate}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {idLabel !== "Internee ID" && (
         <div className="flex justify-between items-end">
           <div className="bg-white p-1 rounded-md shadow-xl">
             <QRCode
@@ -276,7 +329,7 @@ export function IdCardFront({ data, cardRef }: FrontProps) {
           </div>
           <NfcIcon color="rgba(255,255,255,0.6)" size={32} />
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -307,12 +360,14 @@ export interface EmployeeIdCardProps {
   data: EmployeeCard;
   frontRef: React.RefObject<HTMLDivElement | null>;
   backRef: React.RefObject<HTMLDivElement | null>;
+  idLabel?: string;
 }
 
 export default function EmployeeIdCard({
   data,
   frontRef,
   backRef,
+  idLabel,
 }: EmployeeIdCardProps) {
   return (
     <div className="flex flex-col xl:flex-row gap-10 items-center justify-center w-full">
@@ -320,7 +375,7 @@ export default function EmployeeIdCard({
         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">
           Front Side
         </span>
-        <IdCardFront data={data} cardRef={frontRef} />
+        <IdCardFront data={data} cardRef={frontRef} idLabel={idLabel} />
       </div>
 
       <div className="flex flex-col items-center gap-3">
