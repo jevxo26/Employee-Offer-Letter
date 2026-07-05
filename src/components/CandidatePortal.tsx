@@ -222,7 +222,7 @@ export default function CandidatePortal({
       </div>
 
       {/* ── Tab bar ── */}
-      <div className="sticky top-15 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-6 shrink-0">
+      <div className="sticky top-10 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-6 shrink-0">
         {[
           { id: "letter" as const, label: isInternship ? "📄 Internship Offer Letter" : "📄 Appointment Letter" },
           { id: "idcard" as const, label: isInternship ? "🪪 Your Internee ID Card" : "🪪 Your ID Card" },

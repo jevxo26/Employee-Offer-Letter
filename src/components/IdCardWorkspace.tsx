@@ -364,15 +364,22 @@ export default function IdCardWorkspace({
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   // Responsive scale for the card preview area
+  // On md+ screens: both cards side-by-side → scale against 2×CARD_W + gap
+  // On smaller screens: cards stack vertically → scale against single CARD_W
   const previewAreaRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState(1);
+  const [isWide, setIsWide] = useState(false);
 
   useEffect(() => {
     const el = previewAreaRef.current;
     if (!el) return;
     const update = () => {
       const available = el.clientWidth - 32; // 16px padding each side
-      const scale = Math.min(1, available / CARD_W);
+      const wide = el.clientWidth >= 768; // md breakpoint — matches EmployeeIdCard flex-row
+      setIsWide(wide);
+      // When side-by-side: fit both cards + gap; when stacked: fit single card
+      const referenceWidth = wide ? CARD_W * 2 + 40 : CARD_W;
+      const scale = Math.min(1, available / referenceWidth);
       setPreviewScale(Math.max(0.3, scale));
     };
     update();
@@ -504,10 +511,10 @@ export default function IdCardWorkspace({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 flex flex-col xl:flex-row w-full min-h-0 overflow-hidden"
+      className="flex-1 flex flex-col md:flex-row w-full min-h-0 overflow-hidden"
     >
       {/* ── LEFT: Form Panel ────────────────────────────────────────────────── */}
-      <div className="w-full xl:w-[400px] bg-[#F8FAFC] border-b xl:border-b-0 xl:border-r border-[#DBEAFE] flex flex-col overflow-y-auto shrink-0 max-h-[60vh] xl:max-h-none xl:h-full">
+      <div className="w-full md:w-[360px] bg-[#F8FAFC] border-b md:border-b-0 md:border-r border-[#DBEAFE] flex flex-col overflow-y-auto shrink-0 max-h-[55vh] sm:max-h-[60vh] md:max-h-none md:h-full">
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Header */}
           <div className="space-y-1">
@@ -572,7 +579,7 @@ export default function IdCardWorkspace({
           )}
 
           {/* Fields — Full Name is editable for ID card display trimming */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-3 sm:gap-4">
             <EditableField
               label="Full Name (ID Card Display)"
               icon={User}
@@ -642,14 +649,21 @@ export default function IdCardWorkspace({
       {/* ── RIGHT: Card Preview — scales to fit any screen ──────────────────── */}
       <div
         ref={previewAreaRef}
-        className="flex-1 flex items-center justify-center bg-[#1a1a2e] overflow-hidden p-4"
+        className="flex-1 flex justify-center items-center bg-[#1a1a2e] overflow-auto p-4 min-h-[400px] sm:min-h-[500px]"
       >
-        {/* Scaler wrapper — same pattern as A4DocumentScaler */}
+        {/* Scaler wrapper — sizes the outer box to match the scaled content exactly,
+            so the parent can center it without overflow. On xl+ both cards sit
+            side-by-side; below xl they stack, so we use a single-card width. */}
         <div
           style={{
-            width: CARD_W * previewScale * 2 + 40 * previewScale, // front + back + gap
-            height: CARD_H * previewScale,
+            width: isWide
+              ? (CARD_W * 2 + 40) * previewScale   // front + gap-10 + back
+              : CARD_W * previewScale,               // single card width when stacked
+            height: isWide
+              ? (CARD_H + 26) * previewScale         // card + label overhead
+              : (CARD_H * 2 + 92) * previewScale,   // two cards + gap-10 + two labels
             position: "relative",
+            flexShrink: 0,
           }}
         >
           <div

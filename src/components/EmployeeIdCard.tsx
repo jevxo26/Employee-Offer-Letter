@@ -317,7 +317,7 @@ export function IdCardFront({ data, cardRef, idLabel = "ID No" }: FrontProps) {
       )}
 
       {idLabel !== "Internee ID" && (
-        <div className="flex justify-between items-end">
+        <div className="absolute bottom-[14px] left-5 right-5 flex justify-between items-end z-30">
           <div className="bg-white p-1 rounded-md shadow-xl">
             <QRCode
               value={verifyUrl}
@@ -370,7 +370,7 @@ export default function EmployeeIdCard({
   idLabel,
 }: EmployeeIdCardProps) {
   return (
-    <div className="flex flex-col xl:flex-row gap-10 items-center justify-center w-full">
+    <div className="flex flex-col lg:flex-row gap-10 items-center justify-center w-full">
       <div className="flex flex-col items-center gap-3">
         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">
           Front Side

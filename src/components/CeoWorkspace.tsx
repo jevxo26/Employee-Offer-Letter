@@ -110,7 +110,7 @@ export default function CeoWorkspace({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="flex-1 flex flex-col w-full relative h-screen"
+        className="flex-1 flex flex-col w-full relative min-h-0"
       >
         <div
           aria-hidden="true"
@@ -120,7 +120,7 @@ export default function CeoWorkspace({
             left: 0,
             opacity: 0,
             pointerEvents: "none",
-            zIndex: 0,
+            zIndex: -10,
             display: "flex",
             gap: "40px",
           }}
@@ -130,7 +130,7 @@ export default function CeoWorkspace({
         </div>
 
         {/* Tab bar */}
-        <div className="sticky top-15 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-6">
+        <div className="sticky top-15 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-3 sm:px-6 overflow-x-auto">
           {[
             { id: "settings", label: "📄 Appointment Docs" },
             { id: "idCard", label: agreementTemplate === "internship" ? "🪪 Internee ID Card" : "🪪 Partner ID Card" },
@@ -138,7 +138,7 @@ export default function CeoWorkspace({
             <button
               key={id}
               onClick={() => setActiveWorkspaceTab(id)}
-              className={`px-6 py-3.5 text-xs font-bold uppercase tracking-wide border-b-2 transition cursor-pointer ${
+              className={`px-3 sm:px-6 py-3.5 text-xs font-bold uppercase tracking-wide border-b-2 transition cursor-pointer whitespace-nowrap ${
                 activeWorkspaceTab === id
                   ? "border-[#2563EB] text-[#2563EB]"
                   : "border-transparent text-[#64748B] hover:text-[#0F172A]"
@@ -150,11 +150,11 @@ export default function CeoWorkspace({
         </div>
 
         {/* Content */}
-        <div className="flex-1 flex relative min-h-0 overflow-visible">
+        <div className="flex-1 flex flex-col xl:flex-row relative min-h-0 overflow-auto xl:overflow-visible">
           {!isIdCardTab ? (
             <>
-              <div className="sticky top-30 h-screen">
-                <div className="h-[calc(100vh-50px)] overflow-y-auto pr-2">
+              <div className="w-full xl:w-auto xl:sticky xl:top-15 xl:h-screen xl:self-start">
+                <div className="xl:h-[calc(100vh-60px)] xl:overflow-y-auto">
                   <WorkspaceSidebar
                     activeTab={activeWorkspaceTab}
                     setActiveTab={setActiveWorkspaceTab}
@@ -216,9 +216,9 @@ export default function CeoWorkspace({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 relative h-screen flex flex-col xl:flex-row w-full"
+      className="flex-1 relative flex flex-col xl:flex-row w-full min-h-0"
     >
-      <div className="sticky top-15 h-screen">
+      <div className="w-full xl:w-auto xl:sticky xl:top-15 xl:h-screen xl:self-start">
         <WorkspaceSidebar
           activeTab={activeWorkspaceTab}
           setActiveTab={setActiveWorkspaceTab}

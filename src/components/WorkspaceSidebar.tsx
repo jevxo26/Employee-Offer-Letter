@@ -461,7 +461,7 @@ export default function WorkspaceSidebar({
 }: WorkspaceSidebarProps) {
   const isInternship = agreementTemplate === "internship";
   return (
-    <div className="w-full xl:w-[500px] bg-[#F8FAFC] border-r border-[#DBEAFE] flex flex-col h-full overflow-hidden shrink-0">
+    <div className="w-full xl:w-[500px] bg-[#F8FAFC] border-b xl:border-b-0 xl:border-r border-[#DBEAFE] flex flex-col xl:h-full overflow-hidden shrink-0">
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Header */}
         <div className="space-y-2">
