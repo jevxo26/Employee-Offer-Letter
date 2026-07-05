@@ -217,13 +217,12 @@ export default function InternshipDocumentPreview({
             <p className="text-[13px] text-slate-600 font-sans mb-4">
               Warm regards,
             </p>
-            <div className="relative h-12 w-48 mb-1">
+            <div className="h-12 mb-1 flex items-end">
               {d.founderSig ? (
-                <Image
+                <img
                   src={d.founderSig}
                   alt="Founder Signature"
-                  fill
-                  className="object-contain object-left opacity-95"
+                  className="max-h-11 max-w-[180px] object-contain object-left opacity-95 block"
                 />
               ) : (
                 <div className="text-amber-600 font-bold tracking-wide animate-pulse text-[8.5px] bg-amber-50 px-2 py-0.5 border border-amber-200 rounded uppercase inline-block">
