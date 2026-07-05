@@ -591,7 +591,7 @@ export default function DocumentPreview({
                   </p>
                 </div>
               </div>
-              <div className="text-[13px] text-slate-600 leading-relaxed text-justify bg-white/50 border border-slate-100 p-3 rounded-md shadow-sm">
+              <div className="text-[13px] text-slate-600 leading-relaxed text-justify bg-white/50 border border-slate-100 p-3 mb-3 rounded-md shadow-sm">
                 {tpl.equityBodyText}
               </div>
             </section>
