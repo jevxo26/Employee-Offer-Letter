@@ -245,7 +245,7 @@ export default function InternshipDocumentPreview({
               Acknowledgment and Acceptance
             </p>
             <p className="text-[13px] text-slate-600 font-sans mb-3">
-              I have read, understood, and agreed to the terms and conditions of
+              I have read, understood and agreed to the terms and conditions of
               this internship offer.
             </p>
             <div className="flex gap-12 pt-4 text-[13px] font-sans">
