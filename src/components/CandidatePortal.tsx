@@ -113,6 +113,8 @@ export default function CandidatePortal({
     };
   }, [candidatePhotoUrl, isCompleted, offerId]);
 
+  const isInternship = agreementTemplate === "internship";
+  
   const cardData: EmployeeCard = {
     fullName: secondParty.fullName || "",
     position: secondParty.position || "",
@@ -121,14 +123,13 @@ export default function CandidatePortal({
     department: "",
     photoUrl: candidatePhotoUrl,
     issueDate: docSettings.date || "",
-    expiryDate: "",
+    expiryDate: isInternship ? (docSettings.internExpiryDate || "") : "",
   };
 
-  const isInternship = agreementTemplate === "internship";
 
   const handleConfirmSign = () => {
-    // Internship offer letters don't require a photo
-    if (!isInternship && !candidatePhotoUrl) {
+    // Both internship and partner require a photo before signing
+    if (!candidatePhotoUrl) {
       toast.error(
         "Please upload your photo in the ID Card tab before signing.",
         { autoClose: 5000 },
@@ -136,7 +137,7 @@ export default function CandidatePortal({
       setActiveTab("idcard");
       return;
     }
-    if (!isInternship && isSavingPhotoAssets) {
+    if (isSavingPhotoAssets) {
       toast.info(
         "Your ID card photo is still being prepared. Please wait a moment and try again.",
       );
@@ -202,35 +203,30 @@ export default function CandidatePortal({
       transition={{ duration: 0.3 }}
       className="flex-1 flex flex-col w-full relative h-screen"
     >
-      {/* ── Hidden card render layer — only needed for non-internship templates ── */}
-      {!isInternship && (
-        <div
-          aria-hidden="true"
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            opacity: 0,
-            pointerEvents: "none",
-            zIndex: 0,
-            display: "flex",
-            gap: "40px",
-          }}
-        >
-          <IdCardFront data={cardData} cardRef={cardFrontRef} idLabel={isInternship ? "Internee ID" : undefined} />
-          <IdCardBack data={cardData} cardRef={cardBackRef} />
-        </div>
-      )}
+      {/* ── Hidden card render layer — always present so html2canvas can capture it ── */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          opacity: 0,
+          pointerEvents: "none",
+          zIndex: -10,
+          display: "flex",
+          gap: "40px",
+        }}
+      >
+        <IdCardFront data={cardData} cardRef={cardFrontRef} idLabel={isInternship ? "Internee ID" : undefined} />
+        <IdCardBack data={cardData} cardRef={cardBackRef} />
+      </div>
 
-      {/* ── Tab bar — ID card tab hidden for internship ── */}
+      {/* ── Tab bar ── */}
       <div className="sticky top-15 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-6 shrink-0">
-        {(isInternship
-          ? [{ id: "letter" as const, label: "📄 Internship Offer Letter" }]
-          : [
-              { id: "letter" as const, label: "📄 Appointment Letter" },
-              { id: "idcard" as const, label: "🪪 Your ID Card" },
-            ]
-        ).map(({ id, label }) => (
+        {[
+          { id: "letter" as const, label: isInternship ? "📄 Internship Offer Letter" : "📄 Appointment Letter" },
+          { id: "idcard" as const, label: isInternship ? "🪪 Your Internee ID Card" : "🪪 Your ID Card" },
+        ].map(({ id, label }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
@@ -261,8 +257,8 @@ export default function CandidatePortal({
                 isCompleted={isCompleted}
                 onExport={handleConfirmSign}
                 offerId={offerId}
-                isPhotoUploaded={isInternship ? true : !!candidatePhotoUrl}
-                onSwitchToIdCard={isInternship ? undefined : () => setActiveTab("idcard")}
+                isPhotoUploaded={!!candidatePhotoUrl}
+                onSwitchToIdCard={() => setActiveTab("idcard")}
               />
             </div>
             <WorkspaceCanvas
@@ -356,8 +352,7 @@ export default function CandidatePortal({
               </div>
               {!isCompleted && (
                 <p className="text-[10px] text-slate-400 mt-1 text-center max-w-sm">
-                  Upload your photo above, then go to the Appointment Letter tab
-                  to sign and confirm.
+                  Upload your photo above, then go to the {isInternship ? "Internship Offer Letter" : "Appointment Letter"} tab to sign and confirm.
                 </p>
               )}
             </div>

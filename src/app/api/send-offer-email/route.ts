@@ -8,7 +8,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { offerId, candidateEmail, candidateName } = body;
+    const { offerId, candidateEmail, candidateName, agreementTemplate } = body;
 
     if (!offerId || !candidateEmail || !candidateName) {
       return NextResponse.json(
@@ -23,11 +23,79 @@ export async function POST(request: Request) {
     }
 
     const { firstParty, secondParty, docSettings } = agreement;
+    const isInternship =
+      agreementTemplate === "internship" ||
+      (agreement.docSettings as Record<string, unknown>)?.agreementTemplate === "internship";
 
     const ctaLink = `${getBaseUrl()}/?candidateView=${offerId}`;
     const sender = getResendFromAddress();
 
-    const emailHtml = `
+    const subject = isInternship
+      ? "Internship Offer Letter — JEVXO"
+      : "JEVXO Offer Letter & Partnership Agreement";
+
+    const emailHtml = isInternship
+      ? /* ── Internship email ─────────────────────────────────────────── */ `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px 20px; border: 1px solid #e2e8f0; border-radius: 20px; background-color: #ffffff; color: #0f172a;">
+        <div style="text-align: center; margin-bottom: 25px;">
+          <h2 style="color: #2563eb; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: 0.5px;">JEVXO</h2>
+          <div style="height: 3px; background: linear-gradient(to right, transparent, #2563eb, transparent); margin-top: 12px; width: 100%;"></div>
+        </div>
+
+        <p style="font-size: 16px; font-weight: 700; margin-top: 0; color: #0f172a;">Dear ${candidateName},</p>
+
+        <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
+          On behalf of <strong>${firstParty.companyName}</strong>, we are pleased to extend to you our official <strong>Internship Offer</strong> for the position of <strong style="color: #2563eb;">${secondParty.position}</strong>.
+        </p>
+
+        <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
+          This internship is a hands-on opportunity to grow your skills in a fast-moving tech environment. You will collaborate with our core team on real projects that shape our platform.
+        </p>
+
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px 20px; margin: 20px 0;">
+          <h4 style="margin: 0 0 10px 0; color: #0f172a; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Offer Summary</h4>
+          <table style="width: 100%; font-size: 13px; color: #475569; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 4px 0; font-weight: 600;">Duration:</td>
+              <td style="padding: 4px 0; text-align: right; font-weight: 700; color: #2563eb;">${docSettings.internshipDuration || "—"} Months</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; font-weight: 600;">Compensation:</td>
+              <td style="padding: 4px 0; text-align: right; font-weight: 700; color: #0f172a;">${docSettings.isPaid ? "Paid" : "Unpaid"}</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; font-weight: 600;">Internee ID:</td>
+              <td style="padding: 4px 0; text-align: right; font-weight: 700; color: #0f172a;">${secondParty.partnerId || "—"}</td>
+            </tr>
+          </table>
+        </div>
+
+        <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 8px;">To complete your onboarding:</p>
+        <ol style="font-size: 13px; color: #475569; padding-left: 20px; margin: 0 0 20px 0; line-height: 1.8;">
+          <li>Review the internship offer letter terms.</li>
+          <li>Upload your professional photo to the ID Card tab.</li>
+          <li>Apply your digital signature.</li>
+          <li>Press <strong>Confirm</strong> once everything looks correct.</li>
+        </ol>
+
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${ctaLink}" target="_blank" style="background-color: #2563eb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block; font-size: 14px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
+            View & Sign Internship Offer
+          </a>
+        </div>
+
+        <p style="font-size: 12px; line-height: 1.6; color: #64748b; margin-top: 25px;">
+          Should you have any questions, feel free to reply to this email or contact us at ${firstParty.mobileNumber}.
+        </p>
+
+        <div style="font-size: 13px; line-height: 1.6; color: #475569; border-top: 1px solid #e2e8f0; padding-top: 15px; margin-top: 25px;">
+          Best Regards,<br />
+          <strong style="color: #0f172a;">${firstParty.representedBy}</strong><br />
+          ${firstParty.role}, ${firstParty.companyName}
+        </div>
+      </div>
+    `
+      : /* ── Partner / appointment email ──────────────────────────────── */ `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px 20px; border: 1px solid #e2e8f0; border-radius: 20px; background-color: #ffffff; color: #0f172a;">
         <div style="text-align: center; margin-bottom: 25px;">
           <h2 style="color: #2563eb; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: 0.5px;">JEVXO</h2>
@@ -63,7 +131,7 @@ export async function POST(request: Request) {
         </p>
 
         <div style="margin: 30px 0; text-align: center;">
-          <a href="${ctaLink}" target="_blank" style="background-color: #2563eb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block; font-size: 14px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); transition: all 0.2s ease;">
+          <a href="${ctaLink}" target="_blank" style="background-color: #2563eb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block; font-size: 14px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
             View & Sign Offer Letter
           </a>
         </div>
@@ -83,7 +151,7 @@ export async function POST(request: Request) {
     const emailResult = await resend.emails.send({
       from: sender,
       to: [candidateEmail],
-      subject: "JEVXO Offer Letter & Partnership Agreement",
+      subject,
       html: emailHtml,
     });
 

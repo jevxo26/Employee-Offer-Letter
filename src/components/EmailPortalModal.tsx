@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { X, Copy, ExternalLink, Send, Check } from "lucide-react";
-import { FirstParty, SecondParty } from "../types";
+import { FirstParty, SecondParty, AgreementTemplate } from "../types";
 
 interface EmailPortalModalProps {
   isOpen: boolean;
@@ -12,6 +12,7 @@ interface EmailPortalModalProps {
   firstParty: FirstParty;
   candidateLink: string;
   offerId: string;
+  agreementTemplate?: AgreementTemplate;
 }
 
 export default function EmailPortalModal({
@@ -22,12 +23,17 @@ export default function EmailPortalModal({
   firstParty,
   candidateLink,
   offerId,
+  agreementTemplate,
 }: EmailPortalModalProps) {
   const [copied, setCopied] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [apiError, setApiError] = useState("");
+  const isInternship = agreementTemplate === "internship";
   const fromAddress = "JEVXO <info@jevxo.com>";
+  const emailSubject = isInternship
+    ? "Internship Offer Letter — JEVXO"
+    : "Offer of Partnership & Appointment Letter — JEVXO";
 
   if (!isOpen) return null;
 
@@ -51,6 +57,7 @@ export default function EmailPortalModal({
           offerId,
           candidateEmail: secondParty.email,
           candidateName: secondParty.fullName,
+          agreementTemplate,
         }),
       });
 
@@ -83,7 +90,7 @@ export default function EmailPortalModal({
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 bg-blue-600 rounded-full animate-pulse" />
             <h3 className="font-extrabold text-sm text-slate-800 uppercase tracking-wider">
-              JEVXO Offer Dispatch Portal
+              {isInternship ? "JEVXO Internship Offer Portal" : "JEVXO Offer Dispatch Portal"}
             </h3>
           </div>
           <button
@@ -119,7 +126,7 @@ export default function EmailPortalModal({
           <div className="flex items-center gap-3">
             <span className="w-14 text-right">Subject:</span>
             <span className="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-slate-800 flex-1 font-extrabold">
-              Offer of Partnership & Appointment Letter — JEVXO
+              {emailSubject}
             </span>
           </div>
         </div>
@@ -133,29 +140,46 @@ export default function EmailPortalModal({
           )}
           <p className="font-bold text-slate-900">Dear {secondParty.fullName},</p>
           
-          <p>
-            On behalf of <strong>{firstParty.companyName}</strong>, I am thrilled to extend to you our official offer of partnership for the position of <strong>{secondParty.position}</strong>. 
-          </p>
-          
-          <p>
-            At JEVXO, we operate on a partnership-based structure where every team member is expected to lead with an ownership mindset. We are excited about the prospect of you joining us to collaborate on core achievements and drive the company forward.
-          </p>
-
-          <p>
-            Your appointment details, including equity share allocations and probation milestones, have been finalized. To complete the agreement:
-          </p>
-          
-          <ol className="list-decimal pl-5 space-y-2 font-medium text-slate-600">
-            <li>Review the full letter of appointment terms.</li>
-            <li>Apply your digital signature to the signature block.</li>
-            <li>Add your professional photo without background to the id card tab.</li>
-            <li>And then, after checking everything is correct, Press the Confirm button.</li>
-          </ol>
+          {isInternship ? (
+            <>
+              <p>
+                On behalf of <strong>{firstParty.companyName}</strong>, we are pleased to extend to you our official <strong>Internship Offer</strong> for the position of <strong>{secondParty.position}</strong>.
+              </p>
+              <p>
+                This internship is a great opportunity to gain hands-on experience in a fast-growing tech startup. You will work alongside our core team and contribute to real projects that impact our platform.
+              </p>
+              <p>Your offer details have been finalized. To complete the process:</p>
+              <ol className="list-decimal pl-5 space-y-2 font-medium text-slate-600">
+                <li>Review the full internship offer letter terms.</li>
+                <li>Upload your professional photo to the ID Card tab.</li>
+                <li>Apply your digital signature to the signature block.</li>
+                <li>Press the Confirm button once everything looks correct.</li>
+              </ol>
+            </>
+          ) : (
+            <>
+              <p>
+                On behalf of <strong>{firstParty.companyName}</strong>, I am thrilled to extend to you our official offer of partnership for the position of <strong>{secondParty.position}</strong>. 
+              </p>
+              <p>
+                At JEVXO, we operate on a partnership-based structure where every team member is expected to lead with an ownership mindset. We are excited about the prospect of you joining us to collaborate on core achievements and drive the company forward.
+              </p>
+              <p>
+                Your appointment details, including equity share allocations and probation milestones, have been finalized. To complete the agreement:
+              </p>
+              <ol className="list-decimal pl-5 space-y-2 font-medium text-slate-600">
+                <li>Review the full letter of appointment terms.</li>
+                <li>Apply your digital signature to the signature block.</li>
+                <li>Add your professional photo without background to the id card tab.</li>
+                <li>And then, after checking everything is correct, Press the Confirm button.</li>
+              </ol>
+            </>
+          )}
 
           {/* Styled Link Card */}
           <div className="p-4 bg-blue-50/70 border border-blue-100 rounded-2xl space-y-3">
             <p className="text-xs font-bold text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
-              <span>Candidate Signature Portal Link</span>
+              <span>{isInternship ? "Intern Signature Portal Link" : "Candidate Signature Portal Link"}</span>
             </p>
             <div className="flex items-center gap-2">
               <input
@@ -203,7 +227,7 @@ export default function EmailPortalModal({
             rel="noopener noreferrer"
             className="w-full sm:w-auto h-11 px-5 border border-slate-200 hover:border-blue-600 bg-white hover:bg-blue-50/50 rounded-xl text-slate-700 hover:text-blue-800 text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
           >
-            <ExternalLink className="w-3.5 h-3.5" /> Open Candidate Portal
+            <ExternalLink className="w-3.5 h-3.5" /> {isInternship ? "Open Intern Portal" : "Open Candidate Portal"}
           </a>
 
           <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2.5">

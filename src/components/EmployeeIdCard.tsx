@@ -13,7 +13,7 @@ const CARD_H = 570;
 
 // ─── Brand palette ────────────────────────────────────────────────────────────
 const C = {
-  bg: "#0A0B10",
+  bg: "#000000",
   purple: "#7B3FF5",
   blue: "#2562FF",
   cyan: "#4B9EFF",
@@ -163,7 +163,7 @@ export function IdCardFront({ data, cardRef, idLabel = "ID No" }: FrontProps) {
         fontFamily: "'Orbitron', 'Rajdhani', sans-serif",
       }}
     >
-      {/* X-logo watermark */}
+      {/* X-logo watermark
       <img
         src="/x-logo0bg.png"
         alt=""
@@ -180,7 +180,7 @@ export function IdCardFront({ data, cardRef, idLabel = "ID No" }: FrontProps) {
           userSelect: "none",
           filter: "blur(0.8px)",
         }}
-      />
+      /> */}
 
       {/* Candidate Photo */}
       {data.photoUrl ? (
@@ -210,7 +210,7 @@ export function IdCardFront({ data, cardRef, idLabel = "ID No" }: FrontProps) {
       )}
 
       {/* JEVXO Logo */}
-      <div className="absolute top-2 right-2 z-10 bg-[#0A0B10]/80 backdrop-blur-sm px-2 py-1 rounded-xl">
+      <div className="absolute top-2 right-2 z-10 bg-black backdrop-blur-sm px-2 py-1 rounded-xl">
         <Image
           src={logo}
           width={140}

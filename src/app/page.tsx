@@ -874,6 +874,7 @@ export default function Home() {
         firstParty={firstParty}
         candidateLink={candidateLink}
         offerId={offerId}
+        agreementTemplate={agreementTemplate}
       />
     </div>
   );
