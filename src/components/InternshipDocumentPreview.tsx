@@ -223,7 +223,7 @@ export default function InternshipDocumentPreview({
                   src={d.founderSig}
                   alt="Founder Signature"
                   fill
-                  className="object-contain object-left opacity-95"
+                  className="object-contain object-center opacity-95"
                 />
               ) : (
                 <div className="text-amber-600 font-bold tracking-wide animate-pulse text-[8.5px] bg-amber-50 px-2 py-0.5 border border-amber-200 rounded uppercase inline-block">

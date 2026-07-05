@@ -83,21 +83,21 @@ function PageFooter({
   pageNum,
   email,
   website,
+  address,
 }: {
   pageNum: number;
   email: string;
   website: string;
+  address: string;
 }) {
   return (
-    <footer className="mt-auto pt-2 border-t border-slate-200 text-[13px] text-slate-400 font-mono flex justify-between items-center z-10">
-      <div className="flex gap-3">
-        <span>
-          Email: <strong className="text-slate-600 font-semibold">{email}</strong>
-        </span>
-        <span>|</span>
-        <span>
-          Web: <strong className="text-slate-600 font-semibold">{website}</strong>
-        </span>
+    <footer className="mt-auto pt-2 border-t border-slate-200 text-[11px] text-slate-500 font-mono flex justify-between items-center z-10">
+      <div className="flex gap-3 items-center">
+        <span> <strong className="text-slate-700 font-semibold">{email}</strong></span>
+        <span>•</span>
+        <span className="font-semibold">{address}</span>
+        <span>•</span>
+        <span><strong className="text-slate-700 font-semibold">{website}</strong></span>
       </div>
       <div>
         Page {pageNum} of {TOTAL_DOCUMENT_PAGES}
@@ -385,11 +385,14 @@ export default function DocumentPreview({
           >
             <div className="flex flex-col">
               <JevxoLogo />
-              <p className="text-slate-500 text-sm font-medium mt-1">
-                A global subscription-based digital business ecosystem
-              </p>
+              <div className="relative ml-3.5">
+                <div className="w-12 h-0.75 absolute top-3 bg-linear-to-l from-blue-400 to-violet-400" />
+                <p className="ml-16">
+                  <strong> Build your Empire </strong>
+                </p>
+              </div>
             </div>
-            <div className="absolute -bottom-[2px] left-0 w-48 h-[2px] bg-gradient-to-r from-indigo-500 to-sky-400" />
+            <div className="absolute -bottom-[2px] left-0 w-54 h-[2px] bg-gradient-to-r from-indigo-500 to-sky-400" />
           </header>
 
           <div id="doc-title-container" className="text-center">
@@ -480,7 +483,9 @@ export default function DocumentPreview({
               className="bg-slate-50/50 border border-slate-100 rounded-lg p-3 shadow-sm relative"
             >
               <div className="absolute top-0 left-0 w-12 h-[3px] bg-sky-500" />
-              <span className={`text-[11px] uppercase tracking-wider font-extrabold font-mono block mb-1 ${tpl.secondPartyLabelColor}`}>
+              <span
+                className={`text-[11px] uppercase tracking-wider font-extrabold font-mono block mb-1 ${tpl.secondPartyLabelColor}`}
+              >
                 {tpl.secondPartyLabel}
               </span>
               <h3 className="font-sans font-extrabold text-slate-900 text-[15px] mb-1.5 border-b border-slate-200/60 pb-0.5">
@@ -542,9 +547,7 @@ export default function DocumentPreview({
                 Appointment
               </h4>
               <div className="text-[13px] text-slate-700 leading-relaxed text-justify font-sans bg-white/50 border border-slate-100 p-3 rounded-md shadow-sm">
-                <p className="mb-1">
-                  {tpl.appointmentBody}
-                </p>
+                <p className="mb-1">{tpl.appointmentBody}</p>
               </div>
             </section>
 
@@ -599,6 +602,7 @@ export default function DocumentPreview({
           pageNum={1}
           email={safeData.companyEmail}
           website={safeData.companyWebsite}
+          address={safeData.companyCurrentAddress}
         />
       </PageShell>
 
@@ -762,7 +766,7 @@ export default function DocumentPreview({
 
                 <div className="flex flex-col">
                   <div className="relative mt-4 pt-2 font-semibold text-slate-800 text-center">
-                    <div className="absolute -top-10 left-30 h-12 w-48 flex items-end justify-start pointer-events-none select-none">
+                    <div className="absolute -top-10 left-0 right-0 h-12 flex items-end justify-center pointer-events-none select-none">
                       {firstParty.signatureImg ? (
                         <Image
                           height={50}
@@ -790,9 +794,15 @@ export default function DocumentPreview({
           </div>
         </div>
 
+        {/* Bottom gradient bars */}
+        <div className="absolute bottom-0 left-0 w-64 h-2 bg-gradient-to-l from-transparent via-sky-500 to-indigo-600" />
+        <div className="absolute bottom-2.5 left-0 w-48 h-2 bg-gradient-to-r from-sky-500 via-indigo-600 to-transparent" />
+        <div className="absolute bottom-0 right-0 w-64 h-2 bg-gradient-to-l from-indigo-600 via-sky-500 to-transparent" />
+        <div className="absolute bottom-2.5 right-0 w-48 h-2 bg-gradient-to-r from-transparent via-indigo-600 to-sky-500" />
+
         <footer
           id="page-3-footer"
-          className="mt-auto pt-1 border-t border-slate-900 text-[13px] text-slate-500 font-mono flex flex-col gap-1.5 z-10"
+          className="mt-auto pt-1 border-t border-slate-900 text-[13px] text-slate-500 font-mono flex flex-col gap-1.5 z-10 pb-7"
         >
           <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-slate-100">
             <span>
@@ -801,18 +811,29 @@ export default function DocumentPreview({
                 HR Document Engine by JEVXO
               </strong>
             </span>
-            <span>Page 2 of {TOTAL_DOCUMENT_PAGES}</span>
+            <span>
+              Page {TOTAL_DOCUMENT_PAGES} of {TOTAL_DOCUMENT_PAGES}
+            </span>
           </div>
-          <div className="flex flex-row justify-between items-center gap-1 text-[11px] text-slate-400">
-            {/* <div>
-              JEVXO • A global subscription-based digital business ecosystem
-            </div> */}
-            <div className="flex gap-3">
-              <span>Web: {safeData.companyWebsite}</span>
+          <div className="flex flex-row justify-center items-center gap-1 text-[11px] text-slate-500">
+            <div className="flex gap-5">
+              <span>
+                Email:{" "}
+                <strong className="text-slate-700 font-semibold">
+                  {safeData.companyEmail}
+                </strong>
+              </span>
               <span>•</span>
-              <span>Email: {safeData.companyEmail}</span>
+              <span className="font-semibold">
+                {safeData.companyCurrentAddress}
+              </span>
               <span>•</span>
-              <span>Contact: {safeData.companyContact}</span>
+              <span>
+                Web:{" "}
+                <strong className="text-slate-700 font-semibold">
+                  {safeData.companyWebsite}
+                </strong>
+              </span>
             </div>
           </div>
         </footer>
