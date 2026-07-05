@@ -1,16 +1,9 @@
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
 import {
   findAgreementById,
   updateAgreement,
 } from "../../../../../lib/agreementStore";
 import { generateIdCardPdf } from "../../../../../lib/idCardPdf";
-import {
-  getFounderNotificationRecipients,
-  getResendFromAddress,
-} from "../../../../../lib/emailConfig";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(
   request: Request,
@@ -115,50 +108,11 @@ export async function POST(
 
     console.log(`[Next.js API] Offer fully executed: ${id}`);
 
-    // ── Email dispatch ────────────────────────────────────────────────────────
-    // For internship offers there is no /card-pdf step, so we send the signed
-    // letter email right here.  For partner/seller/agent offers, email is
-    // deferred to /card-pdf so both letter + ID card arrive in one message.
-    const docTemplate =
-      (updated.docSettings as Record<string, string> | undefined)
-        ?.agreementTemplate ?? "partner";
-
-    if (docTemplate === "internship" && process.env.RESEND_API_KEY) {
-      const founderRecipients = getFounderNotificationRecipients(
-        process.env.FOUNDER_EMAIL,
-        updated.firstParty.email,
-      );
-      const internEmail  = updated.secondParty.email;
-      const founderName  = updated.firstParty.representedBy;
-      const internName   = updated.secondParty.fullName;
-      const attachments  = [{ filename: `${id}-internship-offer.pdf`, content: normalizedLetterPdf }];
-
-      const [founderResult, internResult] = await Promise.all([
-        resend.emails.send({
-          from: getResendFromAddress(),
-          to: founderRecipients,
-          subject: `Internship Offer Signed — ${internName}`,
-          text: `Dear ${founderName},\n\nThe internship offer letter for ${internName} has been signed and is attached.\n\nBest,\nJEVXO HR System`,
-          attachments,
-        }),
-        resend.emails.send({
-          from: getResendFromAddress(),
-          to: [internEmail],
-          subject: "Your JEVXO Internship Offer Letter",
-          text: `Dear ${internName},\n\nYour signed internship offer letter from JEVXO is attached. Welcome aboard!\n\nBest,\nJEVXO`,
-          attachments,
-        }),
-      ]);
-
-      const sentToBoth = !founderResult.error && !internResult.error;
-      await updateAgreement(id, { letterSentToBoth: sentToBoth, idCardSent: false });
-
-      if (founderResult.error) console.error("[sign] Founder email failed:", founderResult.error);
-      else console.log(`[sign] Founder email sent: ${founderResult.data?.id}`);
-      if (internResult.error) console.error("[sign] Intern email failed:", internResult.error);
-      else console.log(`[sign] Intern email sent: ${internResult.data?.id}`);
-    }
-    // For all other templates: no emails here — /card-pdf handles the combined dispatch.
+    // ── Email dispatch deferred to /card-pdf for ALL templates ───────────────
+    // /card-pdf receives the candidate-photo ID card PDF and sends ONE combined
+    // email (letter + card) to both parties.  We never send email here so that
+    // internship and partner flows behave identically and both attachments always
+    // arrive in a single message.
 
     return NextResponse.json({
       success: true,

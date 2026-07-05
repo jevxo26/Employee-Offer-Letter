@@ -248,22 +248,22 @@ export default function InternshipDocumentPreview({
               I have read, understood and agreed to the terms and conditions of
               this internship offer.
             </p>
-            <div className="flex gap-12 pt-4 text-[13px] font-sans">
+            <div className="flex gap-12 text-[13px] font-sans mt-5">
               <div>
                 <span className="text-slate-600">Signature: </span>
-                <span className="inline-block w-32 border-b border-slate-400 ml-1 align-bottom">
+                <span className="inline-block w-32 border-b border-slate-400 ml-1 pb-2 align-bottom">
                   {secondParty.signatureImg ? (
                     <img
                       src={secondParty.signatureImg}
                       alt="Intern Signature"
-                      className="h-6 w-28 object-contain object-left inline-block"
+                      className="h-6 w-28 object-contain object-center inline-block"
                     />
                   ) : null}
                 </span>
               </div>
-              <div>
+              <div className="mt-3">
                 <span className="text-slate-600">Date: </span>
-                <span className="inline-block w-24 border-b border-slate-400 ml-1 align-bottom text-slate-700">
+                <span className="inline-block text-center w-24 border-b border-slate-400 ml-1 align-bottom text-slate-700">
                   {secondParty.signatureImg ? d.date : ""}
                 </span>
               </div>

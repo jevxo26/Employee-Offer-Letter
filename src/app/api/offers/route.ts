@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     if (isInternship) {
       // Use intern-prefixed IDs; prefer the ones already in docSettings (set by the form)
       const generated = await generateInternIds();
-      agreementId = docSettings?.internRefId || generated.internId;
+      agreementId = docSettings?.internRefId || generated.internRefId;
       partnerId   = docSettings?.internId    || generated.internId;
       storage     = generated.storage;
     } else {
@@ -50,6 +50,14 @@ export async function POST(request: Request) {
       agreementId = generated.agreementId;
       partnerId   = generated.partnerId;
       storage     = generated.storage;
+    }
+
+    // ── Derive a descriptive docType label for MongoDB ────────────────────────
+    let resolvedDocType: string = docType;
+    if (docType === "both") {
+      resolvedDocType = isInternship
+        ? "Intern Offerletter & ID Card"
+        : "Partner Agreement & ID Card";
     }
 
     const updatedSecondParty = { ...secondParty, partnerId };
@@ -64,7 +72,7 @@ export async function POST(request: Request) {
     await saveAgreement({
       agreementId,
       partnerId,
-      docType,
+      docType: resolvedDocType,
       status: "PENDING_PARTNER_SIGNATURE",
       founderSigned: true,
       partnerSigned: false,

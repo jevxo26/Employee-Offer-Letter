@@ -51,6 +51,10 @@ export async function POST(
       );
     }
 
+    const isInternship =
+      (agreement.docSettings as Record<string, string> | undefined)
+        ?.agreementTemplate === "internship";
+
     // Pull the appointment letter that /sign already saved to the DB
     const letterPDFdata =
       typeof agreement.letterPDFdata === "string"
@@ -89,24 +93,39 @@ export async function POST(
       ];
       if (letterPDFdata) {
         attachments.unshift({
-          filename: `${id}-appointment.pdf`,
+          filename: isInternship ? `${id}-internship-offer.pdf` : `${id}-appointment.pdf`,
           content: letterPDFdata,
         });
       }
+
+      // ── Per-template email copy ─────────────────────────────────────────────
+      const founderSubject = isInternship
+        ? `Internship Offer Signed — ${partnerName}`
+        : "Appointment Letter Fully Executed";
+      const founderText = isInternship
+        ? `Dear ${founderName},\n\nThe internship offer letter and ID card for ${partnerName} (ID: ${partnerID}) have been fully executed. Please find the attached documents.\n\nBest,\nJEVXO HR System`
+        : `Dear ${founderName},\n\nThe appointment letter for ${partnerName} (ID: ${partnerID}) has been fully executed. Please find the attached documents.\n\nBest,\nJEVXO HR System`;
+
+      const partnerSubject = isInternship
+        ? "Your JEVXO Internship Offer Letter & ID Card"
+        : "Your Appointment Letter & ID Card from JEVXO";
+      const partnerText = isInternship
+        ? `Dear ${partnerName},\n\nWelcome aboard! Your signed internship offer letter and JEVXO ID card are attached.\n\nBest,\nJEVXO`
+        : `Dear ${partnerName},\n\nYour appointment letter and ID card from JEVXO are attached.\n\nBest,\nJEVXO`;
 
       const [founderResult, partnerResult] = await Promise.all([
         resend.emails.send({
           from: getResendFromAddress(),
           to: founderRecipients,
-          subject: "Appointment Letter Fully Executed",
-          text: `Dear ${founderName},\n\nThe appointment letter for ${partnerName} (ID: ${partnerID}) has been fully executed. Please find the attached documents.\n\nBest,\nJEVXO HR System`,
+          subject: founderSubject,
+          text: founderText,
           attachments,
         }),
         resend.emails.send({
           from: getResendFromAddress(),
           to: [partnerEmail],
-          subject: "Your Appointment Letter & ID Card from JEVXO",
-          text: `Dear ${partnerName},\n\nYour appointment letter and ID card from JEVXO are attached.\n\nBest,\nJEVXO`,
+          subject: partnerSubject,
+          text: partnerText,
           attachments,
         }),
       ]);

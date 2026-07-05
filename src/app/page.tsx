@@ -526,37 +526,34 @@ export default function Home() {
         setIsCandidateSigned(true);
         toast.info("Signature applied! Preparing your documents…");
 
-        // Step 2: For internship, no ID card PDF — /card-pdf sends the letter + card.
-        // For non-internship, generate and send ID card PDF separately.
-        if (agreementTemplate !== "internship") {
-          await new Promise<void>((resolve) =>
-            requestAnimationFrame(() => resolve()),
-          );
+        // Step 2: Generate the ID card PDF with the candidate's photo and POST
+        // to /card-pdf — this saves the card to DB and sends ONE combined email
+        // (letter + card) to both parties.  Same flow for all templates.
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => resolve()),
+        );
 
-          const frontEl = candidateCardFrontRef.current?.current;
-          const backEl = candidateCardBackRef.current?.current;
-          if (frontEl && backEl) {
-            try {
-              const cardPDFdata = await buildIdCardPdfBase64(frontEl, backEl);
-              if (cardPDFdata) {
-                const cardRes = await fetch(`/api/offers/${offerId}/card-pdf`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ cardPDFdata }),
-                });
-                const cardData = await cardRes.json().catch(() => null);
-                toast.success(
-                  cardData?.message ||
-                    "The fully executed documents have been emailed to you and the Founder.",
-                );
-              }
-            } catch (cardErr) {
-              console.warn("ID card PDF generation skipped:", cardErr);
+        const frontEl = candidateCardFrontRef.current?.current;
+        const backEl = candidateCardBackRef.current?.current;
+        if (frontEl && backEl) {
+          try {
+            const cardPDFdata = await buildIdCardPdfBase64(frontEl, backEl);
+            if (cardPDFdata) {
+              const cardRes = await fetch(`/api/offers/${offerId}/card-pdf`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cardPDFdata }),
+              });
+              const cardData = await cardRes.json().catch(() => null);
+              toast.success(
+                cardData?.message ||
+                  "The fully executed documents have been emailed to you and the Founder.",
+              );
             }
+          } catch (cardErr) {
+            console.warn("ID card PDF generation skipped:", cardErr);
+            toast.success("Your signed documents have been saved.");
           }
-        } else {
-          // Internship: /sign already sends the letter PDF to both parties
-          toast.success("Your signed offer letter has been emailed to you and the Founder.");
         }
       } else {
         const partnerName = secondParty.fullName

@@ -68,7 +68,12 @@ export interface EmployeeCard {
 }
 
 /** Which document types the HR is generating in this session */
-export type DocType = 'appointment' | 'idCard' | 'both';
+export type DocType =
+  | 'appointment'
+  | 'idCard'
+  | 'both'
+  | 'Partner Agreement & ID Card'
+  | 'Intern Offerletter & ID Card';
 
 export type AppState =
   | 'home'
