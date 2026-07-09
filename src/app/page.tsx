@@ -25,8 +25,8 @@ import {
   SecondParty,
   DocSettings,
   AppState,
-  DocType,
   AgreementTemplate,
+  SalesAgreementType,
   EmployeeCard,
 } from "../types";
 
@@ -120,8 +120,12 @@ function arrayBufferToBase64(buffer: ArrayBuffer) {
 
 export default function Home() {
   const [appState, setAppState] = useState<AppState>("home");
-  const [docType, setDocType] = useState<DocType>("both");
+  // docType kept as string — "both" is the internal default used for all flows
+  // (ID card is always included). The DocType union is for display purposes.
+  const [docType, setDocType] = useState<string>("both");
+  // Using string here so "internship" can be stored without widening AgreementTemplate
   const [agreementTemplate, setAgreementTemplate] = useState<AgreementTemplate>("partner");
+  const [salesAgreementType, setSalesAgreementType] = useState<SalesAgreementType | undefined>(undefined);
   const [activeStep, setActiveStep] = useState(1);
   const [isDemo, setIsDemo] = useState(false);
 
@@ -236,6 +240,40 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agreementTemplate]);
 
+  // Pre-load sales IDs whenever the sales agreement type changes
+  useEffect(() => {
+    if (!salesAgreementType) return;
+
+    const action = salesAgreementType === "countrySales" ? "nextCountrySales" : "nextSalesAgent";
+
+    async function fetchNextSalesIds() {
+      try {
+        const res = await fetch(`/api/check-id?action=${action}`);
+        if (res.ok) {
+          const data = await res.json();
+          const serial = data.salesPartnerId?.split("-").pop() || "001";
+          const refSerial = data.salesRefId?.split("-").pop() || "001";
+          setDocSettings((p) => ({
+            ...p,
+            salesRefId: data.salesRefId,
+            salesRefIdSerial: refSerial,
+            salesPartnerId: data.salesPartnerId,
+            salesPartnerIdSerial: serial,
+            salesAgreementType: salesAgreementType,
+          }));
+          setSecondParty((p) => ({
+            ...p,
+            salesPartnerId: data.salesPartnerId,
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch next sales IDs", err);
+      }
+    }
+    fetchNextSalesIds();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [salesAgreementType]);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const candidateViewId = params.get("candidateView");
@@ -254,6 +292,9 @@ export default function Home() {
             (data.docSettings?.agreementTemplate as AgreementTemplate) ||
               "partner",
           );
+          // Restore salesAgreementType from docSettings if present
+          const restored = data.docSettings?.salesAgreementType as SalesAgreementType | undefined;
+          setSalesAgreementType(restored || undefined);
           setIsCandidateSigned(
             Boolean(data.partnerSigned || data.status === "FULLY_EXECUTED"),
           );
@@ -279,6 +320,9 @@ export default function Home() {
                   data.docSettings?.agreementTemplate ||
                   "partner",
               );
+              // Restore salesAgreementType from docSettings if present
+              const restoredSales = data.docSettings?.salesAgreementType as SalesAgreementType | undefined;
+              setSalesAgreementType(restoredSales || undefined);
               setIsCandidateSigned(
                 Boolean(data.partnerSigned || data.status === "FULLY_EXECUTED"),
               );
@@ -295,14 +339,45 @@ export default function Home() {
   }, []);
 
   // ── When docType selector chooses a type ────────────────────────────────────
-  const handleTemplateSelect = (template: AgreementTemplate) => {
-    setAgreementTemplate(template);
-    // All templates use "both" — internship now includes an ID card too
+  const handleTemplateSelect = (type: "partner" | "internship" | "countrySales" | "salesAgent") => {
+    if (type === "countrySales" || type === "salesAgent") {
+      setSalesAgreementType(type);
+      setAgreementTemplate("partner");
+      setDocSettings((prev) => ({
+        ...prev,
+        agreementTemplate: "partner",
+        salesAgreementType: type,
+      }));
+    } else if (type === "internship") {
+      setSalesAgreementType(undefined);
+      setAgreementTemplate("internship");
+      setDocSettings((prev) => ({
+        ...prev,
+        agreementTemplate: "internship" as AgreementTemplate,
+        salesAgreementType: undefined,
+      }));
+    } else {
+      // "partner"
+      setSalesAgreementType(undefined);
+      setAgreementTemplate("partner");
+      setDocSettings((prev) => ({
+        ...prev,
+        agreementTemplate: "partner",
+        salesAgreementType: undefined,
+      }));
+    }
     setDocType("both");
-    setDocSettings((prev) => ({ ...prev, agreementTemplate: template }));
     setIsOfferSent(false);
     setActiveStep(1);
     setAppState("form");
+  };
+
+  // ── ID card label helper ────────────────────────────────────────────────────
+  const getIdLabel = (): string | undefined => {
+    if (agreementTemplate === "internship") return "Internee ID";
+    if (salesAgreementType === "countrySales") return "Country Sales Partner ID";
+    if (salesAgreementType === "salesAgent") return "Sales Agent ID";
+    return undefined; // defaults to "ID No" = Partner card with QR
   };
 
   // ── Sync employee card from secondParty data when entering workspace ─────────
@@ -314,6 +389,12 @@ export default function Home() {
       bloodGroup: secondParty.bloodGroup || "Select",
       ...(agreementTemplate === "internship" && docSettings.internExpiryDate
         ? { expiryDate: docSettings.internExpiryDate }
+        : {}),
+      ...(salesAgreementType && docSettings.salesExpiryDate
+        ? { expiryDate: docSettings.salesExpiryDate }
+        : {}),
+      ...(salesAgreementType
+        ? { employeeId: secondParty.salesPartnerId || docSettings.salesPartnerId || prev.employeeId }
         : {}),
     }));
   };
@@ -820,6 +901,8 @@ export default function Home() {
               agreementTemplate={agreementTemplate}
               employeeCard={employeeCard}
               setEmployeeCard={setEmployeeCard}
+              salesAgreementType={salesAgreementType}
+              idLabel={getIdLabel()}
             />
           )}
 
@@ -854,6 +937,7 @@ export default function Home() {
               offerId={offerId}
               previewRefs={previewRefs}
               agreementTemplate={agreementTemplate}
+              salesAgreementType={salesAgreementType}
               onIdCardRefsReady={(frontRef, backRef) => {
                 candidateCardFrontRef.current = frontRef;
                 candidateCardBackRef.current = backRef;
@@ -872,6 +956,7 @@ export default function Home() {
         candidateLink={candidateLink}
         offerId={offerId}
         agreementTemplate={agreementTemplate}
+        salesAgreementType={salesAgreementType}
       />
     </div>
   );

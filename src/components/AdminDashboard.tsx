@@ -34,6 +34,35 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+function DocTypeBadge({ docType, salesAgreementType }: { docType: string; salesAgreementType?: string }) {
+  if (salesAgreementType === "countrySales" || docType === "Country Sales Partner Agreement & ID Card") {
+    return (
+      <span className="inline-block text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+        Country Sales Partner
+      </span>
+    );
+  }
+  if (salesAgreementType === "salesAgent" || docType === "Sales Agent Agreement & ID Card") {
+    return (
+      <span className="inline-block text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">
+        Sales Agent
+      </span>
+    );
+  }
+  if (docType?.includes("Intern") || docType === "Intern Offerletter & ID Card") {
+    return (
+      <span className="inline-block text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100">
+        Internship
+      </span>
+    );
+  }
+  return (
+    <span className="inline-block text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+      Partner
+    </span>
+  );
+}
+
 export default function AdminDashboard({ onBack }: AdminDashboardProps) {
   const [agreements, setAgreements] = useState<AgreementSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -203,7 +232,12 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                       <div className="font-mono font-bold text-[#0F172A] text-xs">
                         {a.agreementId}
                       </div>
-                      <div className="text-[10px] text-[#94A3B8]">{a.docType}</div>
+                      <div className="mt-0.5">
+                        <DocTypeBadge
+                          docType={a.docType}
+                          salesAgreementType={a.salesAgreementType}
+                        />
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="font-semibold text-[#0F172A]">{a.partnerName}</div>

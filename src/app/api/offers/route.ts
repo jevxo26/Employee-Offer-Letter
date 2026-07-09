@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import {
   generateAgreementIds,
   generateInternIds,
+  generateCountrySalesPartnerIds,
+  generateSalesAgentIds,
   listAgreements,
   saveAgreement,
   toAgreementSummary,
@@ -34,6 +36,10 @@ export async function POST(request: Request) {
 
     const resolvedTemplate = agreementTemplate || docSettings?.agreementTemplate || "partner";
     const isInternship = resolvedTemplate === "internship";
+    const salesType: string | undefined = docSettings?.salesAgreementType;
+    const isCountrySales = salesType === "countrySales";
+    const isSalesAgent   = salesType === "salesAgent";
+    const isSalesAgreement = isCountrySales || isSalesAgent;
 
     let agreementId: string;
     let partnerId: string;
@@ -45,6 +51,16 @@ export async function POST(request: Request) {
       agreementId = docSettings?.internRefId || generated.internRefId;
       partnerId   = docSettings?.internId    || generated.internId;
       storage     = generated.storage;
+    } else if (isCountrySales) {
+      const generated = await generateCountrySalesPartnerIds();
+      agreementId = docSettings?.salesRefId     || generated.salesRefId;
+      partnerId   = docSettings?.salesPartnerId || generated.salesPartnerId;
+      storage     = generated.storage;
+    } else if (isSalesAgent) {
+      const generated = await generateSalesAgentIds();
+      agreementId = docSettings?.salesRefId     || generated.salesRefId;
+      partnerId   = docSettings?.salesPartnerId || generated.salesPartnerId;
+      storage     = generated.storage;
     } else {
       const generated = await generateAgreementIds();
       agreementId = generated.agreementId;
@@ -54,18 +70,30 @@ export async function POST(request: Request) {
 
     // ── Derive a descriptive docType label for MongoDB ────────────────────────
     let resolvedDocType: string = docType;
-    if (docType === "both") {
-      resolvedDocType = isInternship
-        ? "Intern Offerletter & ID Card"
-        : "Partner Agreement & ID Card";
+    if (docType === "both" || isSalesAgreement) {
+      if (isInternship) {
+        resolvedDocType = "Intern Offerletter & ID Card";
+      } else if (isCountrySales) {
+        resolvedDocType = "Country Sales Partner Agreement & ID Card";
+      } else if (isSalesAgent) {
+        resolvedDocType = "Sales Agent Agreement & ID Card";
+      } else {
+        resolvedDocType = "Partner Agreement & ID Card";
+      }
     }
 
-    const updatedSecondParty = { ...secondParty, partnerId };
+    // ── Build updated secondParty — use salesPartnerId for sales types ────────
+    const updatedSecondParty = isSalesAgreement
+      ? { ...secondParty, salesPartnerId: partnerId }
+      : { ...secondParty, partnerId };
+
     const updatedDocSettings = {
       ...docSettings,
       agreementTemplate: resolvedTemplate,
       ...(isInternship
         ? { internRefId: agreementId, internId: partnerId }
+        : isSalesAgreement
+        ? { salesRefId: agreementId, salesPartnerId: partnerId, salesAgreementType: salesType }
         : { refId: agreementId }),
     };
 
@@ -73,6 +101,7 @@ export async function POST(request: Request) {
       agreementId,
       partnerId,
       docType: resolvedDocType,
+      ...(isSalesAgreement ? { salesAgreementType: salesType } : {}),
       status: "PENDING_PARTNER_SIGNATURE",
       founderSigned: true,
       partnerSigned: false,

@@ -1,12 +1,13 @@
 import React from "react";
 import JevxoLogo from "./JevxoLogo";
-import XLogo from "../../assets/x-logo.jpg";
 import Image from "next/image";
 import QRCode from "react-qr-code";
 import { FirstParty, SecondParty, DocSettings, AgreementTemplate } from "../types";
-import { A4_WIDTH, A4_HEIGHT } from "./A4DocumentScaler";
+import { A4_WIDTH } from "./A4DocumentScaler";
 import { buildVerifyUrl } from "../lib/verifyUrl";
 import { TOTAL_DOCUMENT_PAGES } from "../lib/documentConstants";
+import DocumentLayout from "./document/DocumentLayout";
+import DocumentFooter from "./document/DocumentFooter";
 
 interface DocumentPreviewProps {
   firstParty: FirstParty;
@@ -15,49 +16,6 @@ interface DocumentPreviewProps {
   previewRefs?: React.RefObject<HTMLDivElement | null>[];
   isDemo?: boolean;
   agreementTemplate?: AgreementTemplate;
-}
-
-const pageStyle: React.CSSProperties = {
-  boxSizing: "border-box",
-  width: A4_WIDTH,
-  height: A4_HEIGHT,
-  flexShrink: 0,
-};
-
-function PageShell({
-  pageNum,
-  children,
-  refProp,
-  showWatermark = true,
-}: {
-  pageNum: number;
-  children: React.ReactNode;
-  refProp?: React.RefObject<HTMLDivElement | null>;
-  showWatermark?: boolean;
-}) {
-  return (
-    <div
-      id={`document-page-${pageNum}`}
-      ref={refProp}
-      className="relative bg-white text-slate-800 shadow-2xl p-10 flex flex-col justify-between border border-slate-100 print:border-none print:shadow-none"
-      style={pageStyle}
-    >
-      <div className="absolute top-0 right-0 w-64 h-2 bg-gradient-to-l from-indigo-600 via-sky-500 to-transparent" />
-      <div className="absolute top-2.25 right-0 w-48 h-2 bg-gradient-to-r from-transparent via-indigo-600 to-sky-500" />
-      {showWatermark && (
-        <Image
-          src={XLogo}
-          alt="Watermark"
-          width={520}
-          height={520}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0 opacity-25 pointer-events-none"
-        />
-      )}
-      {children}
-      <div className="absolute bottom-0 left-0 w-64 h-2 bg-gradient-to-l from-transparent via-sky-500 to-indigo-600" />
-      <div className="absolute bottom-2.25 left-0 w-48 h-2 bg-gradient-to-r from-sky-500 via-indigo-600 to-transparent" />
-    </div>
-  );
 }
 
 function ContinuationHeader({
@@ -76,33 +34,6 @@ function ContinuationHeader({
         Ref: {documentId} | Date: {date}
       </div>
     </header>
-  );
-}
-
-function PageFooter({
-  pageNum,
-  email,
-  website,
-  address,
-}: {
-  pageNum: number;
-  email: string;
-  website: string;
-  address: string;
-}) {
-  return (
-    <footer className="mt-auto pt-2 border-t border-slate-200 text-[11px] text-slate-500 font-mono flex justify-between items-center z-10">
-      <div className="flex gap-3 items-center">
-        <span> <strong className="text-slate-700 font-semibold">{email}</strong></span>
-        <span>•</span>
-        <span className="font-semibold">{address}</span>
-        <span>•</span>
-        <span><strong className="text-slate-700 font-semibold">{website}</strong></span>
-      </div>
-      <div>
-        Page {pageNum} of {TOTAL_DOCUMENT_PAGES}
-      </div>
-    </footer>
   );
 }
 
@@ -200,158 +131,9 @@ export default function DocumentPreview({
         </>
       ),
     },
-    internship: {
-      docTitle: "Internship Offer Letter",
-      docSubtitle: "& Learning Agreement",
-      secondPartyLabel: "Second Party (Intern)",
-      secondPartyLabelColor: "text-sky-600",
-      secondPartyAccent: "bg-sky-500",
-      appointmentBody: (
-        <>
-          Dear{" "}
-          <strong className="text-slate-900 text-[13.5px] font-semibold">{safeData.partnerName}</strong>, <br />
-          We are pleased to offer you an internship position as{" "}
-          <strong className="text-slate-900 font-semibold">{safeData.partnerPosition}</strong>{" "}
-          at{" "}
-          <strong className="text-slate-900 font-semibold">{safeData.companyName}</strong>{" "}
-          (Intern ID: <strong className="text-slate-900 font-semibold">{safeData.partnerId}</strong>). <br />
-          This internship is designed to provide you with hands-on industry experience, mentorship, and the opportunity to contribute meaningfully to real-world projects. Your internship period will commence on {safeData.date} and shall run for a minimum of{" "}
-          <strong className="text-slate-900 font-semibold">{safeData.minServicePeriod}</strong>.
-        </>
-      ),
-      responsibilitiesBody: (
-        <p className="text-slate-600">
-          As an intern at <strong className="text-slate-800 font-medium">{safeData.companyName}</strong>, you are expected to actively participate in assigned projects, attend scheduled meetings, and deliver quality work within agreed timelines. You shall follow all company policies and guidelines, demonstrate a proactive learning attitude, and maintain professionalism at all times. <br />
-          The intern shall be supervised by a designated mentor and performance will be reviewed at the end of each month.
-        </p>
-      ),
-      equityLabel: "Internship Stipend",
-      equityNote: "Monthly stipend (if applicable)",
-      minServiceLabel: "Internship Duration",
-      minServiceBody: (
-        <>
-          This internship engagement is for a minimum period of{" "}
-          <strong className="text-indigo-900 font-bold">{safeData.minServicePeriod}</strong>, subject to satisfactory performance review.
-        </>
-      ),
-      equityBodyText: (
-        <p>
-          Upon successful completion of the internship, {safeData.companyName} may consider the intern for a full-time engagement based on performance and available openings. Any stipend, certificate of completion, or letter of recommendation shall be provided as mutually agreed. This internship does not constitute an employment contract.
-        </p>
-      ),
-      acceptanceText: (
-        <>
-          I,{" "}
-          <strong className="text-slate-800 font-bold">{safeData.partnerName}</strong>
-          , hereby acknowledge that I have read, understood, and agreed to all the terms and conditions set forth in this Internship Offer Letter issued by{" "}
-          <strong className="text-slate-800 font-bold">{safeData.companyName}</strong>
-          . I undertake to fulfil all responsibilities and abide by all guidelines outlined herein.
-        </>
-      ),
-    },
-    countrySeller: {
-      docTitle: "Country Seller Agreement",
-      docSubtitle: "& Partnership Deed",
-      secondPartyLabel: "Second Party (Country Seller)",
-      secondPartyLabelColor: "text-sky-600",
-      secondPartyAccent: "bg-sky-500",
-      appointmentBody: (
-        <>
-          Dear{" "}
-          <strong className="text-slate-900 text-[13.5px] font-semibold">{safeData.partnerName}</strong>, <br />
-          We are pleased to appoint you as an authorised{" "}
-          <strong className="text-slate-900 font-semibold">Country Seller Partner</strong>{" "}
-          for <strong className="text-slate-900 font-semibold">{safeData.companyName}</strong> products and services{" "}
-          (Seller ID: <strong className="text-slate-900 font-semibold">{safeData.partnerId}</strong>). <br />
-          You are authorised to market, promote, and sell {safeData.companyName}&apos;s subscription-based offerings within your designated territory, effective from {safeData.date}.
-        </>
-      ),
-      responsibilitiesBody: (
-        <p className="text-slate-600">
-          As an authorised Country Seller Partner, you are responsible for actively promoting and selling{" "}
-          <strong className="text-slate-800 font-medium">{safeData.companyName}</strong>&apos;s products within the designated territory. You shall maintain accurate sales records, onboard customers as per company guidelines, and uphold the brand standards of {safeData.companyName} at all times. <br />
-          All leads, customer data, and sales transactions must be reported through official company channels. The seller shall not engage in activities that conflict with or harm {safeData.companyName}&apos;s interests.
-        </p>
-      ),
-      equityLabel: "Commission Rate",
-      equityNote: "Agreed commission on sales",
-      minServiceLabel: "Minimum Active Period",
-      minServiceBody: (
-        <>
-          The seller partnership shall remain active for a minimum period of{" "}
-          <strong className="text-indigo-900 font-bold">{safeData.minServicePeriod}</strong>, after which performance will be reviewed for renewal or upgrade.
-        </>
-      ),
-      equityBodyText: (
-        <p>
-          The agreed commission of{" "}
-          <strong className="text-indigo-600 font-bold">{safeData.equityShare}</strong>{" "}
-          on verified sales will be disbursed on a monthly basis via the agreed payment method. Commission is payable only on fully completed and verified transactions. Any disputed or refunded transactions shall be deducted from the applicable commission cycle. Detailed commission structure and payment terms will be defined in the supplementary schedule.
-        </p>
-      ),
-      acceptanceText: (
-        <>
-          I,{" "}
-          <strong className="text-slate-800 font-bold">{safeData.partnerName}</strong>
-          , hereby acknowledge that I have read, understood, and agreed to all terms and conditions set forth in this Country Seller Partnership Agreement with{" "}
-          <strong className="text-slate-800 font-bold">{safeData.companyName}</strong>
-          . I confirm my intent to represent the company&apos;s products honestly and professionally within the designated territory.
-        </>
-      ),
-    },
-    countryAgent: {
-      docTitle: "Country Agent Agreement",
-      docSubtitle: "& Representation Deed",
-      secondPartyLabel: "Second Party (Country Agent)",
-      secondPartyLabelColor: "text-sky-600",
-      secondPartyAccent: "bg-sky-500",
-      appointmentBody: (
-        <>
-          Dear{" "}
-          <strong className="text-slate-900 text-[13.5px] font-semibold">{safeData.partnerName}</strong>, <br />
-          We are pleased to appoint you as an authorised{" "}
-          <strong className="text-slate-900 font-semibold">Country Agent</strong>{" "}
-          representing <strong className="text-slate-900 font-semibold">{safeData.companyName}</strong> in your region{" "}
-          (Agent ID: <strong className="text-slate-900 font-semibold">{safeData.partnerId}</strong>). <br />
-          You are authorised to act as the official representative of {safeData.companyName}, referring and facilitating business relationships, onboarding partners, and promoting the company brand from {safeData.date}.
-        </>
-      ),
-      responsibilitiesBody: (
-        <p className="text-slate-600">
-          As an authorised Country Agent, you are responsible for identifying and referring qualified business leads and potential partners to{" "}
-          <strong className="text-slate-800 font-medium">{safeData.companyName}</strong>. You shall represent the company in a professional manner, accurately communicate the company&apos;s value proposition, and assist in onboarding processes as directed. <br />
-          The agent shall not bind the company to any contractual obligations without prior written authorisation. All referrals must be submitted through official company channels and are subject to verification.
-        </p>
-      ),
-      equityLabel: "Referral Commission",
-      equityNote: "Agreed referral rate per deal",
-      minServiceLabel: "Minimum Agency Period",
-      minServiceBody: (
-        <>
-          This agency arrangement shall be maintained for a minimum period of{" "}
-          <strong className="text-indigo-900 font-bold">{safeData.minServicePeriod}</strong>, subject to satisfactory performance and compliance with company policies.
-        </>
-      ),
-      equityBodyText: (
-        <p>
-          A referral commission of{" "}
-          <strong className="text-indigo-600 font-bold">{safeData.equityShare}</strong>{" "}
-          shall be payable for each successfully closed deal that originates from a verified referral by the agent. Commission will be processed within 30 days of deal confirmation. The agent acknowledges that commission is contingent on successful deal closure and full payment receipt by {safeData.companyName}. Detailed referral terms are defined in the supplementary schedule attached to this agreement.
-        </p>
-      ),
-      acceptanceText: (
-        <>
-          I,{" "}
-          <strong className="text-slate-800 font-bold">{safeData.partnerName}</strong>
-          , hereby acknowledge that I have read, understood, and agreed to all terms and conditions set forth in this Country Agent Agreement with{" "}
-          <strong className="text-slate-800 font-bold">{safeData.companyName}</strong>
-          . I confirm my commitment to represent the company professionally and in accordance with all guidelines herein.
-        </>
-      ),
-    },
   } as const;
 
-  const tpl = templateMeta[agreementTemplate] ?? templateMeta.partner;
+  const tpl = templateMeta.partner;
 
   return (
     <div
@@ -360,25 +142,25 @@ export default function DocumentPreview({
       style={{ width: A4_WIDTH, gap: 32 }}
     >
       {/* PAGE 1 — Header, parties, QR top-right, Appointment & Responsibilities */}
-      <PageShell pageNum={1} refProp={previewRefs[0]}>
-        <div className="absolute top-7 md:top-8 lg:top-10 right-10 z-20 flex items-center gap-2">
-          <div className="flex flex-col items-end text-right font-sans">
-            <span className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">
-              Agreement Document
-            </span>
-            <div className="bg-slate-900 text-white text-[10px] px-2.5 py-1 font-mono font-semibold tracking-wider rounded">
-              Ref: {safeData.documentId}
+      <DocumentLayout pageNum={1} refProp={previewRefs[0]}>
+        <div className="z-10 flex flex-col flex-grow p-10">
+          <div className="absolute top-7 md:top-8 lg:top-10 right-10 z-20 flex items-center gap-2">
+            <div className="flex flex-col items-end text-right font-sans">
+              <span className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">
+                Agreement Document
+              </span>
+              <div className="bg-slate-900 text-white text-[10px] px-2.5 py-1 font-mono font-semibold tracking-wider rounded">
+                Ref: {safeData.documentId}
+              </div>
+              <span className="text-[11px] text-slate-600 mt-0.5 font-bold">
+                Partner ID: {safeData.partnerId}
+              </span>
             </div>
-            <span className="text-[11px] text-slate-600 mt-0.5 font-bold">
-              Partner ID: {safeData.partnerId}
-            </span>
+            <div className="bg-white p-1 border border-slate-200 rounded shadow-sm shrink-0">
+              <QRCode value={verifyUrl} size={56} level="M" />
+            </div>
           </div>
-          <div className="bg-white p-1 border border-slate-200 rounded shadow-sm shrink-0">
-            <QRCode value={verifyUrl} size={56} level="M" />
-          </div>
-        </div>
 
-        <div className="z-10 flex flex-col flex-grow">
           <header
             id="page-header"
             className="flex justify-between items-start border-b-2 border-slate-900 pb-3 mb-2 relative pr-44"
@@ -598,32 +380,18 @@ export default function DocumentPreview({
           </div>
         </div>
 
-        <PageFooter
+        <DocumentFooter
           pageNum={1}
+          totalPages={TOTAL_DOCUMENT_PAGES}
           email={safeData.companyEmail}
           website={safeData.companyWebsite}
           address={safeData.companyCurrentAddress}
         />
-      </PageShell>
-
-      {/* PAGE 2 — Sections 03, 04, 05, 06 (Partnership Agreement details)
-      <PageShell pageNum={2} refProp={previewRefs[1]}>
-        <div className="z-10 flex flex-col flex-grow">
-          <ContinuationHeader
-            documentId={safeData.documentId}
-            date={safeData.date}
-          />
-        </div>
-        <PageFooter
-          pageNum={2}
-          email={safeData.companyEmail}
-          website={safeData.companyWebsite}
-        />
-      </PageShell> */}
+      </DocumentLayout>
 
       {/* PAGE 3 — Section 07, Signatures & Detailed Footer */}
-      <PageShell pageNum={3} refProp={previewRefs[2]}>
-        <div className="z-10 flex flex-col flex-grow">
+      <DocumentLayout pageNum={3} refProp={previewRefs[2]}>
+        <div className="z-10 flex flex-col flex-grow p-10">
           <ContinuationHeader
             documentId={safeData.documentId}
             date={safeData.date}
@@ -794,12 +562,6 @@ export default function DocumentPreview({
           </div>
         </div>
 
-        {/* Bottom gradient bars */}
-        <div className="absolute bottom-0 left-0 w-64 h-2 bg-gradient-to-l from-transparent via-sky-500 to-indigo-600" />
-        <div className="absolute bottom-2.5 left-0 w-48 h-2 bg-gradient-to-r from-sky-500 via-indigo-600 to-transparent" />
-        <div className="absolute bottom-0 right-0 w-64 h-2 bg-gradient-to-l from-indigo-600 via-sky-500 to-transparent" />
-        <div className="absolute bottom-2.5 right-0 w-48 h-2 bg-gradient-to-r from-transparent via-indigo-600 to-sky-500" />
-
         <footer
           id="page-3-footer"
           className="mt-auto pt-1 border-t border-slate-900 text-[13px] text-slate-500 font-mono flex flex-col gap-1.5 z-10 pb-7"
@@ -837,7 +599,7 @@ export default function DocumentPreview({
             </div>
           </div>
         </footer>
-      </PageShell>
+      </DocumentLayout>
     </div>
   );
 }

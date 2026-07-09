@@ -17,6 +17,7 @@ export interface SecondParty {
   fullName: string;
   partnerId?: string; // e.g. "JVX-PT-26-001"
   partnerIdSerial?: string;
+  salesPartnerId?: string; // e.g. "JVX-CSP-26-001" or "JVX-SAG-26-001"
   email: string;
   guardianName: string;
   guardianRelation: string;
@@ -32,11 +33,9 @@ export interface SecondParty {
   signatureImg: string;
 }
 
-export type AgreementTemplate =
-  | 'partner'
-  | 'internship'
-  | 'countrySeller'
-  | 'countryAgent';
+export type AgreementTemplate = 'partner' | 'internship' | 'sales_agent' | 'country_sales_partner';
+
+export type SalesAgreementType = 'countrySales' | 'salesAgent';
 
 export interface DocSettings {
   date: string;
@@ -47,13 +46,26 @@ export interface DocSettings {
   refIdSerial?: string;
   agreementTemplate?: AgreementTemplate;
   // ── Internship-specific ──────────────────────────────────────────────────
-  internId?: string;        // e.g. "JVX-INT-26-001"
+  internId?: string;           // e.g. "JVX-INT-26-001"
   internIdSerial?: string;
-  internRefId?: string;     // e.g. "JVX-INT-REF-26-001"
+  internRefId?: string;        // e.g. "JVX-INT-REF-26-001"
   internRefIdSerial?: string;
   internshipDuration?: string; // e.g. "3 months"
   isPaid?: boolean;
-  internExpiryDate?: string;  // expiry date shown on the internee ID card
+  internExpiryDate?: string;   // expiry date shown on the internee ID card
+  // ── Sales Agreement-specific ─────────────────────────────────────────────
+  salesAgreementType?: SalesAgreementType;
+  salesRefId?: string;             // e.g. "JVX-CSP-REF-26-001" or "JVX-SAG-REF-26-001"
+  salesRefIdSerial?: string;
+  salesPartnerId?: string;         // e.g. "JVX-CSP-26-001" or "JVX-SAG-26-001"
+  salesPartnerIdSerial?: string;
+  territory?: string;
+  isExclusive?: boolean;           // countrySales only
+  partnerAgreementRef?: string;    // salesAgent only — which Partner they report to
+  paymentDays?: number;            // salesAgent commission payment window
+  noticePeriodSales?: string;      // e.g. "7/14" or "30/60"
+  governingJurisdiction?: string;
+  salesExpiryDate?: string;        // ID card expiry for sales types
 }
 
 export interface EmployeeCard {
@@ -69,11 +81,10 @@ export interface EmployeeCard {
 
 /** Which document types the HR is generating in this session */
 export type DocType =
-  | 'appointment'
-  | 'idCard'
-  | 'both'
   | 'Partner Agreement & ID Card'
-  | 'Intern Offerletter & ID Card';
+  | 'Intern Offerletter & ID Card'
+  | 'Country Sales Partner Agreement & ID Card'
+  | 'Sales Agent Agreement & ID Card';
 
 export type AppState =
   | 'home'
@@ -90,8 +101,9 @@ export type AgreementStatus = 'PENDING_PARTNER_SIGNATURE' | 'FULLY_EXECUTED';
 export interface AgreementSummary {
   agreementId: string;
   partnerId: string;
-  docType: DocType;
+  docType: string;  // string for backward compat (old records may have "both" / "appointment")
   agreementTemplate?: AgreementTemplate;
+  salesAgreementType?: SalesAgreementType;
   status: AgreementStatus;
   founderSigned: boolean;
   partnerSigned: boolean;

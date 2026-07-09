@@ -144,6 +144,11 @@ interface FrontProps {
 }
 
 export function IdCardFront({ data, cardRef, idLabel = "ID No" }: FrontProps) {
+  // Only the default JEVXO Partner card (idLabel === "ID No") shows QR + NFC.
+  // Internee ID, Country Sales Partner ID, and Sales Agent ID use the
+  // center-aligned layout without QR.
+  const showQR = idLabel === "ID No";
+
   const verifyUrl = buildVerifyUrl(
     data.employeeId || "000-000-0001",
     "https://www.jevxo.com",
@@ -239,84 +244,63 @@ export function IdCardFront({ data, cardRef, idLabel = "ID No" }: FrontProps) {
       </div>
 
       {/* Bottom Info Panel — FIXED GRADIENT (No visible line) */}
-      {idLabel == "Internee ID" ? (
-        <div
-          className="absolute bottom-0 left-0 right-0 h-[125px] z-20 flex flex-col justify-end px-5 pb-[18px]"
-          style={{
-            background: `linear-gradient(to top, 
-        #0A0B10 50%, 
-        #0A0B10 70%, 
-        rgba(10, 11, 16, 0.98) 80%, 
-        rgba(10, 11, 16, 0.85) 96%, 
-        rgba(10, 11, 16, 0.65) 150%)`,
-          }}
-        >
-          <div className="absolute top-0 left-0 w-full">
-            <div className="font-black text-[22px] text-center tracking-[0.01em] pb-1.5 flex justify-center">
-              <GradientText
-                text={data.position || "UI/UX Lead Designer"}
-                fromColor={C.purple}
-                toColor={C.cyan}
-              />
-            </div>
+      <div
+        className="absolute bottom-0 left-0 right-0 h-[125px] z-20 flex flex-col justify-end px-5 pb-[18px]"
+        style={{
+          background: `linear-gradient(to top, 
+      #0A0B10 50%, 
+      #0A0B10 70%, 
+      rgba(10, 11, 16, 0.98) 80%, 
+      rgba(10, 11, 16, 0.85) 96%, 
+      rgba(10, 11, 16, 0.65) 150%)`,
+        }}
+      >
+        <div className="absolute top-0 left-0 w-full">
+          <div className="font-black text-[22px] text-center tracking-[0.01em] pb-1.5 flex justify-center">
+            <GradientText
+              text={data.position || "UI/UX Lead Designer"}
+              fromColor={C.purple}
+              toColor={C.cyan}
+            />
+          </div>
 
-            <div className="text-white text-sm text-center font-medium tracking-widest opacity-95 mb-2">
-              {idLabel}: {data.employeeId || "000-000-0001"}
-            </div>
-
-            <div className="flex justify-around">
-              <div className="text-white text-sm font-sans font-semibold opacity-55">
+          {showQR ? (
+            // Partner card — left-aligned to leave room for the QR code
+            <>
+              <div className="text-white text-sm pl-24 font-medium tracking-widest opacity-95 mb-2">
+                {idLabel}: {data.employeeId || "000-000-0001"}
+              </div>
+              <div className="text-white text-sm pl-24 font-sans font-semibold opacity-80">
                 Issue Date: {data.issueDate || "2026"}
               </div>
-
               {data.expiryDate && (
-                <div className="text-white text-sm font-sans font-semibold opacity-55">
+                <div className="text-white text-sm pl-24 font-sans font-semibold opacity-80">
                   Expiry: {data.expiryDate}
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-      ) : (
-        // <-- Fixed the missing ) here and wrapped the second block in ( ) for balance
-        <div
-          className="absolute bottom-0 left-0 right-0 h-[125px] z-20 flex flex-col justify-end px-5 pb-[18px]"
-          style={{
-            background: `linear-gradient(to top, 
-        #0A0B10 50%, 
-        #0A0B10 70%, 
-        rgba(10, 11, 16, 0.98) 80%, 
-        rgba(10, 11, 16, 0.85) 96%, 
-        rgba(10, 11, 16, 0.65) 150%)`,
-          }}
-        >
-          <div className="absolute top-0 left-0 w-full">
-            <div className="font-black text-[22px] text-center tracking-[0.01em] pb-1.5 flex justify-center">
-              <GradientText
-                text={data.position || "UI/UX Lead Designer"}
-                fromColor={C.purple}
-                toColor={C.cyan}
-              />
-            </div>
-
-            <div className="text-white text-sm pl-24 font-medium tracking-widest opacity-95 mb-2">
-              {idLabel}: {data.employeeId || "000-000-0001"}
-            </div>
-
-            <div className="text-white text-sm pl-24 font-sans font-semibold opacity-80">
-              Issue Date: {data.issueDate || "2026"}
-            </div>
-
-            {data.expiryDate && (
-              <div className="text-white text-sm pl-24 font-sans font-semibold opacity-80">
-                Expiry: {data.expiryDate}
+            </>
+          ) : (
+            // Internee / Country Sales Partner / Sales Agent — center-aligned, no QR
+            <>
+              <div className="text-white text-sm text-center font-medium tracking-widest opacity-95 mb-2">
+                {idLabel}: {data.employeeId || "000-000-0001"}
               </div>
-            )}
-          </div>
+              <div className="flex justify-around">
+                <div className="text-white text-sm font-sans font-semibold opacity-55">
+                  Issue Date: {data.issueDate || "2026"}
+                </div>
+                {data.expiryDate && (
+                  <div className="text-white text-sm font-sans font-semibold opacity-55">
+                    Expiry: {data.expiryDate}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
-      )}
+      </div>
 
-      {idLabel !== "Internee ID" && (
+      {showQR && (
         <div className="absolute bottom-[14px] left-5 right-5 flex justify-between items-end z-30">
           <div className="bg-white p-1 rounded-md shadow-xl">
             <QRCode

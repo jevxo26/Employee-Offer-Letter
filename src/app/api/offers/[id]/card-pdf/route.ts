@@ -55,6 +55,19 @@ export async function POST(
       (agreement.docSettings as Record<string, string> | undefined)
         ?.agreementTemplate === "internship";
 
+    const salesType = (agreement.docSettings as Record<string, unknown> | undefined)
+      ?.salesAgreementType as string | undefined;
+    const isCountrySales = salesType === "countrySales";
+    const isSalesAgent   = salesType === "salesAgent";
+    const isSalesAgreement = isCountrySales || isSalesAgent;
+
+    // Resolve the correct partner/agent ID to show in emails
+    const resolvedPartnerId = isSalesAgreement
+      ? (agreement.secondParty as Record<string, string> | undefined)?.salesPartnerId ||
+        (agreement.docSettings as Record<string, string> | undefined)?.salesPartnerId ||
+        (agreement.secondParty as Record<string, string> | undefined)?.partnerId
+      : (agreement.secondParty as Record<string, string> | undefined)?.partnerId;
+
     // Pull the appointment letter that /sign already saved to the DB
     const letterPDFdata =
       typeof agreement.letterPDFdata === "string"
@@ -81,19 +94,26 @@ export async function POST(
       const partnerEmail = agreement.secondParty.email;
       const founderName = agreement.firstParty.representedBy;
       const partnerName = agreement.secondParty.fullName;
-      const partnerID = agreement.secondParty.partnerId;
+      const partnerID = resolvedPartnerId;
 
       console.log(
         `[card-pdf] Sending combined emails — founder: ${founderRecipients.join(", ")}, partner: ${partnerEmail}`,
       );
 
       // Build attachments — always include the card; add letter if available
+      const docLabel = isInternship
+        ? "internship-offer"
+        : isCountrySales
+        ? "sales-partner-agreement"
+        : isSalesAgent
+        ? "sales-agent-agreement"
+        : "appointment";
       const attachments: { filename: string; content: string }[] = [
         { filename: `${id}-id-card.pdf`, content: cardPDFdata },
       ];
       if (letterPDFdata) {
         attachments.unshift({
-          filename: isInternship ? `${id}-internship-offer.pdf` : `${id}-appointment.pdf`,
+          filename: `${id}-${docLabel}.pdf`,
           content: letterPDFdata,
         });
       }
@@ -101,16 +121,34 @@ export async function POST(
       // ── Per-template email copy ─────────────────────────────────────────────
       const founderSubject = isInternship
         ? `Internship Offer Signed — ${partnerName}`
+        : isCountrySales
+        ? `Country Sales Partner Agreement Signed — ${partnerName}`
+        : isSalesAgent
+        ? `Sales Agent Agreement Signed — ${partnerName}`
         : "Appointment Letter Fully Executed";
+
       const founderText = isInternship
         ? `Dear ${founderName},\n\nThe internship offer letter and ID card for ${partnerName} (ID: ${partnerID}) have been fully executed. Please find the attached documents.\n\nBest,\nJEVXO HR System`
+        : isCountrySales
+        ? `Dear ${founderName},\n\nThe Country Sales Partner Agreement and ID card for ${partnerName} (ID: ${partnerID}) have been fully executed. Please find the attached documents.\n\nBest,\nJEVXO HR System`
+        : isSalesAgent
+        ? `Dear ${founderName},\n\nThe Sales Agent Agreement and ID card for ${partnerName} (ID: ${partnerID}) have been fully executed. Please find the attached documents.\n\nBest,\nJEVXO HR System`
         : `Dear ${founderName},\n\nThe appointment letter for ${partnerName} (ID: ${partnerID}) has been fully executed. Please find the attached documents.\n\nBest,\nJEVXO HR System`;
 
       const partnerSubject = isInternship
         ? "Your JEVXO Internship Offer Letter & ID Card"
+        : isCountrySales
+        ? "Your JEVXO Country Sales Partner Agreement & ID Card"
+        : isSalesAgent
+        ? "Your JEVXO Sales Agent Agreement & ID Card"
         : "Your Appointment Letter & ID Card from JEVXO";
+
       const partnerText = isInternship
         ? `Dear ${partnerName},\n\nWelcome aboard! Your signed internship offer letter and JEVXO ID card are attached.\n\nBest,\nJEVXO`
+        : isCountrySales
+        ? `Dear ${partnerName},\n\nWelcome to JEVXO! Your signed Country Sales Partner Agreement and ID card are attached.\n\nBest,\nJEVXO`
+        : isSalesAgent
+        ? `Dear ${partnerName},\n\nWelcome to JEVXO! Your signed Sales Agent Agreement and ID card are attached.\n\nBest,\nJEVXO`
         : `Dear ${partnerName},\n\nYour appointment letter and ID card from JEVXO are attached.\n\nBest,\nJEVXO`;
 
       const [founderResult, partnerResult] = await Promise.all([

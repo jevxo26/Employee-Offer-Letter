@@ -3,10 +3,13 @@
 import React from "react";
 import { motion } from "motion/react";
 import { ArrowRight, LayoutDashboard, FileText, CreditCard } from "lucide-react";
-import { AgreementTemplate } from "../types";
+
+// Local union — covers all selectable doc types including the new sales types.
+// Not exported from types/index.ts intentionally (only used at the selector layer).
+type SelectableDocType = "partner" | "internship" | "countrySales" | "salesAgent";
 
 interface DocTypeSelectorProps {
-  onSelect: (template: AgreementTemplate) => void;
+  onSelect: (type: SelectableDocType) => void;
   onOpenAdmin?: () => void;
 }
 
@@ -53,7 +56,7 @@ export default function DocTypeSelector({ onSelect, onOpenAdmin }: DocTypeSelect
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-[#0F172A] text-base leading-snug">
-                  Partner Agreement & ID Card
+                  Partner Agreement &amp; ID Card
                 </h3>
                 <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">
                   Standard partner onboarding — appointment letter with equity, NDA, and ID card.
@@ -96,11 +99,11 @@ export default function DocTypeSelector({ onSelect, onOpenAdmin }: DocTypeSelect
             </div>
           </motion.button>
 
-          {/* Country Seller */}
+          {/* Country Sales Partner */}
           <motion.button
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
-            onClick={() => onSelect("countrySeller")}
+            onClick={() => onSelect("countrySales")}
             className="w-full text-left p-6 rounded-2xl border border-[#DBEAFE] bg-white shadow-sm cursor-pointer group transition-all hover:border-[#10B981] hover:shadow-md hover:shadow-[#10B981]/10"
           >
             <div className="flex items-start gap-4">
@@ -109,10 +112,10 @@ export default function DocTypeSelector({ onSelect, onOpenAdmin }: DocTypeSelect
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-[#0F172A] text-base leading-snug">
-                  Country Seller Partnership
+                  Country Sales Partner Agreement
                 </h3>
                 <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">
-                  Local seller partner agreement with commission structure and ID card.
+                  Sales partner agreement with commission structure, territory, and ID card.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {["Commission Terms", "Territory", "NDA", "PDF Export", "ID Card"].map((tag) => (
@@ -124,11 +127,11 @@ export default function DocTypeSelector({ onSelect, onOpenAdmin }: DocTypeSelect
             </div>
           </motion.button>
 
-          {/* Country Agent */}
+          {/* Sales Agent */}
           <motion.button
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
-            onClick={() => onSelect("countryAgent")}
+            onClick={() => onSelect("salesAgent")}
             className="w-full text-left p-6 rounded-2xl border border-[#DBEAFE] bg-white shadow-sm cursor-pointer group transition-all hover:border-[#F59E0B] hover:shadow-md hover:shadow-[#F59E0B]/10"
           >
             <div className="flex items-start gap-4">
@@ -137,13 +140,13 @@ export default function DocTypeSelector({ onSelect, onOpenAdmin }: DocTypeSelect
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-[#0F172A] text-base leading-snug">
-                  Country Agent Partnership
+                  Sales Agent Agreement
                 </h3>
                 <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">
-                  Agent partnership agreement with referral terms and ID card.
+                  Agent agreement under a Country Sales Partner, with commission and ID card.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  {["Referral Terms", "Territory", "NDA", "PDF Export", "ID Card"].map((tag) => (
+                  {["Agent Commission", "Reporting Structure", "NDA", "PDF Export", "ID Card"].map((tag) => (
                     <span key={tag} className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#F59E0B]/10 text-[#F59E0B]">{tag}</span>
                   ))}
                 </div>

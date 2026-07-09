@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
-import { generateAgreementIds, generateInternIds, listAgreements } from "../../../lib/agreementStore";
+import {
+  generateAgreementIds,
+  generateInternIds,
+  generateCountrySalesPartnerIds,
+  generateSalesAgentIds,
+  listAgreements,
+} from "../../../lib/agreementStore";
 
 export async function GET(request: Request) {
   try {
@@ -14,6 +20,16 @@ export async function GET(request: Request) {
     if (action === "nextIntern") {
       const { internId, internRefId, storage } = await generateInternIds();
       return NextResponse.json({ internId, internRefId, storage });
+    }
+
+    if (action === "nextCountrySales") {
+      const { salesRefId, salesPartnerId, storage } = await generateCountrySalesPartnerIds();
+      return NextResponse.json({ salesRefId, salesPartnerId, storage });
+    }
+
+    if (action === "nextSalesAgent") {
+      const { salesRefId, salesPartnerId, storage } = await generateSalesAgentIds();
+      return NextResponse.json({ salesRefId, salesPartnerId, storage });
     }
 
     if (action === "check") {

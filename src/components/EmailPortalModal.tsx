@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { X, Copy, ExternalLink, Send, Check } from "lucide-react";
-import { FirstParty, SecondParty, AgreementTemplate } from "../types";
+import { FirstParty, SecondParty, SalesAgreementType } from "../types";
 
 interface EmailPortalModalProps {
   isOpen: boolean;
@@ -12,7 +12,8 @@ interface EmailPortalModalProps {
   firstParty: FirstParty;
   candidateLink: string;
   offerId: string;
-  agreementTemplate?: AgreementTemplate;
+  agreementTemplate?: string;
+  salesAgreementType?: SalesAgreementType;
 }
 
 export default function EmailPortalModal({
@@ -24,15 +25,24 @@ export default function EmailPortalModal({
   candidateLink,
   offerId,
   agreementTemplate,
+  salesAgreementType,
 }: EmailPortalModalProps) {
   const [copied, setCopied] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [apiError, setApiError] = useState("");
   const isInternship = agreementTemplate === "internship";
+  const isCSP = salesAgreementType === "countrySales";
+  const isSalesAgent = salesAgreementType === "salesAgent";
+  const isSalesType = isCSP || isSalesAgent;
+
   const fromAddress = "JEVXO <info@jevxo.com>";
   const emailSubject = isInternship
     ? "Internship Offer Letter — JEVXO"
+    : isCSP
+    ? "Country Sales Partner Agreement — JEVXO"
+    : isSalesAgent
+    ? "Sales Agent Agreement — JEVXO"
     : "Offer of Partnership & Appointment Letter — JEVXO";
 
   if (!isOpen) return null;
@@ -58,6 +68,7 @@ export default function EmailPortalModal({
           candidateEmail: secondParty.email,
           candidateName: secondParty.fullName,
           agreementTemplate,
+          salesAgreementType,
         }),
       });
 
@@ -90,7 +101,13 @@ export default function EmailPortalModal({
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 bg-blue-600 rounded-full animate-pulse" />
             <h3 className="font-extrabold text-sm text-slate-800 uppercase tracking-wider">
-              {isInternship ? "JEVXO Internship Offer Portal" : "JEVXO Offer Dispatch Portal"}
+              {isInternship
+                ? "JEVXO Internship Offer Portal"
+                : isCSP
+                ? "JEVXO Country Sales Partner Portal"
+                : isSalesAgent
+                ? "JEVXO Sales Agent Agreement Portal"
+                : "JEVXO Offer Dispatch Portal"}
             </h3>
           </div>
           <button
@@ -156,6 +173,22 @@ export default function EmailPortalModal({
                 <li>Press the Confirm button once everything looks correct.</li>
               </ol>
             </>
+          ) : isSalesType ? (
+            <>
+              <p>
+                On behalf of <strong>{firstParty.companyName}</strong>, we are pleased to formally appoint you as a{" "}
+                <strong>{isCSP ? "Country Sales Partner" : "Sales Agent"}</strong>.
+              </p>
+              <p>
+                Please review the full agreement terms, upload your photo, and apply your digital signature to complete your onboarding.
+              </p>
+              <ol className="list-decimal pl-5 space-y-2 font-medium text-slate-600">
+                <li>Review the full agreement terms carefully.</li>
+                <li>Upload your professional photo to the ID Card tab.</li>
+                <li>Apply your digital signature to the signature block.</li>
+                <li>Press the Confirm button once everything looks correct.</li>
+              </ol>
+            </>
           ) : (
             <>
               <p>
@@ -179,7 +212,13 @@ export default function EmailPortalModal({
           {/* Styled Link Card */}
           <div className="p-4 bg-blue-50/70 border border-blue-100 rounded-2xl space-y-3">
             <p className="text-xs font-bold text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
-              <span>{isInternship ? "Intern Signature Portal Link" : "Candidate Signature Portal Link"}</span>
+              <span>
+                {isInternship
+                  ? "Intern Signature Portal Link"
+                  : isSalesType
+                  ? "Sales Agreement Signature Portal Link"
+                  : "Candidate Signature Portal Link"}
+              </span>
             </p>
             <div className="flex items-center gap-2">
               <input
@@ -227,7 +266,12 @@ export default function EmailPortalModal({
             rel="noopener noreferrer"
             className="w-full sm:w-auto h-11 px-5 border border-slate-200 hover:border-blue-600 bg-white hover:bg-blue-50/50 rounded-xl text-slate-700 hover:text-blue-800 text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
           >
-            <ExternalLink className="w-3.5 h-3.5" /> {isInternship ? "Open Intern Portal" : "Open Candidate Portal"}
+            <ExternalLink className="w-3.5 h-3.5" />
+            {isInternship
+              ? "Open Intern Portal"
+              : isSalesType
+              ? "Open Sales Agreement Portal"
+              : "Open Candidate Portal"}
           </a>
 
           <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2.5">

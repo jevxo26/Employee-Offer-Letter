@@ -7,7 +7,7 @@ import { Upload } from "lucide-react";
 import CandidateSidebar from "./CandidateSidebar";
 import WorkspaceCanvas from "./WorkspaceCanvas";
 import { IdCardFront, IdCardBack } from "./EmployeeIdCard";
-import { FirstParty, SecondParty, DocSettings, AgreementTemplate, EmployeeCard } from "../types";
+import { FirstParty, SecondParty, DocSettings, SalesAgreementType, EmployeeCard } from "../types";
 
 interface CandidatePortalProps {
   firstParty: FirstParty;
@@ -19,7 +19,8 @@ interface CandidatePortalProps {
   onExport: () => void;
   offerId: string;
   previewRefs: React.RefObject<HTMLDivElement | null>[];
-  agreementTemplate?: AgreementTemplate;
+  agreementTemplate?: string;
+  salesAgreementType?: SalesAgreementType;
   onIdCardRefsReady?: (
     frontRef: React.RefObject<HTMLDivElement | null>,
     backRef: React.RefObject<HTMLDivElement | null>,
@@ -37,6 +38,7 @@ export default function CandidatePortal({
   offerId,
   previewRefs,
   agreementTemplate,
+  salesAgreementType,
   onIdCardRefsReady,
 }: CandidatePortalProps) {
   const [activeTab, setActiveTab] = useState<"letter" | "idcard">("letter");
@@ -114,16 +116,35 @@ export default function CandidatePortal({
   }, [candidatePhotoUrl, isCompleted, offerId]);
 
   const isInternship = agreementTemplate === "internship";
-  
+  const isCSP = salesAgreementType === "countrySales";
+  const isSalesAgent = salesAgreementType === "salesAgent";
+  const isSalesType = isCSP || isSalesAgent;
+
+  // Determine the correct ID label for the card front
+  const idLabel: string | undefined = isInternship
+    ? "Internee ID"
+    : isCSP
+    ? "Country Sales Partner ID"
+    : isSalesAgent
+    ? "Sales Agent ID"
+    : undefined; // defaults to "ID No" = Partner card with QR
+
   const cardData: EmployeeCard = {
     fullName: secondParty.fullName || "",
     position: secondParty.position || "",
-    employeeId: secondParty.partnerId || "",
+    // Sales types use salesPartnerId; internship/partner use partnerId
+    employeeId: isSalesType
+      ? (secondParty.salesPartnerId || docSettings.salesPartnerId || "")
+      : (secondParty.partnerId || ""),
     bloodGroup: secondParty.bloodGroup || "Select",
     department: "",
     photoUrl: candidatePhotoUrl,
     issueDate: docSettings.date || "",
-    expiryDate: isInternship ? (docSettings.internExpiryDate || "") : "",
+    expiryDate: isInternship
+      ? (docSettings.internExpiryDate || "")
+      : isSalesType
+      ? (docSettings.salesExpiryDate || "")
+      : "",
   };
 
 
@@ -217,15 +238,33 @@ export default function CandidatePortal({
           gap: "40px",
         }}
       >
-        <IdCardFront data={cardData} cardRef={cardFrontRef} idLabel={isInternship ? "Internee ID" : undefined} />
+        <IdCardFront data={cardData} cardRef={cardFrontRef} idLabel={idLabel} />
         <IdCardBack data={cardData} cardRef={cardBackRef} />
       </div>
 
       {/* ── Tab bar ── */}
       <div className="sticky top-10 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-6 shrink-0">
         {[
-          { id: "letter" as const, label: isInternship ? "📄 Internship Offer Letter" : "📄 Appointment Letter" },
-          { id: "idcard" as const, label: isInternship ? "🪪 Your Internee ID Card" : "🪪 Your ID Card" },
+          {
+            id: "letter" as const,
+            label: isInternship
+              ? "📄 Internship Offer Letter"
+              : isCSP
+              ? "📄 Country Sales Partner Agreement"
+              : isSalesAgent
+              ? "📄 Sales Agent Agreement"
+              : "📄 Appointment Letter",
+          },
+          {
+            id: "idcard" as const,
+            label: isInternship
+              ? "🪪 Your Internee ID Card"
+              : isCSP
+              ? "🪪 Your Country Sales Partner ID Card"
+              : isSalesAgent
+              ? "🪪 Your Sales Agent ID Card"
+              : "🪪 Your ID Card",
+          },
         ].map(({ id, label }) => (
           <button
             key={id}
@@ -270,6 +309,7 @@ export default function CandidatePortal({
               onExport={handleConfirmSign}
               isDemo={false}
               agreementTemplate={agreementTemplate}
+              salesAgreementType={salesAgreementType}
             />
           </div>
         ) : (
@@ -341,7 +381,7 @@ export default function CandidatePortal({
                     Front Side
                   </span>
                   {/* Display-only card — uses a separate ref just for visual preview */}
-                  <IdCardFront data={cardData} cardRef={React.createRef()} idLabel={isInternship ? "Internee ID" : undefined} />
+                  <IdCardFront data={cardData} cardRef={React.createRef()} idLabel={idLabel} />
                 </div>
                 <div className="flex flex-col items-center gap-2">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">
@@ -352,7 +392,15 @@ export default function CandidatePortal({
               </div>
               {!isCompleted && (
                 <p className="text-[10px] text-slate-400 mt-1 text-center max-w-sm">
-                  Upload your photo above, then go to the {isInternship ? "Internship Offer Letter" : "Appointment Letter"} tab to sign and confirm.
+                  Upload your photo above, then go to the{" "}
+                  {isInternship
+                    ? "Internship Offer Letter"
+                    : isCSP
+                    ? "Country Sales Partner Agreement"
+                    : isSalesAgent
+                    ? "Sales Agent Agreement"
+                    : "Appointment Letter"}{" "}
+                  tab to sign and confirm.
                 </p>
               )}
             </div>

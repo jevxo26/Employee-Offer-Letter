@@ -10,9 +10,9 @@ import {
   FirstParty,
   SecondParty,
   DocSettings,
-  DocType,
-  AgreementTemplate,
+  SalesAgreementType,
   EmployeeCard,
+  AgreementTemplate,
 } from "../types";
 
 interface CeoWorkspaceProps {
@@ -31,8 +31,10 @@ interface CeoWorkspaceProps {
   isOpeningModal?: boolean;
   onSendOffer: (options?: { cardPDFdata?: string }) => Promise<void> | void;
   previewRefs: React.RefObject<HTMLDivElement | null>[];
-  docType: DocType;
+  docType: string;
   agreementTemplate?: AgreementTemplate;
+  salesAgreementType?: SalesAgreementType;
+  idLabel?: string;
   employeeCard: EmployeeCard;
   setEmployeeCard: React.Dispatch<React.SetStateAction<EmployeeCard>>;
 }
@@ -55,6 +57,8 @@ export default function CeoWorkspace({
   previewRefs,
   docType,
   agreementTemplate,
+  salesAgreementType,
+  idLabel,
   employeeCard,
   setEmployeeCard,
 }: CeoWorkspaceProps) {
@@ -66,13 +70,15 @@ export default function CeoWorkspace({
       fullName: secondParty.fullName,
       position: secondParty.position,
       bloodGroup: secondParty.bloodGroup || "Select",
-      employeeId: secondParty.partnerId || employeeCard.employeeId,
+      employeeId: salesAgreementType
+        ? (secondParty.salesPartnerId || docSettings.salesPartnerId || employeeCard.employeeId)
+        : (secondParty.partnerId || employeeCard.employeeId),
       department: employeeCard.department,
       photoUrl: employeeCard.photoUrl,
       issueDate: docSettings.date || employeeCard.issueDate,
       expiryDate: employeeCard.expiryDate,
     }),
-    [docSettings.date, employeeCard, secondParty],
+    [docSettings.date, docSettings.salesPartnerId, employeeCard, salesAgreementType, secondParty],
   );
 
   const handleSendOffer = async () => {
@@ -125,7 +131,7 @@ export default function CeoWorkspace({
             gap: "40px",
           }}
         >
-          <IdCardFront data={founderCardData} cardRef={hiddenCardFrontRef} idLabel={agreementTemplate === "internship" ? "Internee ID" : undefined} />
+          <IdCardFront data={founderCardData} cardRef={hiddenCardFrontRef} idLabel={idLabel} />
           <IdCardBack data={founderCardData} cardRef={hiddenCardBackRef} />
         </div>
 
@@ -133,7 +139,7 @@ export default function CeoWorkspace({
         <div className="sticky top-15 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-3 sm:px-6 overflow-x-auto">
           {[
             { id: "settings", label: "📄 Appointment Docs" },
-            { id: "idCard", label: agreementTemplate === "internship" ? "🪪 Internee ID Card" : "🪪 Partner ID Card" },
+          { id: "idCard", label: salesAgreementType === "countrySales" ? "🪪 Country Sales Partner ID Card" : salesAgreementType === "salesAgent" ? "🪪 Sales Agent ID Card" : agreementTemplate === "internship" ? "🪪 Internee ID Card" : "🪪 Partner ID Card" },
           ].map(({ id, label }) => (
             <button
               key={id}
@@ -183,6 +189,7 @@ export default function CeoWorkspace({
                 onExport={onExport}
                 isDemo={isDemo}
                 agreementTemplate={agreementTemplate}
+                salesAgreementType={salesAgreementType}
               />
             </>
           ) : (
@@ -191,16 +198,20 @@ export default function CeoWorkspace({
                 fullName: secondParty.fullName,
                 position: secondParty.position,
                 bloodGroup: secondParty.bloodGroup,
-                employeeId: secondParty.partnerId || employeeCard.employeeId,
+                employeeId: salesAgreementType
+                  ? (secondParty.salesPartnerId || docSettings.salesPartnerId || employeeCard.employeeId)
+                  : (secondParty.partnerId || employeeCard.employeeId),
                 issueDate: docSettings.date || employeeCard.issueDate,
-                expiryDate: employeeCard.expiryDate,
+                expiryDate: salesAgreementType
+                  ? (docSettings.salesExpiryDate || employeeCard.expiryDate)
+                  : employeeCard.expiryDate,
               }}
               controlledPhotoUrl={employeeCard.photoUrl}
               onPhotoChange={(dataUrl) =>
                 setEmployeeCard((p) => ({ ...p, photoUrl: dataUrl }))
               }
               hidePhotoUpload
-              idLabel={agreementTemplate === "internship" ? "Internee ID" : undefined}
+              idLabel={idLabel}
             />
           )}
         </div>
@@ -246,6 +257,7 @@ export default function CeoWorkspace({
         onExport={onExport}
         isDemo={isDemo}
         agreementTemplate={agreementTemplate}
+        salesAgreementType={salesAgreementType}
       />
     </motion.section>
   );
