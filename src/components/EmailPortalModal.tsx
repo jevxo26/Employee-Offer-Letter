@@ -176,8 +176,7 @@ export default function EmailPortalModal({
           ) : isSalesType ? (
             <>
               <p>
-                On behalf of <strong>{firstParty.companyName}</strong>, we are pleased to formally appoint you as a{" "}
-                <strong>{isCSP ? "Country Sales Partner" : "Sales Agent"}</strong>.
+                {isSalesAgent ? <>Your Country Sales Partner has issued this <strong>Sales Agent Agreement</strong>. JEVXO acknowledges and approves the appointment; the contractual relationship is with the Country Sales Partner.</> : <>On behalf of <strong>{firstParty.companyName}</strong>, we are pleased to formally appoint you as a <strong>Country Sales Partner</strong>.</>}
               </p>
               <p>
                 Please review the full agreement terms, upload your photo, and apply your digital signature to complete your onboarding.

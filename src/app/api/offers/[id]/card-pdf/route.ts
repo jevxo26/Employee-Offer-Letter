@@ -10,6 +10,16 @@ import {
 } from "../../../../../lib/emailConfig";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function sendWithRetry(payload: Parameters<typeof resend.emails.send>[0]) {
+  let result = await resend.emails.send(payload);
+  if (!result.error) return result;
+
+  console.warn("[card-pdf] Email delivery failed; retrying once:", result.error);
+  result = await resend.emails.send(payload);
+  return result;
+}
 
 /**
  * POST /api/offers/[id]/card-pdf
@@ -91,7 +101,7 @@ export async function POST(
         process.env.FOUNDER_EMAIL,
         agreement.firstParty.email,
       );
-      const partnerEmail = agreement.secondParty.email;
+      const partnerEmail = agreement.secondParty.email?.trim();
       const founderName = agreement.firstParty.representedBy;
       const partnerName = agreement.secondParty.fullName;
       const partnerID = resolvedPartnerId;
@@ -151,22 +161,24 @@ export async function POST(
         ? `Dear ${partnerName},\n\nWelcome to JEVXO! Your signed Sales Agent Agreement and ID card are attached.\n\nBest,\nJEVXO`
         : `Dear ${partnerName},\n\nYour appointment letter and ID card from JEVXO are attached.\n\nBest,\nJEVXO`;
 
-      const [founderResult, partnerResult] = await Promise.all([
-        resend.emails.send({
+      const founderResult = founderRecipients.length > 0
+        ? await sendWithRetry({
           from: getResendFromAddress(),
           to: founderRecipients,
           subject: founderSubject,
           text: founderText,
           attachments,
-        }),
-        resend.emails.send({
+        })
+        : { error: { message: "No valid founder notification recipient configured." } };
+      const partnerResult = partnerEmail && EMAIL_PATTERN.test(partnerEmail)
+        ? await sendWithRetry({
           from: getResendFromAddress(),
           to: [partnerEmail],
           subject: partnerSubject,
           text: partnerText,
           attachments,
-        }),
-      ]);
+        })
+        : { error: { message: "A valid partner email address is required before final delivery." } };
 
       if (founderResult.error)
         console.error("[card-pdf] Founder email failed:", founderResult.error);
@@ -190,6 +202,7 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
+      delivery: { founder: founderEmailSent, partner: partnerEmailSent },
       message: sentToBoth
         ? "The fully executed documents have been emailed to you and the Founder."
         : "Documents generated, but at least one email delivery failed.",

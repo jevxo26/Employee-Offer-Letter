@@ -12,6 +12,7 @@ import Hero from "../components/Hero";
 import Login from "../components/Login";
 import DocTypeSelector from "../components/DocTypeSelector";
 import FormWizard from "../components/FormWizard";
+import SalesFormWizard from "../components/SalesFormWizard";
 import InternshipFormWizard from "../components/InternshipFormWizard";
 import CeoWorkspace from "../components/CeoWorkspace";
 import CandidatePortal from "../components/CandidatePortal";
@@ -452,6 +453,25 @@ export default function Home() {
   const validateStep = () => {
     const p = secondParty;
     const isInternship = agreementTemplate === "internship";
+    const isSalesAgreement = Boolean(salesAgreementType);
+
+    if (isSalesAgreement) {
+      const isCSP = salesAgreementType === "countrySales";
+      const partner = docSettings.salesPartner;
+      const validEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+      if (activeStep === 1) {
+        if (!docSettings.salesRefId?.trim() || !docSettings.date.trim() || !docSettings.effectiveDate?.trim()) return "Agreement reference, date, and effective date are required.";
+      } else if (activeStep === 2) {
+        if (!p.fullName.trim() || !validEmail(p.email) || !p.mobileNumber.trim()) return isCSP ? "Partner name, valid email, and phone are required." : "Sales Agent name, valid email, and phone are required.";
+        if (isCSP && !p.presentAddress.trim()) return "Partner address is required.";
+        if (!isCSP && (!partner?.fullName.trim() || !validEmail(partner.email) || !partner.phone.trim() || !docSettings.partnerAgreementRef?.trim())) return "Country Sales Partner name, email, phone, and agreement reference are required.";
+      } else if (activeStep === 3) {
+        if (!docSettings.territory?.trim() || !docSettings.governingJurisdiction?.trim()) return "Territory and governing jurisdiction are required.";
+      } else if (activeStep === 4) {
+        if (!docSettings.paymentCurrency?.trim() || !docSettings.paymentTerms?.trim() || !docSettings.noticePeriodSales?.trim()) return "Payment currency, payment terms, and notice period are required.";
+      } else if (activeStep === 5 && !firstParty.signatureImg) return "The Founder approval signature is required.";
+      return "";
+    }
 
     if (isInternship) {
       if (activeStep === 1) {
@@ -859,6 +879,22 @@ export default function Home() {
                 onPrev={handlePrev}
                 docSettings={docSettings}
                 setDocSettings={setDocSettings}
+              />
+            ) : salesAgreementType ? (
+              <SalesFormWizard
+                key={`sales-${salesAgreementType}`}
+                activeStep={activeStep}
+                secondParty={secondParty}
+                setSecondParty={setSecondParty}
+                firstParty={firstParty}
+                setFirstParty={setFirstParty}
+                validationError={validationError}
+                onClearError={() => setValidationError("")}
+                onNext={handleNext}
+                onPrev={handlePrev}
+                docSettings={docSettings}
+                setDocSettings={setDocSettings}
+                agreementType={salesAgreementType}
               />
             ) : (
               <FormWizard

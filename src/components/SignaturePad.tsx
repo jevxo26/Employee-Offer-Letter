@@ -8,14 +8,6 @@ interface SignaturePadProps {
   savedImage: string;
 }
 
-type CanvasPointerEvent =
-  | React.MouseEvent<HTMLCanvasElement>
-  | React.TouchEvent<HTMLCanvasElement>;
-
-function isTouchCanvasEvent(event: CanvasPointerEvent): event is React.TouchEvent<HTMLCanvasElement> {
-  return "touches" in event;
-}
-
 export default function SignaturePad({
   onSave,
   onClear,
@@ -49,8 +41,7 @@ export default function SignaturePad({
     }
   }, [savedImage, hasDrawn]);
 
-  // Handle canvas scaling
-  const getCoordinates = (e: CanvasPointerEvent) => {
+  const getCoordinates = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
 
@@ -58,26 +49,14 @@ export default function SignaturePad({
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
-    // Support touch and mouse events
-    if (isTouchCanvasEvent(e)) {
-      if (e.touches.length === 0) return { x: 0, y: 0 };
-      return {
-        x: (e.touches[0].clientX - rect.left) * scaleX,
-        y: (e.touches[0].clientY - rect.top) * scaleY,
-      };
-    } else {
-      return {
-        x: (e.clientX - rect.left) * scaleX,
-        y: (e.clientY - rect.top) * scaleY,
-      };
-    }
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
   };
 
-  const startDrawing = (
-    e: CanvasPointerEvent,
-  ) => {
-    // Prevent scrolling on touch devices
-    if (e.cancelable) e.preventDefault();
+  const startDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (e.pointerType === "touch") e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -85,17 +64,16 @@ export default function SignaturePad({
     if (!ctx) return;
 
     const { x, y } = getCoordinates(e);
+    canvas.setPointerCapture(e.pointerId);
     ctx.beginPath();
     ctx.moveTo(x, y);
     setIsDrawing(true);
     setHasDrawn(true);
   };
 
-  const draw = (
-    e: CanvasPointerEvent,
-  ) => {
+  const draw = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
-    if (e.cancelable) e.preventDefault();
+    if (e.pointerType === "touch") e.preventDefault();
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -108,12 +86,13 @@ export default function SignaturePad({
     ctx.stroke();
   };
 
-  const stopDrawing = () => {
+  const stopDrawing = (e?: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
     setIsDrawing(false);
 
     const canvas = canvasRef.current;
     if (canvas) {
+      if (e && canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
       onSave(canvas.toDataURL("image/png"));
     }
   };
@@ -153,14 +132,12 @@ export default function SignaturePad({
           ref={canvasRef}
           width={400}
           height={150}
-          className="w-full h-[150px] bg-white opacity-95 block"
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={stopDrawing}
-          onMouseLeave={stopDrawing}
-          onTouchStart={startDrawing}
-          onTouchMove={draw}
-          onTouchEnd={stopDrawing}
+          className="w-full h-[150px] bg-white opacity-95 block touch-none"
+          style={{ touchAction: "none" }}
+          onPointerDown={startDrawing}
+          onPointerMove={draw}
+          onPointerUp={stopDrawing}
+          onPointerCancel={stopDrawing}
         />
         {!hasDrawn && !savedImage && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-[#8C8479] text-center px-4">

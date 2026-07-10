@@ -115,9 +115,9 @@ export async function POST(request: Request) {
         <p style="font-size: 16px; font-weight: 700; margin-top: 0; color: #0f172a;">Dear ${candidateName},</p>
 
         <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
-          On behalf of <strong>${firstParty.companyName}</strong>, we are pleased to formally appoint you as a
-          <strong style="color: #10b981;"> ${isCountrySales ? "Country Sales Partner" : "Sales Agent"}</strong>
-          ${isCountrySales ? `for the Territory of <strong>${docSettings.territory || "your region"}</strong>` : `within the sales network for the Territory of <strong>${docSettings.territory || "your region"}</strong>`}.
+          ${isCountrySales
+            ? `On behalf of <strong>${firstParty.companyName}</strong>, we are pleased to formally appoint you as a <strong style="color: #10b981;">Country Sales Partner</strong> for the Territory of <strong>${docSettings.territory || "your region"}</strong>.`
+            : `Your Country Sales Partner has issued this <strong style="color: #10b981;">Sales Agent Agreement</strong> for the Territory of <strong>${docSettings.territory || "your region"}</strong>. <strong>${firstParty.companyName}</strong> acknowledges and approves the appointment; the contractual relationship is with the Country Sales Partner.`}
         </p>
 
         <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 15px 20px; margin: 20px 0;">

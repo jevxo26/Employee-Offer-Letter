@@ -138,7 +138,7 @@ export default function CeoWorkspace({
         {/* Tab bar */}
         <div className="sticky top-15 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-3 sm:px-6 overflow-x-auto">
           {[
-            { id: "settings", label: "📄 Appointment Docs" },
+            { id: "settings", label: salesAgreementType === "countrySales" ? "📄 Country Sales Partner Agreement" : salesAgreementType === "salesAgent" ? "📄 Sales Agent Agreement" : agreementTemplate === "internship" ? "📄 Internship Offer" : "📄 Appointment Docs" },
           { id: "idCard", label: salesAgreementType === "countrySales" ? "🪪 Country Sales Partner ID Card" : salesAgreementType === "salesAgent" ? "🪪 Sales Agent ID Card" : agreementTemplate === "internship" ? "🪪 Internee ID Card" : "🪪 Partner ID Card" },
           ].map(({ id, label }) => (
             <button
@@ -177,6 +177,7 @@ export default function CeoWorkspace({
                     isOpeningModal={isOpeningModal}
                     onSendOffer={handleSendOffer}
                     agreementTemplate={agreementTemplate}
+                    salesAgreementType={salesAgreementType}
                   />
                 </div>
               </div>
@@ -246,6 +247,7 @@ export default function CeoWorkspace({
           isOpeningModal={isOpeningModal}
           onSendOffer={onSendOffer}
           agreementTemplate={agreementTemplate}
+          salesAgreementType={salesAgreementType}
         />
       </div>
       <WorkspaceCanvas

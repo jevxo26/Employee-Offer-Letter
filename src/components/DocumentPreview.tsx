@@ -143,7 +143,7 @@ export default function DocumentPreview({
     >
       {/* PAGE 1 — Header, parties, QR top-right, Appointment & Responsibilities */}
       <DocumentLayout pageNum={1} refProp={previewRefs[0]}>
-        <div className="z-10 flex flex-col flex-grow p-10">
+        <div className="z-10 flex relative flex-col flex-grow p-10">
           <div className="absolute top-7 md:top-8 lg:top-10 right-10 z-20 flex items-center gap-2">
             <div className="flex flex-col items-end text-right font-sans">
               <span className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">
@@ -159,11 +159,12 @@ export default function DocumentPreview({
             <div className="bg-white p-1 border border-slate-200 rounded shadow-sm shrink-0">
               <QRCode value={verifyUrl} size={56} level="M" />
             </div>
+            <div className="absolute -bottom-2 md:-bottom-3 right-0 w-54 h-[2px] bg-gradient-to-l from-indigo-500 to-sky-400" />
           </div>
 
           <header
             id="page-header"
-            className="flex justify-between items-start border-b-2 border-slate-900 pb-3 mb-2 relative pr-44"
+            className="flex justify-between items-start border-b-2 border-slate-900 pb-2 mb-1 relative pr-44"
           >
             <div className="flex flex-col">
               <JevxoLogo />

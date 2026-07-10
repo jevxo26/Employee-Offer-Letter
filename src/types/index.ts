@@ -37,6 +37,15 @@ export type AgreementTemplate = 'partner' | 'internship' | 'sales_agent' | 'coun
 
 export type SalesAgreementType = 'countrySales' | 'salesAgent';
 
+export interface SalesPartnerInfo {
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  partnerId: string;
+  signatureImg?: string;
+}
+
 export interface DocSettings {
   date: string;
   minimumServicePeriod: number;
@@ -66,6 +75,16 @@ export interface DocSettings {
   noticePeriodSales?: string;      // e.g. "7/14" or "30/60"
   governingJurisdiction?: string;
   salesExpiryDate?: string;        // ID card expiry for sales types
+  salesPartner?: SalesPartnerInfo; // contracting Country Sales Partner for Sales Agent agreements
+  commissionConfiguration?: string;
+  baseCommissionRate?: number;
+  recurringCommissionRate?: number;
+  overrideCommissionRate?: number;
+  paymentCurrency?: string;
+  paymentTerms?: string;
+  reportingStructure?: string;
+  effectiveDate?: string;
+  expirationDate?: string;
 }
 
 export interface EmployeeCard {

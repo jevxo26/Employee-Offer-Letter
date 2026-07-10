@@ -13,6 +13,7 @@ interface SignatureParty {
 interface SignatureSectionProps {
   party1: SignatureParty;
   party2: SignatureParty;
+  party3?: SignatureParty;
   titleText?: string;
   bodyText?: React.ReactNode;
 }
@@ -20,6 +21,7 @@ interface SignatureSectionProps {
 export default function SignatureSection({
   party1,
   party2,
+  party3,
   titleText = "Acceptance & Executory Signatures",
   bodyText,
 }: SignatureSectionProps) {
@@ -33,7 +35,7 @@ export default function SignatureSection({
           {bodyText}
         </p>
       )}
-      <div className="grid grid-cols-2 gap-12 pt-6 font-sans text-[13px]">
+      <div className={`grid ${party3 ? "grid-cols-3 gap-5" : "grid-cols-2 gap-12"} pt-6 font-sans text-[13px]`}>
         {/* Party 1 — left */}
         <div className="flex flex-col">
           <div className="relative mt-4 pt-2 font-semibold text-slate-800 text-center">
@@ -81,7 +83,23 @@ export default function SignatureSection({
           <div className="text-[11px] text-slate-500 text-center">{party2.role}</div>
           <div className="text-[10px] text-slate-400 text-center my-2">Date: {party2.date || ""}</div>
         </div>
+
+        {party3 && <SignatureBlock party={party3} />}
       </div>
     </section>
   );
+}
+
+function SignatureBlock({ party }: { party: SignatureParty }) {
+  return <div className="flex flex-col">
+    <div className="relative mt-4 pt-2 font-semibold text-slate-800 text-center">
+      <div className="absolute -top-10 left-0 right-0 h-12 flex items-end justify-center pointer-events-none select-none">
+        {party.sigImg ? <Image height={50} width={100} src={party.sigImg} alt={`${party.name} Signature`} className="max-h-11 max-w-[150px] object-contain block opacity-95" /> : <div className="text-amber-600 font-bold tracking-wide text-[8.5px] bg-amber-50 px-2 py-0.5 border border-amber-200 rounded uppercase">{party.awaitingLabel || "Awaiting Signature *"}</div>}
+      </div>
+      ...................................................................................
+    </div>
+    <div className="text-center font-bold text-slate-900 mt-1">{party.name}</div>
+    <div className="text-[11px] text-slate-500 text-center">{party.role}</div>
+    <div className="text-[10px] text-slate-400 text-center mt-2">Date: {party.sigImg ? party.date || "" : ""}</div>
+  </div>;
 }

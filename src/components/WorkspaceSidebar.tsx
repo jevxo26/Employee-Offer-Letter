@@ -10,7 +10,7 @@ import {
   Mail,
   Calendar,
 } from "lucide-react";
-import { FirstParty, SecondParty, DocSettings, AgreementTemplate } from "../types";
+import { FirstParty, SecondParty, DocSettings, AgreementTemplate, SalesAgreementType } from "../types";
 
 // ─── Small reusable input primitives ─────────────────────────────────────────
 interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -278,6 +278,47 @@ function SettingsTab({ docSettings, setDocSettings }: SettingsTabProps) {
   );
 }
 
+function SalesSettingsTab({ docSettings, setDocSettings, salesAgreementType }: SettingsTabProps & { salesAgreementType: SalesAgreementType }) {
+  const isCSP = salesAgreementType === "countrySales";
+  const setNumber = (key: keyof DocSettings, min: number, max: number) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setDocSettings((p) => ({ ...p, [key]: Math.min(max, Math.max(min, Number(e.target.value) || min)) }));
+  const setNotice = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setDocSettings((p) => ({ ...p, noticePeriodSales: String(Math.min(90, Math.max(1, Number(e.target.value) || 1))) }));
+
+  return <div className="space-y-4">
+    <TextInput label="Agreement Reference" value={docSettings.salesRefId || ""} onChange={(e) => setDocSettings((p) => ({ ...p, salesRefId: e.target.value }))} />
+    <TextInput label="Agreement Date" value={docSettings.date} onChange={(e) => setDocSettings((p) => ({ ...p, date: e.target.value }))} />
+    <TextInput label="Effective Date" value={docSettings.effectiveDate || ""} onChange={(e) => setDocSettings((p) => ({ ...p, effectiveDate: e.target.value }))} />
+    <TextInput label={isCSP ? "Country / Territory" : "Assigned Territory / Region"} value={docSettings.territory || ""} onChange={(e) => setDocSettings((p) => ({ ...p, territory: e.target.value }))} />
+    <TextInput label="Governing Jurisdiction" value={docSettings.governingJurisdiction || ""} onChange={(e) => setDocSettings((p) => ({ ...p, governingJurisdiction: e.target.value }))} />
+    <SliderField label={isCSP ? "Base Commission" : "Sales Commission"} value={docSettings.baseCommissionRate ?? 10} suffix="%" min={1} max={100} onChange={setNumber("baseCommissionRate", 1, 100)} />
+    <SliderField label="Recurring Commission" value={docSettings.recurringCommissionRate ?? (isCSP ? 12 : 10)} suffix="%" min={1} max={100} onChange={setNumber("recurringCommissionRate", 1, 100)} />
+    {isCSP && <SliderField label="Override Commission" value={docSettings.overrideCommissionRate ?? 10} suffix="%" min={1} max={100} onChange={setNumber("overrideCommissionRate", 1, 100)} />}
+    <SliderField label="Payment Window" value={docSettings.paymentDays ?? 14} suffix=" Days" min={1} max={90} onChange={setNumber("paymentDays", 1, 90)} />
+    <SliderField label="Notice Period" value={Number(docSettings.noticePeriodSales) || 30} suffix=" Days" min={1} max={90} onChange={setNotice} />
+    <TextInput label="Payment Currency" value={docSettings.paymentCurrency || ""} onChange={(e) => setDocSettings((p) => ({ ...p, paymentCurrency: e.target.value }))} />
+    <TextInput label="Payment Terms" value={docSettings.paymentTerms || ""} onChange={(e) => setDocSettings((p) => ({ ...p, paymentTerms: e.target.value }))} />
+  </div>;
+}
+
+function SalesPartyTab({ secondParty, setSecondParty, docSettings, setDocSettings, salesAgreementType }: {
+  secondParty: SecondParty; setSecondParty: React.Dispatch<React.SetStateAction<SecondParty>>; docSettings: DocSettings; setDocSettings: React.Dispatch<React.SetStateAction<DocSettings>>; salesAgreementType: SalesAgreementType;
+}) {
+  const isCSP = salesAgreementType === "countrySales";
+  const partner = docSettings.salesPartner || { fullName: "", email: "", phone: "", address: "", partnerId: "" };
+  const setAgent = (key: keyof SecondParty) => (e: React.ChangeEvent<HTMLInputElement>) => setSecondParty((p) => ({ ...p, [key]: e.target.value }));
+  const setPartner = (key: keyof typeof partner) => (e: React.ChangeEvent<HTMLInputElement>) => setDocSettings((p) => ({ ...p, salesPartner: { ...(p.salesPartner || partner), [key]: e.target.value } }));
+  return <div className="space-y-4">
+    {!isCSP && <><p className="text-[11px] text-[#64748B] font-semibold uppercase tracking-wide">Country Sales Partner</p><TextInput label="Partner Full Name" value={partner.fullName} onChange={setPartner("fullName")} /><TextInput label="Partner Email" value={partner.email} onChange={setPartner("email")} /><TextInput label="Partner Phone" value={partner.phone} onChange={setPartner("phone")} /><TextInput label="Partner Agreement Reference" value={docSettings.partnerAgreementRef || ""} onChange={(e) => setDocSettings((p) => ({ ...p, partnerAgreementRef: e.target.value }))} /><div className="border-t border-[#DBEAFE]" /></>}
+    <p className="text-[11px] text-[#64748B] font-semibold uppercase tracking-wide">{isCSP ? "Country Sales Partner" : "Sales Agent"}</p>
+    <TextInput label="Full Name" value={secondParty.fullName} onChange={setAgent("fullName")} />
+    <TextInput label="Email" value={secondParty.email} onChange={setAgent("email")} />
+    <TextInput label="Phone" value={secondParty.mobileNumber} onChange={setAgent("mobileNumber")} />
+    <TextInput label={isCSP ? "Partner ID" : "Sales Agent ID"} value={secondParty.salesPartnerId || ""} onChange={setAgent("salesPartnerId")} />
+    <TextArea label="Address" value={secondParty.presentAddress} onChange={(e) => setSecondParty((p) => ({ ...p, presentAddress: e.target.value, permanentAddress: e.target.value }))} />
+  </div>;
+}
+
 interface SecondPartyTabProps {
   secondParty: SecondParty;
   setSecondParty: React.Dispatch<React.SetStateAction<SecondParty>>;
@@ -424,6 +465,12 @@ const INTERN_TABS = [
   { id: "firstParty", label: "Company Info", icon: BookOpen },
 ];
 
+const SALES_TABS = [
+  { id: "settings", label: "Sales Terms", icon: Settings },
+  { id: "secondParty", label: "Parties", icon: User },
+  { id: "firstParty", label: "JEVXO Approval", icon: BookOpen },
+];
+
 interface WorkspaceSidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
@@ -440,6 +487,7 @@ interface WorkspaceSidebarProps {
   onSendOffer: () => void;
   isOpeningModal?: boolean;
   agreementTemplate?: AgreementTemplate;
+  salesAgreementType?: SalesAgreementType;
 }
 
 export default function WorkspaceSidebar({
@@ -458,15 +506,17 @@ export default function WorkspaceSidebar({
   onSendOffer,
   isOpeningModal = false,
   agreementTemplate,
+  salesAgreementType,
 }: WorkspaceSidebarProps) {
   const isInternship = agreementTemplate === "internship";
+  const isSalesAgreement = salesAgreementType === "countrySales" || salesAgreementType === "salesAgent";
   return (
     <div className="w-full xl:w-[500px] bg-[#F8FAFC] border-b xl:border-b-0 xl:border-r border-[#DBEAFE] flex flex-col xl:h-full overflow-hidden shrink-0">
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Header */}
         <div className="space-y-2">
           <span className={`text-[10px] border font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block ${isInternship ? "bg-[#F0F9FF] border-[#BAE6FD] text-[#0EA5E9]" : "bg-[#EFF6FF] border-[#DBEAFE]/50 text-[#1E3A8A]"}`}>
-            {isInternship ? "Internship Offer Ready!" : "Agreement ready!"}
+            {isInternship ? "Internship Offer Ready!" : isSalesAgreement ? `${salesAgreementType === "countrySales" ? "Country Sales Partner" : "Sales Agent"} Agreement Ready!` : "Agreement ready!"}
           </span>
           <h2 className="text-xl font-bold text-[#0F172A]">
             Document Workspace
@@ -474,13 +524,15 @@ export default function WorkspaceSidebar({
           <p className="text-[#64748B] text-xs">
             {isInternship
               ? "Adjust internship offer details with live preview."
+              : isSalesAgreement
+              ? "Adjust sales agreement details with a live document preview."
               : "Fine-tune standard clause parameters with real-time browser preview compilation."}
           </p>
         </div>
 
         {/* Tab headers */}
         <div className="flex border-b border-[#DBEAFE]">
-          {(isInternship ? INTERN_TABS : PARTNER_TABS).map(({ id, label, icon: Icon }) => (
+          {(isInternship ? INTERN_TABS : isSalesAgreement ? SALES_TABS : PARTNER_TABS).map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
@@ -501,12 +553,14 @@ export default function WorkspaceSidebar({
           {activeTab === "settings" && (
             isInternship ? (
               <InternshipSettingsTab docSettings={docSettings} setDocSettings={setDocSettings} />
+            ) : isSalesAgreement ? (
+              <SalesSettingsTab docSettings={docSettings} setDocSettings={setDocSettings} salesAgreementType={salesAgreementType!} />
             ) : (
               <SettingsTab docSettings={docSettings} setDocSettings={setDocSettings} />
             )
           )}
           {activeTab === "secondParty" && (
-            <SecondPartyTab secondParty={secondParty} setSecondParty={setSecondParty} />
+            isSalesAgreement ? <SalesPartyTab secondParty={secondParty} setSecondParty={setSecondParty} docSettings={docSettings} setDocSettings={setDocSettings} salesAgreementType={salesAgreementType!} /> : <SecondPartyTab secondParty={secondParty} setSecondParty={setSecondParty} />
           )}
           {activeTab === "firstParty" && (
             <FirstPartyTab firstParty={firstParty} setFirstParty={setFirstParty} />
@@ -542,7 +596,7 @@ export default function WorkspaceSidebar({
           )}
           <div className="flex justify-between text-[11px] text-[#64748B] px-1 font-semibold">
             <span>A4 dimensions output</span>
-            <span>{isDemo ? "1 page" : isInternship ? "1 page" : "2 pages"} automatic layout</span>
+            <span>{isDemo ? "1 page" : isInternship ? "1 page" : isSalesAgreement ? "4 pages" : "2 pages"} automatic layout</span>
           </div>
         </div>
       </div>
