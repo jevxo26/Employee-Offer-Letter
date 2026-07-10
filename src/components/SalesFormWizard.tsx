@@ -467,7 +467,7 @@ export default function SalesFormWizard(props: Props) {
           <button
             type="button"
             onClick={onNext}
-            className="px-6 py-3 bg-[#2563EB] font-bold text-white rounded-xl"
+            className="px-6 py-3 bg-[#2563EB] font-bold cursor-pointer text-white rounded-xl"
           >
             {activeStep === 5 ? "Generate Document" : "Continue"}{" "}
             {activeStep === 5 ? (

@@ -150,7 +150,7 @@ export default function FormWizard({
           <button
             type="button"
             onClick={onNext}
-            className="px-6 py-3 bg-[#2563EB] hover:bg-[#1D4ED8] font-bold text-white rounded-xl transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+            className="px-6 py-3 bg-[#2563EB] hover:bg-[#1D4ED8] cursor-pointer font-bold text-white rounded-xl transition flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             {activeStep === TOTAL_STEPS ? "Generate Document" : "Continue"}
             {activeStep < TOTAL_STEPS ? (
