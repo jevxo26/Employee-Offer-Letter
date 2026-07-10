@@ -348,6 +348,10 @@ export default function Home() {
         ...prev,
         agreementTemplate: "partner",
         salesAgreementType: type,
+        governingJurisdiction: prev.governingJurisdiction || "Bangladesh",
+        paymentCurrency: prev.paymentCurrency || "BDT",
+        paymentTerms: prev.paymentTerms || "14",
+        noticePeriodSales: prev.noticePeriodSales || "30",
       }));
     } else if (type === "internship") {
       setSalesAgreementType(undefined);
@@ -376,8 +380,7 @@ export default function Home() {
   // ── ID card label helper ────────────────────────────────────────────────────
   const getIdLabel = (): string | undefined => {
     if (agreementTemplate === "internship") return "Internee ID";
-    if (salesAgreementType === "countrySales") return "Country Sales Partner ID";
-    if (salesAgreementType === "salesAgent") return "Sales Agent ID";
+    if (salesAgreementType) return undefined;
     return undefined; // defaults to "ID No" = Partner card with QR
   };
 
@@ -386,7 +389,7 @@ export default function Home() {
     setEmployeeCard((prev) => ({
       ...prev,
       fullName: secondParty.fullName,
-      position: secondParty.position,
+      position: salesAgreementType === "countrySales" ? "Country Sales Partner" : salesAgreementType === "salesAgent" ? "Sales Agent" : secondParty.position,
       bloodGroup: secondParty.bloodGroup || "Select",
       ...(agreementTemplate === "internship" && docSettings.internExpiryDate
         ? { expiryDate: docSettings.internExpiryDate }
@@ -460,7 +463,7 @@ export default function Home() {
       const partner = docSettings.salesPartner;
       const validEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
       if (activeStep === 1) {
-        if (!docSettings.salesRefId?.trim() || !docSettings.date.trim() || !docSettings.effectiveDate?.trim()) return "Agreement reference, date, and effective date are required.";
+        if (!docSettings.salesRefId?.trim() || !docSettings.date.trim()) return "Agreement reference and date are required.";
       } else if (activeStep === 2) {
         if (!p.fullName.trim() || !validEmail(p.email) || !p.mobileNumber.trim()) return isCSP ? "Partner name, valid email, and phone are required." : "Sales Agent name, valid email, and phone are required.";
         if (isCSP && !p.presentAddress.trim()) return "Partner address is required.";
@@ -468,7 +471,7 @@ export default function Home() {
       } else if (activeStep === 3) {
         if (!docSettings.territory?.trim() || !docSettings.governingJurisdiction?.trim()) return "Territory and governing jurisdiction are required.";
       } else if (activeStep === 4) {
-        if (!docSettings.paymentCurrency?.trim() || !docSettings.paymentTerms?.trim() || !docSettings.noticePeriodSales?.trim()) return "Payment currency, payment terms, and notice period are required.";
+        if (!docSettings.paymentCurrency?.trim() || !docSettings.noticePeriodSales?.trim()) return "Payment currency and notice period are required.";
       } else if (activeStep === 5 && !firstParty.signatureImg) return "The Founder approval signature is required.";
       return "";
     }
@@ -947,7 +950,7 @@ export default function Home() {
               key="idCard"
               initialData={{
                 fullName: secondParty.fullName || employeeCard.fullName,
-                position: secondParty.position || employeeCard.position,
+                position: salesAgreementType === "countrySales" ? "Country Sales Partner" : salesAgreementType === "salesAgent" ? "Sales Agent" : secondParty.position || employeeCard.position,
                 bloodGroup: secondParty.bloodGroup || employeeCard.bloodGroup,
                 employeeId: secondParty.partnerId || employeeCard.employeeId,
                 issueDate: docSettings.date || employeeCard.issueDate,

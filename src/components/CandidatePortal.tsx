@@ -121,17 +121,11 @@ export default function CandidatePortal({
   const isSalesType = isCSP || isSalesAgent;
 
   // Determine the correct ID label for the card front
-  const idLabel: string | undefined = isInternship
-    ? "Internee ID"
-    : isCSP
-    ? "Country Sales Partner ID"
-    : isSalesAgent
-    ? "Sales Agent ID"
-    : undefined; // defaults to "ID No" = Partner card with QR
+  const idLabel: string | undefined = isInternship ? "Internee ID" : undefined;
 
   const cardData: EmployeeCard = {
     fullName: secondParty.fullName || "",
-    position: secondParty.position || "",
+    position: isCSP ? "Country Sales Partner" : isSalesAgent ? "Sales Agent" : secondParty.position || "",
     // Sales types use salesPartnerId; internship/partner use partnerId
     employeeId: isSalesType
       ? (secondParty.salesPartnerId || docSettings.salesPartnerId || "")
@@ -140,11 +134,7 @@ export default function CandidatePortal({
     department: "",
     photoUrl: candidatePhotoUrl,
     issueDate: docSettings.date || "",
-    expiryDate: isInternship
-      ? (docSettings.internExpiryDate || "")
-      : isSalesType
-      ? (docSettings.salesExpiryDate || "")
-      : "",
+    expiryDate: isInternship ? (docSettings.internExpiryDate || "") : "",
   };
 
 

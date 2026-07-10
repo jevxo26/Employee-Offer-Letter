@@ -147,7 +147,8 @@ export function IdCardFront({ data, cardRef, idLabel = "ID No" }: FrontProps) {
   // Only the default JEVXO Partner card (idLabel === "ID No") shows QR + NFC.
   // Internee ID, Country Sales Partner ID, and Sales Agent ID use the
   // center-aligned layout without QR.
-  const showQR = idLabel === "ID No";
+  const isSalesCard = /^(JVX-CSP|JVX-SAG)-/.test(data.employeeId || "");
+  const showQR = idLabel === "ID No" && !isSalesCard;
 
   const verifyUrl = buildVerifyUrl(
     data.employeeId || "000-000-0001",

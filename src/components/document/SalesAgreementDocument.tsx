@@ -227,7 +227,7 @@ export default function SalesAgreementDocument({
     overrideCommissionRate: settings.overrideCommissionRate ?? 10,
     paymentCurrency: settings.paymentCurrency || "[PAYMENT CURRENCY]",
     paymentTerms: settings.paymentTerms || "[PAYMENT TERMS]",
-    effectiveDate: settings.effectiveDate || settings.date,
+    effectiveDate: settings.date,
     governingJurisdiction:
       settings.governingJurisdiction || "[GOVERNING JURISDICTION]",
     salesExpiryDate: settings.salesExpiryDate || "",
@@ -296,11 +296,11 @@ export default function SalesAgreementDocument({
           </div>
 
           {/* Document title */}
-          <div className="text-center mt-2 mb-5">
-            <h1 className="font-sans font-extrabold text-[20px] uppercase tracking-widest text-slate-900 leading-tight">
+          <div className="text-center my-4">
+            <h1 className="font-sans font-extrabold text-[22px] uppercase tracking-wider text-slate-900 leading-tight">
               {docTitle}
             </h1>
-            <div className="mt-1 mx-auto w-24 h-1 rounded bg-gradient-to-r from-indigo-500 to-sky-400" />
+            <div className="mt-2 mx-auto w-36 h-1 rounded bg-gradient-to-r from-indigo-500 to-sky-400" />
           </div>
 
           {/* ── Section 01 — Parties ── */}
@@ -325,7 +325,6 @@ export default function SalesAgreementDocument({
                 rows={[
                   ["Agreement Reference No.", d.salesRefId],
                   ["Date of Agreement", d.date],
-                  ["Effective Date", d.effectiveDate],
                   ["Territory", d.territory],
                   ["Partner Contact", d.partnerContact],
                 ]}
@@ -405,7 +404,7 @@ export default function SalesAgreementDocument({
                   agents for this Territory.
                 </li>
               </ul>
-              <p className="mt-1 text-[11.5px] italic text-slate-500">
+              <p className="mt-3 text-[10.5px] italic text-slate-500">
                 Note: Select exactly one option per Partner and per Territory at
                 the time of signing. This corrects the earlier template error
                 where both options appeared listed together without a clear
@@ -452,31 +451,46 @@ export default function SalesAgreementDocument({
               num="03"
               title="Role &amp; Responsibilities of the Country Sales Partner"
             >
+              <p>
+                The Partner shall act as JEVXO's authorized Country Sales
+                Partner within the assigned Territory and shall perform the
+                following responsibilities in a professional, ethical, and
+                commercially reasonable manner:
+              </p>
               <ul className="list-disc ml-5 space-y-0.5">
                 <li>
-                  Represent JEVXO&apos;s products and services within the
-                  Territory in a professional and accurate manner.
+                  Represent and promote JEVXO's products, services, and business
+                  solutions within the assigned Territory accurately,
+                  professionally, and in accordance with the Company's standards
+                  and policies.
                 </li>
                 <li>
-                  Generate client leads, close sales, and onboard clients onto
-                  JEVXO&apos;s website, app, SEO, marketing, design, and
-                  consulting packages.
+                  Generate qualified client leads, close sales, and facilitate
+                  the onboarding of clients for JEVXO's website, application,
+                  SEO, digital marketing, branding, design, consulting, and
+                  other services offered by the Company.
                 </li>
                 <li>
-                  Build and manage a local sales agent network as described in
-                  Section 4.
+                  Build, recruit, manage, and supervise a local Sales Agent
+                  network in accordance with the provisions of this Agreement
+                  while ensuring compliance with JEVXO's operational standards.
                 </li>
                 <li>
-                  Carry out general marketing and promotional activities within
-                  the Territory as described in Section 6.
+                  Plan and carry out reasonable marketing, promotional
+                  campaigns, networking, and business development activities to
+                  strengthen JEVXO's market presence and expand business
+                  opportunities within the Territory.
                 </li>
                 <li>
-                  Collect client payments in local currency as described in
-                  Section 7.
+                  Collect client payments in the applicable local currency using
+                  approved payment methods and maintain proper payment records
+                  in accordance with this Agreement.
                 </li>
                 <li>
-                  Maintain accurate records of clients and agents, and report to
-                  JEVXO as required under this Agreement.
+                  Maintain complete and accurate records of clients, Sales
+                  Agents, subscriptions, payments, and other business
+                  activities, and submit reports or updates reasonably requested
+                  by JEVXO from time to time.
                 </li>
               </ul>
             </Section>
@@ -624,7 +638,7 @@ export default function SalesAgreementDocument({
                   ],
                 ]}
               />
-              <p className="mt-1 text-[11.5px] italic text-slate-500">
+              <p className="mt-1 text-xs italic text-slate-500">
                 Note: These rates apply uniformly to all Country Sales Partners
                 in all Territories, unless a signed custom addendum states
                 otherwise.
@@ -684,22 +698,30 @@ export default function SalesAgreementDocument({
               <p>
                 Given the combined earning structure in Section 5 (base
                 commission, recurring commission, and override commission), the
-                Partner and their agent network are responsible for carrying out
-                general and local marketing activities within the Territory —
-                including client outreach, local promotion, and awareness
-                campaigns — as a standard part of the Partner role. JEVXO will
+                Partner and their Sales Agent network are responsible for
+                carrying out general and local marketing activities within the
+                Territory, including client outreach, local promotion,
+                networking, awareness campaigns, and reasonable business
+                development initiatives as a standard part of the Partner's
+                role. The Partner shall make reasonable efforts to promote
+                JEVXO's products and services professionally while maintaining
+                the Company's reputation and brand standards. JEVXO will
                 continue to provide branding materials, product training, and
-                platform support, but day-to-day local marketing execution is
-                the responsibility of the Country Sales Partner.
+                platform support; however, day-to-day local marketing execution
+                remains the responsibility of the Country Sales Partner.
               </p>
+
               <p className="mt-2">
                 JEVXO shall provide the Partner with reasonable business
                 support, including product information, branding materials,
-                sales resources, onboarding guidance, and platform-related
-                updates necessary for carrying out responsibilities under this
-                Agreement. Such support shall not create an employer-employee
-                relationship and may be updated by the Company from time to
-                time.
+                sales resources, onboarding guidance, platform-related updates,
+                and other operational assistance reasonably required for
+                carrying out responsibilities under this Agreement. Such support
+                is intended solely to facilitate the Partner's business
+                activities and shall not create an employer-employee
+                relationship or guarantee ongoing operational assistance. The
+                Company reserves the right to update, modify, or discontinue
+                such support from time to time as reasonably necessary.
               </p>
             </Section>
           ) : (

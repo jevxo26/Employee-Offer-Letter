@@ -83,8 +83,6 @@ export interface DocSettings {
   paymentCurrency?: string;
   paymentTerms?: string;
   reportingStructure?: string;
-  effectiveDate?: string;
-  expirationDate?: string;
 }
 
 export interface EmployeeCard {

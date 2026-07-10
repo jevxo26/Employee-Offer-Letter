@@ -35,7 +35,7 @@ export default function SignatureSection({
           {bodyText}
         </p>
       )}
-      <div className={`grid ${party3 ? "grid-cols-3 gap-5" : "grid-cols-2 gap-12"} pt-6 font-sans text-[13px]`}>
+      <div className={`grid ${party3 ? "grid-cols-3 gap-5" : "grid-cols-2 gap-12"} pt-10 font-sans text-[13px]`}>
         {/* Party 1 — left */}
         <div className="flex flex-col">
           <div className="relative mt-4 pt-2 font-semibold text-slate-800 text-center">

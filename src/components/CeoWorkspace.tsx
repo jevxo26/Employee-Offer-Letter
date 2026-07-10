@@ -68,7 +68,7 @@ export default function CeoWorkspace({
   const founderCardData = React.useMemo(
     () => ({
       fullName: secondParty.fullName,
-      position: secondParty.position,
+      position: salesAgreementType === "countrySales" ? "Country Sales Partner" : salesAgreementType === "salesAgent" ? "Sales Agent" : secondParty.position,
       bloodGroup: secondParty.bloodGroup || "Select",
       employeeId: salesAgreementType
         ? (secondParty.salesPartnerId || docSettings.salesPartnerId || employeeCard.employeeId)
@@ -76,7 +76,7 @@ export default function CeoWorkspace({
       department: employeeCard.department,
       photoUrl: employeeCard.photoUrl,
       issueDate: docSettings.date || employeeCard.issueDate,
-      expiryDate: employeeCard.expiryDate,
+      expiryDate: salesAgreementType ? "" : employeeCard.expiryDate,
     }),
     [docSettings.date, docSettings.salesPartnerId, employeeCard, salesAgreementType, secondParty],
   );
@@ -197,15 +197,13 @@ export default function CeoWorkspace({
             <IdCardWorkspace
               initialData={{
                 fullName: secondParty.fullName,
-                position: secondParty.position,
+                position: salesAgreementType === "countrySales" ? "Country Sales Partner" : salesAgreementType === "salesAgent" ? "Sales Agent" : secondParty.position,
                 bloodGroup: secondParty.bloodGroup,
                 employeeId: salesAgreementType
                   ? (secondParty.salesPartnerId || docSettings.salesPartnerId || employeeCard.employeeId)
                   : (secondParty.partnerId || employeeCard.employeeId),
                 issueDate: docSettings.date || employeeCard.issueDate,
-                expiryDate: salesAgreementType
-                  ? (docSettings.salesExpiryDate || employeeCard.expiryDate)
-                  : employeeCard.expiryDate,
+                expiryDate: salesAgreementType ? "" : employeeCard.expiryDate,
               }}
               controlledPhotoUrl={employeeCard.photoUrl}
               onPhotoChange={(dataUrl) =>
