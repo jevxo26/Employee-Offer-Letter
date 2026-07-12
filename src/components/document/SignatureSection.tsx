@@ -81,7 +81,7 @@ export default function SignatureSection({
           </div>
           <div className="text-center font-bold text-slate-900 mt-1">{party2.name}</div>
           <div className="text-[11px] text-slate-500 text-center">{party2.role}</div>
-          <div className="text-[10px] text-slate-400 text-center my-2">Date: {party2.date || ""}</div>
+          <div className="text-[10px] text-slate-400 text-center my-2">Date: {party2.sigImg ? party2.date || "" : ""}</div>
         </div>
 
         {party3 && <SignatureBlock party={party3} />}
