@@ -76,6 +76,7 @@ export interface DocSettings {
   governingJurisdiction?: string;
   salesExpiryDate?: string;        // ID card expiry for sales types
   salesPartner?: SalesPartnerInfo; // contracting Country Sales Partner for Sales Agent agreements
+  partnerSignedDate?: string;      // date the partner/CSP confirmed their signature
   commissionConfiguration?: string;
   baseCommissionRate?: number;
   recurringCommissionRate?: number;

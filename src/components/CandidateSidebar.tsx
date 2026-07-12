@@ -15,6 +15,7 @@ interface CandidateSidebarProps {
   offerId: string;
   isPhotoUploaded?: boolean;
   onSwitchToIdCard?: () => void;
+  onSignatureSaved?: (hasSignature: boolean) => void;
 }
 
 export default function CandidateSidebar({
@@ -27,6 +28,7 @@ export default function CandidateSidebar({
   offerId,
   isPhotoUploaded = false,
   onSwitchToIdCard,
+  onSignatureSaved,
 }: CandidateSidebarProps) {
   const [sigError, setSigError] = useState("");
 
@@ -56,6 +58,7 @@ export default function CandidateSidebar({
 
       return updated;
     });
+    if (onSignatureSaved) onSignatureSaved(!!dataUrl);
   };
 
   const handleClearSignature = () => {
@@ -83,6 +86,7 @@ export default function CandidateSidebar({
 
       return updated;
     });
+    if (onSignatureSaved) onSignatureSaved(false);
   };
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

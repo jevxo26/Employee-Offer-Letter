@@ -32,11 +32,12 @@ export async function POST(request: Request) {
       docType = "appointment",
       agreementTemplate,
       cardPDFdata,
+      salesAgreementType,
     } = body;
 
     const resolvedTemplate = agreementTemplate || docSettings?.agreementTemplate || "partner";
     const isInternship = resolvedTemplate === "internship";
-    const salesType: string | undefined = docSettings?.salesAgreementType;
+    const salesType: string | undefined = salesAgreementType || docSettings?.salesAgreementType;
     const isCountrySales = salesType === "countrySales";
     const isSalesAgent   = salesType === "salesAgent";
     const isSalesAgreement = isCountrySales || isSalesAgent;
@@ -63,8 +64,8 @@ export async function POST(request: Request) {
       storage     = generated.storage;
     } else {
       const generated = await generateAgreementIds();
-      agreementId = generated.agreementId;
-      partnerId   = generated.partnerId;
+      agreementId = docSettings?.refId || generated.agreementId;
+      partnerId   = secondParty?.partnerId || generated.partnerId;
       storage     = generated.storage;
     }
 

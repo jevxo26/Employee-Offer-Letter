@@ -41,7 +41,7 @@ const DEFAULT_FIRST_PARTY: FirstParty = {
   currentAddress:
     "9th floor, Silicon Tower, Hi-tech park, Rajshahi, Bangladesh",
   permanentAddress: "Gopalpur, Sapahar, Naogaon, Bangladesh.",
-  mobileNumber: "01844532000",
+  mobileNumber: "01405749386",
   nidNumber: "2874935543",
   email: "info@jevxo.com",
   website: "www.jevxo.com",
@@ -187,6 +187,7 @@ export default function Home() {
 
   // Initial fetching of IDs — partner agreement IDs loaded once on mount
   useEffect(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("candidateView")) return;
     async function fetchNextIds() {
       try {
         const res = await fetch("/api/check-id?action=next");
@@ -212,6 +213,7 @@ export default function Home() {
 
   // Pre-load intern IDs whenever the template switches to internship
   useEffect(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("candidateView")) return;
     if (agreementTemplate !== "internship") return;
     async function fetchNextInternIds() {
       try {
@@ -243,6 +245,7 @@ export default function Home() {
 
   // Pre-load sales IDs whenever the sales agreement type changes
   useEffect(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("candidateView")) return;
     if (!salesAgreementType) return;
 
     const action = salesAgreementType === "countrySales" ? "nextCountrySales" : "nextSalesAgent";
@@ -288,7 +291,7 @@ export default function Home() {
         .then((data) => {
           setFirstParty(data.firstParty);
           setSecondParty(data.secondParty);
-          setDocSettings(data.docSettings);
+          setDocSettings({ ...data.docSettings, ...(data.signedAt ? { partnerSignedDate: new Date(data.signedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) } : {}) });
           setAgreementTemplate(
             (data.docSettings?.agreementTemplate as AgreementTemplate) ||
               "partner",
@@ -423,6 +426,8 @@ export default function Home() {
             secondParty,
             docSettings,
             docType,
+            agreementTemplate,
+            salesAgreementType,
             ...(cardPDFdata ? { cardPDFdata } : {}),
           }),
         });
@@ -970,6 +975,7 @@ export default function Home() {
               secondParty={secondParty}
               setSecondParty={setSecondParty}
               docSettings={docSettings}
+              setDocSettings={setDocSettings}
               isExporting={isExporting}
               isCompleted={isCandidateSigned}
               onExport={handleExportPDF}

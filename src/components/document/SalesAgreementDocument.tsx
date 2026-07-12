@@ -246,6 +246,7 @@ export default function SalesAgreementDocument({
         name: d.partnerName,
         role: "Country Sales Partner",
         sigImg: secondParty.signatureImg,
+        date: settings.partnerSignedDate || "",
         awaitingLabel: "Awaiting Partner Sign *",
       }
     : {

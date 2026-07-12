@@ -14,6 +14,7 @@ interface CandidatePortalProps {
   secondParty: SecondParty;
   setSecondParty: React.Dispatch<React.SetStateAction<SecondParty>>;
   docSettings: DocSettings;
+  setDocSettings: React.Dispatch<React.SetStateAction<DocSettings>>;
   isExporting: boolean;
   isCompleted: boolean;
   onExport: () => void;
@@ -32,6 +33,7 @@ export default function CandidatePortal({
   secondParty,
   setSecondParty,
   docSettings,
+  setDocSettings,
   isExporting,
   isCompleted,
   onExport,
@@ -119,6 +121,19 @@ export default function CandidatePortal({
   const isCSP = salesAgreementType === "countrySales";
   const isSalesAgent = salesAgreementType === "salesAgent";
   const isSalesType = isCSP || isSalesAgent;
+
+  // When the partner draws/saves their signature, stamp today's date into docSettings
+  // so the document preview updates instantly with the correct signed date.
+  const handleSignatureSaved = (hasSignature: boolean) => {
+    if (isCSP || isSalesAgent) {
+      setDocSettings((prev) => ({
+        ...prev,
+        partnerSignedDate: hasSignature
+          ? new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+          : "",
+      }));
+    }
+  };
 
   // Determine the correct ID label for the card front
   const idLabel: string | undefined = isInternship ? "Internee ID" : undefined;
@@ -288,6 +303,7 @@ export default function CandidatePortal({
                 offerId={offerId}
                 isPhotoUploaded={!!candidatePhotoUrl}
                 onSwitchToIdCard={() => setActiveTab("idcard")}
+                onSignatureSaved={handleSignatureSaved}
               />
             </div>
             <WorkspaceCanvas
