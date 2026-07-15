@@ -57,7 +57,7 @@ export default function InternshipDocumentPreview({
         {/* Page content */}
         <div className="z-10 flex flex-col flex-grow px-10 pt-8 pb-4 gap-3">
           {/* Header row — logo + ref */}
-          <header className="flex justify-between items-start border-b-2 border-slate-900 pb-2 mb-1">
+          <header className="flex justify-between items-center border-b-2 border-slate-900 pb-2 mb-1">
             <DocumentHeader />
             <DocumentMetadata
               refId={d.refId}

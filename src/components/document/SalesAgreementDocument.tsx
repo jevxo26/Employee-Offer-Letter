@@ -286,7 +286,7 @@ export default function SalesAgreementDocument({
       <DocumentLayout pageNum={1} refProp={previewRefs[0]}>
         <div className="px-10 pt-8 pb-0 flex flex-col flex-1">
           {/* Header row */}
-          <div className="flex justify-between items-start border-b-2 border-slate-900 pb-2 mb-1">
+          <div className="flex justify-between items-center border-b-2 border-slate-900 pb-2 mb-1">
             <DocumentHeader />
             <DocumentMetadata
               refId={d.salesRefId}
