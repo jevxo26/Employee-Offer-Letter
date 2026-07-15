@@ -17,6 +17,7 @@ import InternshipFormWizard from "../components/InternshipFormWizard";
 import CeoWorkspace from "../components/CeoWorkspace";
 import CandidatePortal from "../components/CandidatePortal";
 import EmailPortalModal from "../components/EmailPortalModal";
+import SalesAgentEmailModal from "../components/SalesAgentEmailModal";
 import IdCardWorkspace from "../components/IdCardWorkspace";
 import AdminDashboard from "../components/AdminDashboard";
 import { buildIdCardPdfBase64 } from "../components/IdCardWorkspace";
@@ -164,6 +165,7 @@ export default function Home() {
 
   const [offerId, setOfferId] = useState("");
   const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [salesAgentModalOpen, setSalesAgentModalOpen] = useState(false);
   const [candidateLink, setCandidateLink] = useState("");
 
   const previewRef0 = useRef<HTMLDivElement>(null);
@@ -991,6 +993,20 @@ export default function Home() {
           )}
         </AnimatePresence>
       </main>
+
+      <SalesAgentEmailModal
+        isOpen={salesAgentModalOpen}
+        onClose={() => setSalesAgentModalOpen(false)}
+        onSentSuccess={() => setIsOfferSent(true)}
+        secondParty={secondParty}
+        firstParty={firstParty}
+        candidateLink={candidateLink}
+        offerId={offerId}
+        agreementTemplate={agreementTemplate}
+        salesAgreementType={salesAgreementType}
+        docSettings={docSettings}
+      />
+
 
       <EmailPortalModal
         isOpen={emailModalOpen}

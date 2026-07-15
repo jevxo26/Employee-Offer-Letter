@@ -143,7 +143,7 @@ export default function EmailPortalModal({
           <div className="flex items-center gap-3">
             <span className="w-14 text-right">To:</span>
             <span className="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-slate-800 flex-1 font-bold">
-              {displayName} ({displayEmail})
+              {secondParty.fullName} ({secondParty.email})
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -161,7 +161,7 @@ export default function EmailPortalModal({
               Resend Error: {apiError}
             </div>
           )}
-          <p className="font-bold text-slate-900">Dear {displayName},</p>
+          <p className="font-bold text-slate-900">Dear {secondParty.fullName},</p>
           
           {isInternship ? (
             <>

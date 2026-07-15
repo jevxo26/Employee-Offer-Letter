@@ -595,7 +595,7 @@ export default function WorkspaceSidebar({
           )}
           <div className="flex justify-between text-[11px] text-[#64748B] px-1 font-semibold">
             <span>A4 dimensions output</span>
-            <span>{isDemo ? "1 page" : isInternship ? "1 page" : isSalesAgreement ? "4 pages" : "2 pages"} automatic layout</span>
+            <span>{isDemo ? "1 page" : isInternship ? "1 page" : isSalesAgreement ? "3 pages" : "2 pages"} automatic layout</span>
           </div>
         </div>
       </div>
