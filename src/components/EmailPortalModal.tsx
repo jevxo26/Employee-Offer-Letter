@@ -36,6 +36,12 @@ export default function EmailPortalModal({
   const isSalesAgent = salesAgreementType === "salesAgent";
   const isSalesType = isCSP || isSalesAgent;
 
+  // Determine if this is the initial send to the CSP (if Sales Agent)
+  const isPendingCSP = isSalesAgent && typeof window !== 'undefined' && window.location.search.indexOf("candidateView") === -1;
+  const displayEmail = isPendingCSP ? (firstParty as any).salesPartnerEmail || "Partner Email" : secondParty.email;
+  const displayName = isPendingCSP ? (firstParty as any).salesPartnerName || "Country Sales Partner" : secondParty.fullName;
+
+
   const fromAddress = "JEVXO <info@jevxo.com>";
   const emailSubject = isInternship
     ? "Internship Offer Letter — JEVXO"
@@ -137,7 +143,7 @@ export default function EmailPortalModal({
           <div className="flex items-center gap-3">
             <span className="w-14 text-right">To:</span>
             <span className="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-slate-800 flex-1 font-bold">
-              {secondParty.fullName} ({secondParty.email})
+              {displayName} ({displayEmail})
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -155,7 +161,7 @@ export default function EmailPortalModal({
               Resend Error: {apiError}
             </div>
           )}
-          <p className="font-bold text-slate-900">Dear {secondParty.fullName},</p>
+          <p className="font-bold text-slate-900">Dear {displayName},</p>
           
           {isInternship ? (
             <>

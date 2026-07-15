@@ -57,7 +57,7 @@ function Section({
 }
 
 function V({ children }: { children: React.ReactNode }) {
-  return <span className="text-violet-700 font-semibold">{children}</span>;
+  return <span className="text-[#594ED7] font-bold">{children}</span>;
 }
 
 function FieldTable({ rows }: { rows: [string, React.ReactNode][] }) {
@@ -343,13 +343,13 @@ export default function SalesAgreementDocument({
               </p>
               <ul className="list-disc ml-5 mt-1 space-y-0.5">
                 <li>
-                  <strong><V>{d.partnerName}</V></strong> — appointed by JEVXO as
+                  <strong><V>{d.partnerName}</V> </strong> — appointed by JEVXO as
                   Country Sales Partner (&ldquo;Partner&rdquo;) for the
                   Territory of <strong><V>{d.territory}</V></strong>, acting under
                   Agreement Ref. <strong><V>{d.partnerAgreementRef}</V></strong>; and
                 </li>
                 <li>
-                  <strong><V>{secondParty.fullName || "Agent Name"}</V></strong> —
+                  <strong><V>{secondParty.fullName || "Agent Name"}</V> </strong> —
                   appointed as Sales Agent (&ldquo;Agent&rdquo;) within the
                   Partner&apos;s network in the Territory.
                 </li>
