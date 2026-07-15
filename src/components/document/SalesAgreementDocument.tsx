@@ -56,7 +56,11 @@ function Section({
   );
 }
 
-function FieldTable({ rows }: { rows: [string, string][] }) {
+function V({ children }: { children: React.ReactNode }) {
+  return <span className="text-violet-700 font-semibold">{children}</span>;
+}
+
+function FieldTable({ rows }: { rows: [string, React.ReactNode][] }) {
   return (
     <table className="w-full text-[11.5px] border-collapse mt-2 font-sans">
       <thead>
@@ -85,7 +89,7 @@ function FieldTable({ rows }: { rows: [string, string][] }) {
   );
 }
 
-function SummaryTable({ rows }: { rows: [string, string][] }) {
+function SummaryTable({ rows }: { rows: [string, React.ReactNode][] }) {
   return (
     <table className="w-full text-[11.5px] border-collapse font-sans">
       <thead>
@@ -114,7 +118,7 @@ function SummaryTable({ rows }: { rows: [string, string][] }) {
   );
 }
 
-function CommissionTable({ rows }: { rows: [string, string, string][] }) {
+function CommissionTable({ rows }: { rows: [string, React.ReactNode, string][] }) {
   return (
     <table className="w-full text-[11.5px] border-collapse mt-2 mb-2 font-sans">
       <thead>
@@ -122,7 +126,7 @@ function CommissionTable({ rows }: { rows: [string, string, string][] }) {
           <th className="border border-emerald-100 px-2 py-1.5 text-left font-bold text-emerald-700">
             Commission Type
           </th>
-          <th className="border border-emerald-100 px-2 py-1.5 text-left font-bold text-emerald-700 w-16">
+          <th className="border border-emerald-100 px-2 py-1.5 text-left font-bold text-emerald-700 w-16 whitespace-nowrap">
             Rate
           </th>
           <th className="border border-emerald-100 px-2 py-1.5 text-left font-bold text-emerald-700">
@@ -234,7 +238,7 @@ export default function SalesAgreementDocument({
   };
 
   const verifyUrl = buildVerifyUrl(d.salesRefId);
-  const totalPages = isCSP ? 3 : 4;
+  const totalPages = 3;
   const docTitle = isCSP
     ? "Country Sales Partner Agreement"
     : "Sales Agent Agreement";
@@ -317,17 +321,17 @@ export default function SalesAgreementDocument({
                   ecosystem (&ldquo;Company&rdquo;); and
                 </li>
                 <li>
-                  <strong>{d.partnerName}</strong> — appointed as Country Sales
+                  <strong><V>{d.partnerName}</V></strong> — appointed as Country Sales
                   Partner (&ldquo;Partner&rdquo;) for the Territory of{" "}
-                  <strong>{d.territory}</strong>.
+                  <strong><V>{d.territory}</V></strong>.
                 </li>
               </ul>
               <FieldTable
                 rows={[
-                  ["Agreement Reference No.", d.salesRefId],
-                  ["Date of Agreement", d.date],
-                  ["Territory", d.territory],
-                  ["Partner Contact", d.partnerContact],
+                  ["Agreement Reference No.", <V>{d.salesRefId}</V>],
+                  ["Date of Agreement", <V>{d.date}</V>],
+                  ["Territory", <V>{d.territory}</V>],
+                  ["Partner Contact", <V>{d.partnerContact}</V>],
                 ]}
               />
             </Section>
@@ -339,13 +343,13 @@ export default function SalesAgreementDocument({
               </p>
               <ul className="list-disc ml-5 mt-1 space-y-0.5">
                 <li>
-                  <strong>{d.partnerName}</strong> — appointed by JEVXO as
+                  <strong><V>{d.partnerName}</V></strong> — appointed by JEVXO as
                   Country Sales Partner (&ldquo;Partner&rdquo;) for the
-                  Territory of <strong>{d.territory}</strong>, acting under
-                  Agreement Ref. <strong>{d.partnerAgreementRef}</strong>; and
+                  Territory of <strong><V>{d.territory}</V></strong>, acting under
+                  Agreement Ref. <strong><V>{d.partnerAgreementRef}</V></strong>; and
                 </li>
                 <li>
-                  <strong>{secondParty.fullName || "Agent Name"}</strong> —
+                  <strong><V>{secondParty.fullName || "Agent Name"}</V></strong> —
                   appointed as Sales Agent (&ldquo;Agent&rdquo;) within the
                   Partner&apos;s network in the Territory.
                 </li>
@@ -358,12 +362,11 @@ export default function SalesAgreementDocument({
               </p>
               <FieldTable
                 rows={[
-                  ["Agreement Reference No.", d.salesRefId],
-                  ["Date of Agreement", d.date],
-                  ["Effective Date", d.effectiveDate],
-                  ["Territory / Local Area", d.territory],
-                  ["Country Sales Partner", d.partnerName],
-                  ["Agent Contact", d.agentContact],
+                  ["Agreement Reference No.", <V>{d.salesRefId}</V>],
+                  ["Effective Date", <V>{d.effectiveDate}</V>],
+                  ["Territory / Local Area", <V>{d.territory}</V>],
+                  ["Country Sales Partner", <V>{d.partnerName}</V>],
+                  ["Agent Contact", <V>{d.agentContact}</V>],
                 ]}
               />
             </Section>
@@ -421,8 +424,7 @@ export default function SalesAgreementDocument({
                   under the guidance of the Country Sales Partner.
                 </li>
                 <li>
-                  Generate client leads and close sales for JEVXO&apos;s
-                  website, app, SEO, marketing, design, and consulting packages.
+                  The Partner is expected to generate client leads and successfully close sales for JEVXO’s portfolio of services, which covers websites, apps, SEO, marketing, design, and consulting solutions.
                 </li>
                 <li>
                   Carry out local marketing, outreach, and promotional
@@ -581,12 +583,12 @@ export default function SalesAgreementDocument({
                 rows={[
                   [
                     "Sales Commission",
-                    `${d.baseCommissionRate}%`,
+                    <V>{d.baseCommissionRate}%</V>,
                     "Total (Gross) Sale Value of each client sale closed by the Agent",
                   ],
                   [
                     "Recurring Monthly Commission",
-                    `${d.recurringCommissionRate}%`,
+                    <V>{d.recurringCommissionRate}%</V>,
                     "Active monthly subscription revenue from clients brought in by the Agent, for as long as the client's subscription remains active — following the same recurring commission model used for Country Sales Partners",
                   ],
                 ]}
@@ -624,17 +626,17 @@ export default function SalesAgreementDocument({
                 rows={[
                   [
                     "Base Commission",
-                    `${d.baseCommissionRate}%`,
+                    <><V>{d.baseCommissionRate}</V>%</>,
                     "Gross Sale Value of each new client sale",
                   ],
                   [
                     "Recurring Monthly Commission",
-                    `${d.recurringCommissionRate}%`,
+                    <><V>{d.recurringCommissionRate}</V>%</>,
                     "Active monthly subscription revenue from clients brought in by the Partner or their agent network, for as long as the subscription remains active",
                   ],
                   [
                     "Override Commission",
-                    `${d.overrideCommissionRate}%`,
+                    <><V>{d.overrideCommissionRate}</V>%</>,
                     "Commission earned by agents within the Partner's network, paid to the Partner as network overseer",
                   ],
                 ]}
@@ -650,7 +652,7 @@ export default function SalesAgreementDocument({
                 appropriate to that market. The Partner must report collected
                 amounts to JEVXO in USD-equivalent value for commission
                 calculation and reconciliation. Payment currency:{" "}
-                <strong>{d.paymentCurrency}</strong>.
+                <strong><V>{d.paymentCurrency}</V></strong>.
               </p>
               <p className="mt-1">
                 Currency conversion and local transaction costs are managed by
@@ -676,10 +678,10 @@ export default function SalesAgreementDocument({
                 </li>
                 <li>
                   Commission is paid to the Agent within{" "}
-                  <strong>{d.paymentDays}</strong> days of the Partner receiving
+                  <strong><V>{d.paymentDays}</V></strong> days of the Partner receiving
                   the corresponding client payment and confirming it with JEVXO,
                   under the agreed payment terms:{" "}
-                  <strong>{d.paymentTerms}</strong>.
+                  <strong><V>{d.paymentTerms}</V></strong>.
                 </li>
                 <li>
                   The Agent should maintain their own record of closed sales and
@@ -691,6 +693,34 @@ export default function SalesAgreementDocument({
           )}
 
           {/* ── Section 06 ── */}
+          {!isCSP && (
+            <Section num="06" title="Term &amp; Termination">
+              <ul className="list-disc ml-5 space-y-0.5">
+                <li>
+                  This Agreement remains in effect from the Date of Agreement
+                  until terminated by either party.
+                </li>
+                <li>
+                  Either party may terminate this Agreement with{" "}
+                  <strong>[<V>{d.noticePeriodSales}</V>]</strong> days&apos; written
+                  notice to the other.
+                </li>
+                <li>
+                  Commission already earned on active client subscriptions prior
+                  to termination remains payable according to the standard
+                  recurring commission terms, unless the Agent&apos;s conduct
+                  directly caused the client relationship to end.
+                </li>
+                <li>
+                  The Partner may terminate this Agreement immediately if the
+                  Agent is found acting outside JEVXO&apos;s standards,
+                  misrepresenting pricing, or violating confidentiality.
+                </li>
+              </ul>
+            </Section>
+          )}
+          
+          {/* ── Section 07 (CSP: Marketing Responsibility | salesAgent: Marketing & Independent Contractor) ── */}
           {isCSP ? (
             <Section
               num="06"
@@ -726,7 +756,7 @@ export default function SalesAgreementDocument({
               </p>
             </Section>
           ) : (
-            <Section num="06" title="Marketing Responsibility">
+            <Section num="07" title="Marketing Responsibility &amp; Independent Contractor Status">
               <p>
                 The Agent carries out local marketing and outreach activities as
                 directed by and in support of the Country Sales Partner. This
@@ -735,63 +765,14 @@ export default function SalesAgreementDocument({
                 marketing efforts align with the broader Territory marketing
                 responsibility held by the Country Sales Partner.
               </p>
+              <p className="mt-2">
+                The Agent operates as an independent contractor and not as an
+                employee of the Partner or of JEVXO. The Agent is responsible
+                for their own taxes, licenses, and local regulatory compliance.
+              </p>
             </Section>
           )}
 
-          {/* ── Section 07 (CSP: Local Currency | salesAgent: Term & Termination) ── */}
-          {false &&
-            (isCSP ? (
-              <Section num="08" title="Local Currency Payment Collection">
-                <p>
-                  The Partner is responsible for collecting client payments
-                  within the Territory in the local currency, using payment
-                  methods appropriate to that market.
-                </p>
-                <ul className="list-disc ml-5 mt-1 space-y-0.5">
-                  <li>
-                    The Partner must report collected amounts to JEVXO in
-                    USD-equivalent value for commission calculation and
-                    reconciliation. Payment currency:{" "}
-                    <strong>{d.paymentCurrency}</strong>.
-                  </li>
-                  <li>
-                    Currency conversion and local transaction costs are managed
-                    by the Partner as part of standard operations.
-                  </li>
-                  <li>
-                    JEVXO may provide guidance on approved local payment
-                    channels but does not directly process client payments on
-                    the Partner&apos;s behalf unless separately agreed in
-                    writing.
-                  </li>
-                </ul>
-              </Section>
-            ) : (
-              <Section num="07" title="Term &amp; Termination">
-                <ul className="list-disc ml-5 space-y-0.5">
-                  <li>
-                    This Agreement remains in effect from the Date of Agreement
-                    until terminated by either party.
-                  </li>
-                  <li>
-                    Either party may terminate this Agreement with{" "}
-                    <strong>[{d.noticePeriodSales}]</strong> days&apos; written
-                    notice to the other.
-                  </li>
-                  <li>
-                    Commission already earned on active client subscriptions
-                    prior to termination remains payable according to the
-                    standard recurring commission terms, unless the Agent&apos;s
-                    conduct directly caused the client relationship to end.
-                  </li>
-                  <li>
-                    The Partner may terminate this Agreement immediately if the
-                    Agent is found acting outside JEVXO&apos;s standards,
-                    misrepresenting pricing, or violating confidentiality.
-                  </li>
-                </ul>
-              </Section>
-            ))}
         </div>
         <DocumentFooter
           email={d.companyEmail}
@@ -810,63 +791,7 @@ export default function SalesAgreementDocument({
             date={d.date}
             title={docTitle}
           />
-          {isCSP ? (
-            <div className="hidden">
-              <Section num="07" title="Company Support &amp; Resources">
-                <p>
-                  JEVXO shall provide the Partner with reasonable business
-                  support, including product information, branding materials,
-                  sales resources, onboarding guidance, and platform-related
-                  updates necessary for carrying out responsibilities under this
-                  Agreement. Such support shall not create an employer-employee
-                  relationship and may be updated by the Company from time to
-                  time.
-                </p>
-              </Section>
-              <Section num="08" title="Local Currency Payment Collection">
-                <p>
-                  The Partner is responsible for collecting client payments
-                  within the Territory in the local currency, using payment
-                  methods appropriate to that market. The Partner must report
-                  collected amounts to JEVXO in USD-equivalent value for
-                  commission calculation and reconciliation. Payment currency:{" "}
-                  <strong>{d.paymentCurrency}</strong>.
-                </p>
-                <p className="mt-1">
-                  Currency conversion and local transaction costs are managed by
-                  the Partner as part of standard operations. JEVXO may provide
-                  guidance on approved local payment channels but does not
-                  directly process client payments on the Partner&apos;s behalf
-                  unless separately agreed in writing.
-                </p>
-              </Section>
-            </div>
-          ) : (
-            <Section num="07" title="Term &amp; Termination">
-              <ul className="list-disc ml-5 space-y-0.5">
-                <li>
-                  This Agreement remains in effect from the Date of Agreement
-                  until terminated by either party.
-                </li>
-                <li>
-                  Either party may terminate this Agreement with{" "}
-                  <strong>[{d.noticePeriodSales}]</strong> days&apos; written
-                  notice to the other.
-                </li>
-                <li>
-                  Commission already earned on active client subscriptions prior
-                  to termination remains payable according to the standard
-                  recurring commission terms, unless the Agent&apos;s conduct
-                  directly caused the client relationship to end.
-                </li>
-                <li>
-                  The Partner may terminate this Agreement immediately if the
-                  Agent is found acting outside JEVXO&apos;s standards,
-                  misrepresenting pricing, or violating confidentiality.
-                </li>
-              </ul>
-            </Section>
-          )}
+          
           {/* ── Section 08 (CSP: Term & Termination | salesAgent: Confidentiality) ── */}
           {isCSP ? (
             <Section num="07" title="Term &amp; Termination">
@@ -877,7 +802,7 @@ export default function SalesAgreementDocument({
                 </li>
                 <li>
                   Either party may terminate this Agreement with{" "}
-                  <strong>[{d.noticePeriodSales}]</strong> days&apos; written
+                  <strong>[<V>{d.noticePeriodSales}</V>]</strong> days&apos; written
                   notice.
                 </li>
                 <li>
@@ -893,17 +818,20 @@ export default function SalesAgreementDocument({
               </ul>
             </Section>
           ) : (
-            <Section num="08" title="Confidentiality">
+            <Section num="08" title="Confidentiality, Professional Standards &amp; Ethical Conduct">
               <p>
                 The Agent agrees to keep confidential all non-public business
                 information shared by the Partner or JEVXO, including pricing
                 structures, client data, commission terms, and internal
                 strategy, both during and after the term of this Agreement.
               </p>
+              <p className="mt-2">
+                The Agent shall conduct all business activities honestly, professionally, and in accordance with applicable laws, JEVXO's policies, and the Country Sales Partner's reasonable instructions. The Agent shall not engage in fraudulent activities, misleading sales practices, unauthorized pricing, false representations, harassment, discrimination, or any conduct that may reasonably damage the reputation, goodwill, or client relationships of JEVXO or the Country Sales Partner.
+              </p>
             </Section>
           )}
 
-          {/* ── Section 09 (CSP: Confidentiality | salesAgent: Independent Contractor) ── */}
+          {/* ── Section 09 (CSP: Confidentiality | salesAgent: Governing Law) ── */}
           {isCSP ? (
             <Section
               num="08"
@@ -923,283 +851,27 @@ export default function SalesAgreementDocument({
                 could harm the Company’s reputation or client relationships.
               </p>
             </Section>
-          ) : null}
-
-          {false && (
-            <>
-              {isCSP ? (
-                <>
-                  <Section num="13" title="Independent Contractor Status">
-                    <p>
-                      The Partner operates as an independent contractor and not
-                      as an employee, agent (in the legal sense), partner, or
-                      joint venturer of JEVXO. The Partner is responsible for
-                      their own taxes, licenses, and local regulatory compliance
-                      within the Territory.
-                    </p>
-                  </Section>
-                  <Section
-                    num="14"
-                    title="Governing Law &amp; Dispute Resolution"
-                  >
-                    <p>
-                      This Agreement is governed by the laws of{" "}
-                      <strong>{d.governingJurisdiction}</strong>. Any disputes
-                      arising from this Agreement will first be addressed
-                      through good-faith written discussion between both parties
-                      before pursuing formal resolution.
-                    </p>
-                    <p className="mt-1 text-[11.5px] italic text-slate-500">
-                      Note: This template is provided as a standardized business
-                      document, not as formal legal advice. Because this
-                      Agreement will be used across multiple countries with
-                      different legal systems, JEVXO should have each Territory
-                      version reviewed by a local qualified lawyer before
-                      signing, particularly for Sections 8, 9, 10 and 11.
-                    </p>
-                  </Section>
-                  <Section num="15" title="Summary of Standard Terms">
-                    <SummaryTable
-                      rows={[
-                        [
-                          "Exclusivity",
-                          "Selected per Partner (Exclusive / Non-Exclusive)",
-                        ],
-                        [
-                          "Sales Agent Network",
-                          "Approved — open recruitment, monthly reporting required",
-                        ],
-                        [
-                          "Base Commission",
-                          `${d.baseCommissionRate}% of Gross Sale Value`,
-                        ],
-                        [
-                          "Recurring Monthly Commission",
-                          `${d.recurringCommissionRate}% of active subscription revenue`,
-                        ],
-                        [
-                          "Override Commission",
-                          `${d.overrideCommissionRate}% on agent network sales`,
-                        ],
-                        [
-                          "Local Marketing Responsibility",
-                          "Country Sales Partner & agent network",
-                        ],
-                        [
-                          "Payment Collection",
-                          "Local currency, collected by Country Sales Partner",
-                        ],
-                      ]}
-                    />
-                  </Section>
-                </>
-              ) : (
-                <>
-                  <Section
-                    num="12"
-                    title="Governing Law &amp; Dispute Resolution"
-                  >
-                    <p>
-                      This Agreement is governed by the laws of{" "}
-                      <strong>{d.governingJurisdiction}</strong>. Any disputes
-                      arising from this Agreement will first be addressed
-                      through good-faith written discussion between the Agent
-                      and the Partner before pursuing formal resolution.
-                    </p>
-                    <p className="mt-1 text-[11.5px] italic text-slate-500">
-                      Note: This template is provided as a standardized business
-                      document, not as formal legal advice. Because Sales Agent
-                      Agreements will be used across multiple countries with
-                      different labor and contractor laws, each Territory
-                      version should be reviewed by a local qualified lawyer
-                      before signing, particularly for Sections 6, 7, 8 and 9.
-                    </p>
-                  </Section>
-                  <Section num="13" title="Summary of Standard Terms">
-                    <SummaryTable
-                      rows={[
-                        [
-                          "Reports To",
-                          "Country Sales Partner (not JEVXO directly)",
-                        ],
-                        [
-                          "Sales Commission",
-                          `${d.baseCommissionRate}% of Gross Sale Value`,
-                        ],
-                        [
-                          "Recurring Monthly Commission",
-                          `${d.recurringCommissionRate}% of active subscription revenue`,
-                        ],
-                        [
-                          "Payment Collection",
-                          "Handled by / through the Country Sales Partner",
-                        ],
-                        [
-                          "Marketing Responsibility",
-                          "Agent supports local marketing under Partner's direction",
-                        ],
-                        [
-                          "Contractor Status",
-                          "Independent contractor, not an employee",
-                        ],
-                      ]}
-                    />
-                  </Section>
-                </>
-              )}
-            </>
-          )}
-
-          <Section
-            num="09"
-            title="Professional Standards &amp; Ethical Conduct"
-            hidden={isCSP}
-          >
-            <p>
-              {isCSP
-                ? "The Partner shall conduct all business activities honestly, professionally, and in accordance with JEVXO's values and applicable laws. The Partner shall not engage in fraudulent activities, misleading sales practices, unauthorized representations, discrimination, harassment, or any conduct that could reasonably damage the Company's reputation or client relationships."
-                : "The Agent shall conduct all business activities honestly, professionally, and in accordance with applicable laws, JEVXO's policies, and the Country Sales Partner's reasonable instructions. The Agent shall not engage in fraudulent activities, misleading sales practices, unauthorized pricing, false representations, harassment, discrimination, or any conduct that may reasonably damage the reputation, goodwill, or client relationships of JEVXO or the Country Sales Partner."}
-            </p>
-          </Section>
-
-          <Section
-            num={isCSP ? "09" : "10"}
-            title={
-              isCSP
-                ? "Brand Usage & Intellectual Property"
-                : "Brand Usage & Marketing Materials"
-            }
-          >
-            <p>
-              {isCSP
-                ? "The Partner may use JEVXO's approved trademarks, logos, marketing materials, and branding assets solely for the purpose of performing responsibilities under this Agreement. The Partner shall not modify, sublicense, transfer, or use any Company intellectual property in a manner that could damage the Company's brand or reputation. Upon termination of this Agreement, all rights to use such materials shall immediately cease."
-                : "The Agent may use only the official branding materials, trademarks, logos, product information, and promotional resources approved by the Country Sales Partner or JEVXO. The Agent shall not alter, reproduce, sublicense, or distribute such materials beyond the scope of this Agreement. Upon termination, all rights to use JEVXO branding and marketing materials shall immediately cease."}
-            </p>
-          </Section>
-
-          {/* ── Section 10 (CSP: Independent Contractor | salesAgent: Governing Law) ── */}
-          {!isCSP && (
-            <Section num="11" title="Independent Contractor Status">
+          ) : (
+            <Section num="09" title="Governing Law &amp; Dispute Resolution">
               <p>
-                The Agent operates as an independent contractor and not as an
-                employee of the Partner or of JEVXO. The Agent is responsible
-                for their own taxes, licenses, and local regulatory compliance.
+                This Agreement shall be governed by and construed in accordance with the laws of <strong><V>{d.governingJurisdiction}</V></strong>. Any dispute, controversy, or claim arising out of or relating to this Agreement shall first be addressed through good‑faith written discussions between the Agent and the Partner, with the intent to reach an amicable resolution prior to initiating any formal proceedings. If such discussions fail, the parties may pursue formal resolution through the competent courts or tribunals of Bangladesh, subject to applicable law.
+              </p>
+              <p className="mt-1 text-[12px] italic text-slate-500">
+                Note: This template is provided solely as a standardized business document and does not constitute formal legal advice. Because Sales Agent Agreements may be executed across multiple jurisdictions with differing labor, contractor, and commercial laws, each Territory‑specific version must be reviewed and approved by a qualified local lawyer prior to execution. The parties acknowledge that independent legal or professional advice should be sought to ensure compliance with applicable laws and regulations.
               </p>
             </Section>
           )}
-
-          {false && !isCSP && (
-            <Section num="12" title="Governing Law &amp; Dispute Resolution">
-              <p>
-                This Agreement is governed by the laws of{" "}
-                <strong>{d.governingJurisdiction}</strong>. Any disputes arising
-                from this Agreement will first be addressed through good-faith
-                written discussion between the Agent and the Partner before
-                pursuing formal resolution.
-              </p>
-              <p className="mt-1 text-[11.5px] italic text-slate-500">
-                Note: This template is provided as a standardized business
-                document, not as formal legal advice. Because Sales Agent
-                Agreements will be used across multiple countries with different
-                labor and contractor laws, each Territory version should be
-                reviewed by a local qualified lawyer before signing,
-                particularly for Sections 6, 7, 8 and 9.
-              </p>
-            </Section>
-          )}
-
-          {/* ── Section 11 (CSP: Governing Law | salesAgent: Summary) ── */}
-          {false &&
-            (isCSP ? (
-              <Section num="14" title="Governing Law &amp; Dispute Resolution">
-                <p>
-                  This Agreement is governed by the laws of{" "}
-                  <strong>{d.governingJurisdiction}</strong>. Any disputes
-                  arising from this Agreement will first be addressed through
-                  good-faith written discussion between both parties before
-                  pursuing formal resolution.
-                </p>
-                <p className="mt-1 text-[11.5px] italic text-slate-500">
-                  Note: This template is provided as a standardized business
-                  document, not as formal legal advice. Because this Agreement
-                  will be used across multiple countries with different legal
-                  systems, JEVXO should have each Territory version reviewed by
-                  a local qualified lawyer before signing, particularly for
-                  Sections 8, 9, 10 and 11.
-                </p>
-              </Section>
-            ) : (
-              <Section num="13" title="Summary of Standard Terms">
-                <SummaryTable
-                  rows={[
-                    [
-                      "Reports To",
-                      "Country Sales Partner (not JEVXO directly)",
-                    ],
-                    [
-                      "Sales Commission",
-                      `${d.baseCommissionRate}% of Gross Sale Value`,
-                    ],
-                    [
-                      "Recurring Monthly Commission",
-                      `${d.recurringCommissionRate}% of active subscription revenue`,
-                    ],
-                    [
-                      "Payment Collection",
-                      "Handled by / through the Country Sales Partner",
-                    ],
-                    [
-                      "Marketing Responsibility",
-                      "Agent supports local marketing under Partner's direction",
-                    ],
-                    [
-                      "Contractor Status",
-                      "Independent contractor, not an employee",
-                    ],
-                  ]}
-                />
-              </Section>
-            ))}
-
-          {/* ── Section 12 / Summary (CSP only on page 3) ── */}
-          {false && isCSP && (
-            <Section num="15" title="Summary of Standard Terms">
-              <SummaryTable
-                rows={[
-                  [
-                    "Exclusivity",
-                    "Selected per Partner (Exclusive / Non-Exclusive)",
-                  ],
-                  [
-                    "Sales Agent Network",
-                    "Approved — open recruitment, monthly reporting required",
-                  ],
-                  [
-                    "Base Commission",
-                    `${d.baseCommissionRate}% of Gross Sale Value`,
-                  ],
-                  [
-                    "Recurring Monthly Commission",
-                    `${d.recurringCommissionRate}% of active subscription revenue`,
-                  ],
-                  [
-                    "Override Commission",
-                    `${d.overrideCommissionRate}% on agent network sales`,
-                  ],
-                  [
-                    "Local Marketing Responsibility",
-                    "Country Sales Partner & agent network",
-                  ],
-                  [
-                    "Payment Collection",
-                    "Local currency, collected by Country Sales Partner",
-                  ],
-                ]}
-              />
-            </Section>
-          )}
-
+          
           {isCSP && (
+            <Section num="09" title="Brand Usage &amp; Intellectual Property">
+              <p>
+                The Partner may use JEVXO's approved trademarks, logos, marketing materials, and branding assets solely for the purpose of performing responsibilities under this Agreement. The Partner shall not modify, sublicense, transfer, or use any Company intellectual property in a manner that could damage the Company's brand or reputation. Upon termination of this Agreement, all rights to use such materials shall immediately cease.
+              </p>
+            </Section>
+          )}
+
+          {/* ── Section 10 (CSP: Final Agreement | salesAgent: Final Agreement) ── */}
+          {isCSP ? (
             <>
               <Section num="10" title="Final Agreement &amp; Acceptance">
                 <p>
@@ -1211,10 +883,10 @@ export default function SalesAgreementDocument({
                   accepted by the applicable parties.
                 </p>
                 <p className="mt-2">
-                  Electronic signatures, digital signatures, and signed
-                  enforceable to the fullest extent permitted by applicable law.
+                  Electronic signatures, digital signatures, and signed counterparts
+                  are valid and enforceable to the fullest extent permitted by applicable law.
                   By signing, each applicable party confirms that it has read,
-                  understood, and voluntarily accepted this Agreement, and
+                  understood, and voluntarily accepted this <V>{docTitle}</V>, and
                   acknowledges that it has had sufficient opportunity to seek
                   independent legal or professional advice before signing.
                 </p>
@@ -1224,6 +896,35 @@ export default function SalesAgreementDocument({
                 party2={sigParty2}
                 titleText="Acceptance & Executory Signatures"
                 bodyText={`This Country Sales Partner Agreement is executed between JEVXO and ${d.partnerName} as Country Sales Partner for the Territory of ${d.territory}, effective ${d.date}.`}
+              />
+            </>
+          ) : (
+            <>
+              <Section num="10" title="Final Agreement &amp; Acceptance">
+                <p>
+                  This Agreement constitutes the entire agreement between the
+                  applicable contracting parties concerning its subject matter and
+                  supersedes all prior discussions, representations, or
+                  understandings relating to that subject matter. No amendment,
+                  variation, or waiver is valid unless made in writing and
+                  accepted by the applicable parties.
+                </p>
+                <p className="mt-2">
+                  Electronic signatures, digital signatures, and signed
+                  counterparts of this Agreement are valid and enforceable to the
+                  fullest extent permitted by applicable law. By signing, each
+                  applicable party confirms that it has read, understood, and
+                  voluntarily accepted this <V>{docTitle}</V>, and acknowledges that it
+                  has had sufficient opportunity to seek independent legal or
+                  professional advice before signing.
+                </p>
+              </Section>
+              <SignatureSection
+                party1={sigParty1}
+                party2={sigParty2}
+                party3={founderApproval}
+                titleText="Acceptance & Executory Signatures"
+                bodyText={`This Sales Agent Agreement is executed between ${d.partnerName} (Country Sales Partner) and ${secondParty.fullName || "Agent Name"} (Sales Agent) for the Territory of ${d.territory}, effective ${d.date}. JEVXO acknowledges and approves this appointment but is not a contracting party.`}
               />
             </>
           )}
@@ -1236,119 +937,6 @@ export default function SalesAgreementDocument({
           totalPages={totalPages}
         />
       </DocumentLayout>
-
-      {/* ══════════════════════════════════════════════ PAGE 4 ══ */}
-      {!isCSP && (
-        <DocumentLayout pageNum={4} refProp={previewRefs[3]}>
-          <div className="px-10 pt-8 pb-0 flex flex-col flex-1">
-            <ContinuationHeader
-              refId={d.salesRefId}
-              date={d.date}
-              title={docTitle}
-            />
-
-            <Section num="12" title="Governing Law &amp; Dispute Resolution">
-              <p>
-                This Agreement is governed by the laws of{" "}
-                <strong>{d.governingJurisdiction}</strong>. Any disputes arising
-                from this Agreement will first be addressed through good-faith
-                written discussion between the Agent and the Partner before
-                pursuing formal resolution.
-              </p>
-              <p className="mt-1 text-[11.5px] italic text-slate-500">
-                Note: This template is provided as a standardized business
-                document, not as formal legal advice. Because Sales Agent
-                Agreements will be used across multiple countries with different
-                labor and contractor laws, each Territory version should be
-                reviewed by a local qualified lawyer before signing,
-                particularly for Sections 6, 7, 8 and 9.
-              </p>
-            </Section>
-            <Section num="13" title="Summary of Standard Terms">
-              <SummaryTable
-                rows={[
-                  ["Reports To", "Country Sales Partner (not JEVXO directly)"],
-                  [
-                    "Sales Commission",
-                    `${d.baseCommissionRate}% of Gross Sale Value`,
-                  ],
-                  [
-                    "Recurring Monthly Commission",
-                    `${d.recurringCommissionRate}% of active subscription revenue`,
-                  ],
-                  [
-                    "Payment Collection",
-                    "Handled by / through the Country Sales Partner",
-                  ],
-                  [
-                    "Marketing Responsibility",
-                    "Agent supports local marketing under Partner's direction",
-                  ],
-                  [
-                    "Contractor Status",
-                    "Independent contractor, not an employee",
-                  ],
-                ]}
-              />
-            </Section>
-
-            <Section
-              num={isCSP ? "16" : "14"}
-              title="Final Agreement &amp; Acceptance"
-            >
-              <p>
-                This Agreement constitutes the entire agreement between the
-                applicable contracting parties concerning its subject matter and
-                supersedes all prior discussions, representations, or
-                understandings relating to that subject matter. No amendment,
-                variation, or waiver is valid unless made in writing and
-                accepted by the applicable parties.
-              </p>
-              <p className="mt-2">
-                Electronic signatures, digital signatures, and signed
-                counterparts of this Agreement are valid and enforceable to the
-                fullest extent permitted by applicable law. By signing, each
-                applicable party confirms that it has read, understood, and
-                voluntarily accepted this Agreement, and acknowledges that it
-                has had sufficient opportunity to seek independent legal or
-                professional advice before signing.
-              </p>
-            </Section>
-
-            {/* Signature page heading */}
-            <div className="mb-4">
-              <h3 className="font-sans font-bold text-[15px] uppercase tracking-wider text-slate-800">
-                Signatures
-              </h3>
-              <p className="text-[12.5px] text-slate-600 mt-1 leading-relaxed font-sans text-justify">
-                By signing below, the applicable parties confirm that they have
-                read, understood, and agreed to all terms set out in this{" "}
-                {docTitle}. This Agreement becomes legally effective as of the
-                Date of Agreement stated in Section 1.
-              </p>
-            </div>
-
-            <SignatureSection
-              party1={sigParty1}
-              party2={sigParty2}
-              party3={isCSP ? undefined : founderApproval}
-              titleText="Acceptance & Executory Signatures"
-              bodyText={
-                isCSP
-                  ? `This Country Sales Partner Agreement is executed between JEVXO and ${d.partnerName} as Country Sales Partner for the Territory of ${d.territory}, effective ${d.date}.`
-                  : `This Sales Agent Agreement is executed between ${d.partnerName} (Country Sales Partner) and ${secondParty.fullName || "Agent Name"} (Sales Agent) for the Territory of ${d.territory}, effective ${d.date}. JEVXO acknowledges and approves this appointment but is not a contracting party.`
-              }
-            />
-          </div>
-          <DocumentFooter
-            email={d.companyEmail}
-            website={d.companyWebsite}
-            address={d.companyAddress}
-            pageNum={4}
-            totalPages={totalPages}
-          />
-        </DocumentLayout>
-      )}
     </div>
   );
 }

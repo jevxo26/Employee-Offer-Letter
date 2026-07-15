@@ -114,7 +114,7 @@ export type AppState =
   | 'idCard'
   | 'adminDashboard';
 
-export type AgreementStatus = 'PENDING_PARTNER_SIGNATURE' | 'FULLY_EXECUTED';
+export type AgreementStatus = 'PENDING_CSP_SIGNATURE' | 'PENDING_PARTNER_SIGNATURE' | 'FULLY_EXECUTED';
 
 export interface AgreementSummary {
   agreementId: string;

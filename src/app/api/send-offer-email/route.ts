@@ -8,7 +8,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { offerId, candidateEmail, candidateName, agreementTemplate } = body;
+    let { offerId, candidateEmail, candidateName, agreementTemplate } = body;
 
     if (!offerId || !candidateEmail || !candidateName) {
       return NextResponse.json(
@@ -30,7 +30,16 @@ export async function POST(request: Request) {
     const salesType = (agreement.docSettings as Record<string, unknown>)?.salesAgreementType as string | undefined;
     const isCountrySales = salesType === "countrySales";
     const isSalesAgent   = salesType === "salesAgent";
+    
     const isSalesAgreement = isCountrySales || isSalesAgent;
+
+    // --- OVERRIDE FOR SALES AGENT (CSP SIGNS FIRST) ---
+    const isPendingCSP = agreement.status === "PENDING_CSP_SIGNATURE";
+    if (isSalesAgent && isPendingCSP && docSettings?.salesPartner) {
+      candidateEmail = docSettings.salesPartner.email;
+      candidateName = docSettings.salesPartner.fullName;
+    }
+
 
     const ctaLink = `${getBaseUrl()}/?candidateView=${offerId}`;
     const sender = getResendFromAddress();

@@ -121,6 +121,7 @@ export default function CandidatePortal({
   const isCSP = salesAgreementType === "countrySales";
   const isSalesAgent = salesAgreementType === "salesAgent";
   const isSalesType = isCSP || isSalesAgent;
+  const isPendingCSP = isSalesAgent && (!docSettings.salesPartner || !docSettings.salesPartner.signatureImg);
 
   // When the partner draws/saves their signature, stamp today's date into docSettings
   // so the document preview updates instantly with the correct signed date.
@@ -155,7 +156,7 @@ export default function CandidatePortal({
 
   const handleConfirmSign = () => {
     // Both internship and partner require a photo before signing
-    if (!candidatePhotoUrl) {
+    if (!isPendingCSP && !candidatePhotoUrl) {
       toast.error(
         "Please upload your photo in the ID Card tab before signing.",
         { autoClose: 5000 },
@@ -294,6 +295,7 @@ export default function CandidatePortal({
           <div className="h-full flex flex-col xl:flex-row">
             <div className="sticky top-0 h-screen shrink-0">
               <CandidateSidebar
+                isPendingCSP={isPendingCSP}
                 firstParty={firstParty}
                 secondParty={secondParty}
                 setSecondParty={setSecondParty}

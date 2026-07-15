@@ -39,7 +39,7 @@ export default function SignatureSection({
         {/* Party 1 — left */}
         <div className="flex flex-col">
           <div className="relative mt-4 pt-2 font-semibold text-slate-800 text-center">
-            <div className="absolute -top-10 left-25 h-12 w-48 flex items-end justify-start pointer-events-none select-none">
+            <div className="absolute -top-10 left-10 right-10 h-12 w-48 flex items-end justify-start pointer-events-none select-none">
               {party1.sigImg ? (
                 <Image
                   height={50}
@@ -54,7 +54,7 @@ export default function SignatureSection({
                 </div>
               )}
             </div>
-            ...................................................................................
+            ....................................................................
           </div>
           <div className="text-center font-bold text-slate-900 mt-1">{party1.name}</div>
           <div className="text-[11px] text-slate-500 text-center">{party1.role}</div>
@@ -75,9 +75,13 @@ export default function SignatureSection({
                   alt={`${party2.name} Signature`}
                   className="max-h-11 max-w-[170px] object-contain block opacity-95"
                 />
-              ) : null}
+              ) : (
+                <div className="text-amber-600 font-bold tracking-wide animate-pulse text-[8.5px] bg-amber-50 px-2 py-0.5 border border-amber-200 rounded uppercase">
+                  {party2.awaitingLabel || "Awaiting Agent Signature *"}
+                </div>
+              )}
             </div>
-            ...................................................................................
+            ....................................................................
           </div>
           <div className="text-center font-bold text-slate-900 mt-1">{party2.name}</div>
           <div className="text-[11px] text-slate-500 text-center">{party2.role}</div>
@@ -93,10 +97,10 @@ export default function SignatureSection({
 function SignatureBlock({ party }: { party: SignatureParty }) {
   return <div className="flex flex-col">
     <div className="relative mt-4 pt-2 font-semibold text-slate-800 text-center">
-      <div className="absolute -top-10 left-0 right-0 h-12 flex items-end justify-center pointer-events-none select-none">
+      <div className="absolute -top-10 left-10 right-10 h-12 flex items-end justify-center pointer-events-none select-none">
         {party.sigImg ? <Image height={50} width={100} src={party.sigImg} alt={`${party.name} Signature`} className="max-h-11 max-w-[150px] object-contain block opacity-95" /> : <div className="text-amber-600 font-bold tracking-wide text-[8.5px] bg-amber-50 px-2 py-0.5 border border-amber-200 rounded uppercase">{party.awaitingLabel || "Awaiting Signature *"}</div>}
       </div>
-      ...................................................................................
+      ....................................................................
     </div>
     <div className="text-center font-bold text-slate-900 mt-1">{party.name}</div>
     <div className="text-[11px] text-slate-500 text-center">{party.role}</div>

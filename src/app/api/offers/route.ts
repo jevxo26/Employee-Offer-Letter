@@ -103,7 +103,7 @@ export async function POST(request: Request) {
       partnerId,
       docType: resolvedDocType,
       ...(isSalesAgreement ? { salesAgreementType: salesType } : {}),
-      status: "PENDING_PARTNER_SIGNATURE",
+      status: isSalesAgent ? "PENDING_CSP_SIGNATURE" : "PENDING_PARTNER_SIGNATURE",
       founderSigned: true,
       partnerSigned: false,
       firstParty,

@@ -14,6 +14,7 @@ interface CandidateSidebarProps {
   onExport: () => void;
   offerId: string;
   isPhotoUploaded?: boolean;
+  isPendingCSP?: boolean;
   onSwitchToIdCard?: () => void;
   onSignatureSaved?: (hasSignature: boolean) => void;
 }
@@ -27,6 +28,7 @@ export default function CandidateSidebar({
   onExport,
   offerId,
   isPhotoUploaded = false,
+  isPendingCSP = false,
   onSwitchToIdCard,
   onSignatureSaved,
 }: CandidateSidebarProps) {
@@ -107,7 +109,7 @@ export default function CandidateSidebar({
       setSigError("Please draw and save your signature before exporting.");
       return;
     }
-    if (!isPhotoUploaded) {
+    if (!isPendingCSP && !isPhotoUploaded) {
       setSigError(
         "Please upload your photo in the ID Card tab before signing.",
       );
