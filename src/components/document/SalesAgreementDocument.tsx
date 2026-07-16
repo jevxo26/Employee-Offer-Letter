@@ -186,7 +186,12 @@ export default function SalesAgreementDocument({
   previewRefs = [],
 }: SalesAgreementDocumentProps) {
   const isCSP = docType === "countrySales";
+  const isSalesAgent = !isCSP;
   const salesPartner = settings.salesPartner;
+  const isPendingCSP = isSalesAgent && (!salesPartner || !salesPartner.signatureImg);
+
+  const activeCSPSig = isPendingCSP ? secondParty.signatureImg : salesPartner?.signatureImg;
+  const activeAgentSig = isPendingCSP ? undefined : secondParty.signatureImg;
 
   const d = {
     date:
@@ -272,7 +277,7 @@ export default function SalesAgreementDocument({
         name: secondParty.fullName || "Agent Name",
         role: "Sales Agent",
         sigImg: activeAgentSig,
-        date: secondParty.date || "",
+        date: activeAgentSig ? d.date : "",
       };
 
   const founderApproval = {
