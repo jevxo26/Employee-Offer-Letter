@@ -91,7 +91,7 @@ export async function POST(request: Request) {
         <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 8px;">To complete your onboarding:</p>
         <ol style="font-size: 13px; color: #475569; padding-left: 20px; margin: 0 0 20px 0; line-height: 1.8;">
           <li>Review the internship offer letter terms.</li>
-          <li>Upload your professional photo to the ID Card tab.</li>
+          ${isSalesAgent && isPendingCSP ? "" : "<li>Upload your professional photo to the ID Card tab.</li>"}
           <li>Apply your digital signature.</li>
           <li>Press <strong>Confirm</strong> once everything looks correct.</li>
         </ol>

@@ -143,7 +143,7 @@ export default function EmailPortalModal({
           <div className="flex items-center gap-3">
             <span className="w-14 text-right">To:</span>
             <span className="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-slate-800 flex-1 font-bold">
-              {secondParty.fullName} ({secondParty.email})
+              {displayName} ({displayEmail})
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -161,7 +161,7 @@ export default function EmailPortalModal({
               Resend Error: {apiError}
             </div>
           )}
-          <p className="font-bold text-slate-900">Dear {secondParty.fullName},</p>
+          <p className="font-bold text-slate-900">Dear {displayName},</p>
           
           {isInternship ? (
             <>
@@ -182,10 +182,10 @@ export default function EmailPortalModal({
           ) : isSalesType ? (
             <>
               <p>
-                {isSalesAgent ? <>Your Country Sales Partner has issued this <strong>Sales Agent Agreement</strong>. JEVXO acknowledges and approves the appointment; the contractual relationship is with the Country Sales Partner.</> : <>On behalf of <strong>{firstParty.companyName}</strong>, we are pleased to formally appoint you as a <strong>Country Sales Partner</strong>.</>}
+                {isSalesAgent ? (isPendingCSP ? <>Please review the full agreement terms and apply your digital signature for the <strong>Sales Agent Agreement</strong> for your agent <strong>{secondParty.fullName}</strong>.</> : <>Your Country Sales Partner has issued this <strong>Sales Agent Agreement</strong>. JEVXO acknowledges and approves the appointment; the contractual relationship is with the Country Sales Partner.</>) : <>On behalf of <strong>{firstParty.companyName}</strong>, we are pleased to formally appoint you as a <strong>Country Sales Partner</strong>.</>}
               </p>
               <p>
-                Please review the full agreement terms, upload your photo, and apply your digital signature to complete your onboarding.
+                {isPendingCSP ? "Please review the full agreement terms and apply your digital signature to complete the initial execution." : "Please review the full agreement terms, upload your professional photo, and apply your digital signature to complete your onboarding."}
               </p>
               <ol className="list-decimal pl-5 space-y-2 font-medium text-slate-600">
                 <li>Review the full agreement terms carefully.</li>
