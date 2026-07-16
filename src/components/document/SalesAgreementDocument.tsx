@@ -256,7 +256,8 @@ export default function SalesAgreementDocument({
     : {
         name: d.partnerName,
         role: "Country Sales Partner",
-        sigImg: salesPartner?.signatureImg,
+        sigImg: activeCSPSig,
+        date: settings.partnerSignedDate || "",
         awaitingLabel: "Awaiting Partner Sign *",
       };
 
@@ -270,7 +271,8 @@ export default function SalesAgreementDocument({
     : {
         name: secondParty.fullName || "Agent Name",
         role: "Sales Agent",
-        sigImg: secondParty.signatureImg,
+        sigImg: activeAgentSig,
+        date: secondParty.date || "",
       };
 
   const founderApproval = {
