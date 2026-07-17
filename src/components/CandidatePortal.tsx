@@ -261,7 +261,7 @@ export default function CandidatePortal({
               ? "📄 Sales Agent Agreement"
               : "📄 Appointment Letter",
           },
-          {
+          !(isSalesAgent && isPendingCSP) ? {
             id: "idcard" as const,
             label: isInternship
               ? "🪪 Your Internee ID Card"
@@ -270,8 +270,8 @@ export default function CandidatePortal({
               : isSalesAgent
               ? "🪪 Your Sales Agent ID Card"
               : "🪪 Your ID Card",
-          },
-        ].map(({ id, label }) => (
+          } : null,
+        ].filter(Boolean).map(({ id, label }: any) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}

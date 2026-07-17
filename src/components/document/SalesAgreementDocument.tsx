@@ -335,10 +335,10 @@ export default function SalesAgreementDocument({
               </ul>
               <FieldTable
                 rows={[
-                  ["Agreement Reference No.", <V>{d.salesRefId}</V>],
-                  ["Date of Agreement", <V>{d.date}</V>],
-                  ["Territory", <V>{d.territory}</V>],
-                  ["Partner Contact", <V>{d.partnerContact}</V>],
+                  ["Agreement Reference No.", <V key={d.salesRefId}>{d.salesRefId}</V>],
+                  ["Date of Agreement", <V key={d.salesRefId}>{d.date}</V>],
+                  ["Territory", <V key={d.salesRefId}>{d.territory}</V>],
+                  ["Partner Contact", <V key={d.salesRefId}>{d.partnerContact}</V>],
                 ]}
               />
             </Section>
@@ -369,11 +369,11 @@ export default function SalesAgreementDocument({
               </p>
               <FieldTable
                 rows={[
-                  ["Agreement Reference No.", <V>{d.salesRefId}</V>],
-                  ["Effective Date", <V>{d.effectiveDate}</V>],
-                  ["Territory / Local Area", <V>{d.territory}</V>],
-                  ["Country Sales Partner", <V>{d.partnerName}</V>],
-                  ["Agent Contact", <V>{d.agentContact}</V>],
+                  ["Agreement Reference No.", <V key={d.salesRefId}>{d.salesRefId}</V>],
+                  ["Effective Date", <V key={d.salesRefId}>{d.effectiveDate}</V>],
+                  ["Territory / Local Area", <V key={d.salesRefId}>{d.territory}</V>],
+                  ["Country Sales Partner", <V key={d.salesRefId}>{d.partnerName}</V>],
+                  ["Agent Contact", <V key={d.salesRefId}>{d.agentContact}</V>],
                 ]}
               />
             </Section>
@@ -590,12 +590,12 @@ export default function SalesAgreementDocument({
                 rows={[
                   [
                     "Sales Commission",
-                    <V>{d.baseCommissionRate}%</V>,
+                    <V key={d.salesRefId}>{d.baseCommissionRate}%</V>,
                     "Total (Gross) Sale Value of each client sale closed by the Agent",
                   ],
                   [
                     "Recurring Monthly Commission",
-                    <V>{d.recurringCommissionRate}%</V>,
+                    <V key={d.salesRefId}>{d.recurringCommissionRate}%</V>,
                     "Active monthly subscription revenue from clients brought in by the Agent, for as long as the client's subscription remains active — following the same recurring commission model used for Country Sales Partners",
                   ],
                 ]}

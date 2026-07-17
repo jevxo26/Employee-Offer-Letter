@@ -634,6 +634,17 @@ export default function Home() {
           );
         }
 
+        // --- INTERCEPT: CSP Signed (Forwarding to Sales Agent) ---
+        if (data?.isPendingCSP) {
+          setIsCandidateSigned(true);
+          toast.success("CSP signature saved! Please send the agreement to the Sales Agent.");
+          setCandidateLink(`${window.location.origin}${window.location.pathname}?candidateView=${offerId}`);
+          setSalesAgentModalOpen(true);
+          document.documentElement.classList.remove("a4-exporting");
+          setIsExporting(false);
+          return; // HALT EXECUTION HERE! Do not generate ID card yet.
+        }
+
         setIsCandidateSigned(true);
         toast.info("Signature applied! Preparing your documents…");
 
