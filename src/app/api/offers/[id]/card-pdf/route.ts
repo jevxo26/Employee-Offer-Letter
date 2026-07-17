@@ -170,10 +170,16 @@ export async function POST(
           attachments,
         })
         : { error: { message: "No valid founder notification recipient configured." } };
+      const cspEmail = isSalesAgent ? (agreement.docSettings as Record<string, any>)?.salesPartner?.email?.trim() : undefined;
+      const partnerRecipients = [partnerEmail];
+      if (cspEmail && EMAIL_PATTERN.test(cspEmail)) {
+        partnerRecipients.push(cspEmail);
+      }
+      
       const partnerResult = partnerEmail && EMAIL_PATTERN.test(partnerEmail)
         ? await sendWithRetry({
           from: getResendFromAddress(),
-          to: [partnerEmail],
+          to: partnerRecipients,
           subject: partnerSubject,
           text: partnerText,
           attachments,
