@@ -156,7 +156,7 @@ export default function CeoWorkspace({
         </div>
 
         {/* Content */}
-        <div className="flex-1 flex flex-col xl:flex-row relative min-h-0 overflow-auto xl:overflow-visible">
+        <div className="flex-1 flex flex-col xl:flex-row relative min-h-0 overflow-hidden xl:overflow-visible">
           {!isIdCardTab ? (
             <>
               <div className="w-full xl:w-auto xl:sticky xl:top-15 xl:h-screen xl:self-start">

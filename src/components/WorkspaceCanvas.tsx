@@ -44,10 +44,14 @@ export default function WorkspaceCanvas({
     salesType === "countrySales" || salesType === "salesAgent";
 
   // Page count depends on document type
-  const pageCount = isInternship ? 1 : isSalesAgreement ? 3 : TOTAL_DOCUMENT_PAGES;
+  const pageCount = isInternship
+    ? 1
+    : isSalesAgreement
+      ? salesType === "countrySales" ? 5 : 3
+      : TOTAL_DOCUMENT_PAGES;
 
   return (
-    <div className="flex-1 bg-[#F1F5F9] flex flex-col items-center justify-start p-6 overflow-y-auto">
+    <div className="flex-1 bg-[#F1F5F9] flex flex-col items-center justify-start p-6 overflow-y-auto scroll-smooth">
       <div className="w-full max-w-[860px]">
         <A4DocumentScaler pageCount={pageCount}>
           {isInternship ? (
