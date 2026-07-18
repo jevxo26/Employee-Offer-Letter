@@ -14,7 +14,7 @@ import {
   User,
   BadgeCheck,
 } from "lucide-react";
-import JevxoLogo from "../../../components/JevxoLogo";
+import JevxoLogo from "@/shared/layout/JevxoLogo";
 
 interface VerifyResult {
   valid: boolean;

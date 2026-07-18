@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";
-import ToastProvider from "../components/ToastProvider";
+import ToastProvider from "@/shared/ui/ToastProvider";
 
 export const metadata: Metadata = {
   title: "JEVXO — HR Document Engine",
