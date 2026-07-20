@@ -556,7 +556,7 @@ export default function SalesAgreementDocument({
                   following responsibilities in a professional, ethical, and
                   commercially reasonable manner:
                 </p>
-                <ul className="list-disc ml-5 mt-3 space-y-0.5">
+                <ul className="list-disc ml-5 mt-2 space-y-0.5">
                   <li>
                     Promote JEVXO&apos;s products and services within the assigned
                     Territory in line with Company branding and messaging.
@@ -571,8 +571,7 @@ export default function SalesAgreementDocument({
                     Follow all official company policies, sales guidelines, and
                     ethical standards issued by the Company from time to time.
                   </li>
-                  <li>Maintain strict confidentiality regarding all Company information.</li>
-                <li>Submit periodic sales/activity reports to the Company as reasonably requested.</li>
+                <li>Maintain confidentiality of Company information and submit periodic sales and activity reports as reasonably requested.</li>
                 </ul>
               </Section>
             </>
