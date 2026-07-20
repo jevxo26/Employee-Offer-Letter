@@ -22,7 +22,7 @@ export default function DocumentLayout({ pageNum, refProp, showWatermark = true,
     <div
       id={`document-page-${pageNum}`}
       ref={refProp}
-      className="relative bg-white text-slate-800 shadow-2xl flex flex-col justify-between border border-slate-100 print:border-none print:shadow-none"
+      className="relative bg-white text-slate-800 shadow-2xl flex flex-col justify-between border border-slate-100 print:border-none print:shadow-none overflow-hidden"
       style={pageStyle}
     >
       {/* Top gradient bars */}
