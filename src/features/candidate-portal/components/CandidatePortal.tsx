@@ -198,7 +198,7 @@ export default function CandidatePortal({
           }
           ctx.clearRect(0, 0, width, height);
           ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL("image/jpeg", 0.82));
+          resolve(canvas.toDataURL("image/png"));
         };
         img.onerror = () => reject(new Error("Failed to read image."));
         img.src = typeof reader.result === "string" ? reader.result : "";
