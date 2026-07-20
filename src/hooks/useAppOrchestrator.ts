@@ -495,14 +495,14 @@ export function useAppOrchestrator() {
       }
       for (let i = 0; i < pages.length; i++) {
         const canvas = await html2canvas(pages[i] as HTMLElement, {
-          scale: 2.5,
+          scale: 2,
           useCORS: true,
           logging: false,
           allowTaint: false,
           backgroundColor: "#ffffff",
         });
         pdf.addImage(
-          canvas.toDataURL("image/jpeg", 0.95),
+          canvas.toDataURL("image/jpeg", 0.82),
           "JPEG",
           0,
           0,

@@ -163,10 +163,13 @@ export default function DocTypeSelector({ onSelect, onOpenAdmin }: DocTypeSelect
         {onOpenAdmin && (
           <button
             onClick={onOpenAdmin}
-            className="w-full py-3 px-6 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 border border-[#DBEAFE] bg-white hover:border-[#2563EB] hover:bg-[#EFF6FF] text-[#64748B] hover:text-[#2563EB] transition cursor-pointer"
+            className="w-full py-3.5 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2.5 border-2 border-[#2563EB]/40 bg-[#EFF6FF] hover:border-[#2563EB] hover:bg-[#DBEAFE]/50 text-[#2563EB] transition cursor-pointer shadow-sm shadow-[#2563EB]/10"
           >
             <LayoutDashboard className="w-4 h-4" />
-            Open Agreement Registry (Admin)
+            Agreement Registry
+            <span className="ml-1 text-[9px] font-black uppercase tracking-wider bg-[#2563EB] text-white px-1.5 py-0.5 rounded-full">
+              Admin
+            </span>
           </button>
         )}
       </div>

@@ -5,13 +5,23 @@ import {
 } from "../../../../../lib/agreementStore";
 import { generateIdCardPdf } from "../../../../../lib/idCardPdf";
 
+// Increase body size limit — the signed PDF + ID card PDF base64 can exceed
+// Next.js's default 1 MB limit when processing multi-page agreements.
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
-    const body = await request.json();
+
+    // Read the raw body as text first, then parse — this bypasses Next.js's
+    // built-in body-size limit which causes 413 for large PDF payloads.
+    const rawText = await request.text();
+    const body = JSON.parse(rawText) as Record<string, unknown>;
+
     const {
       signatureImg,
       letterPDFdata: rawLetterPdf,

@@ -9,6 +9,10 @@ import {
   getResendFromAddress,
 } from "../../../../../lib/emailConfig";
 
+// Increase body size — card PDF base64 can be several MB
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -38,9 +42,11 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const body = await request.json();
+    // Read raw body as text to bypass Next.js built-in body-size limit (413).
+    const rawText = await request.text();
+    const body = JSON.parse(rawText) as Record<string, unknown>;
 
-    const rawCardPdf: string = body.cardPDFdata || "";
+    const rawCardPdf: string = (body.cardPDFdata as string) || "";
     const cardPDFdata = rawCardPdf.replace(
       /^data:application\/pdf(?:;[^;]*)?;base64,/,
       "",

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { AnimatePresence } from "motion/react";
-import { Mail, RefreshCw, CreditCard, FileText } from "lucide-react";
+import { Mail, RefreshCw, CreditCard, FileText, LayoutDashboard } from "lucide-react";
 import { useAppOrchestrator } from "@/hooks/useAppOrchestrator";
 import { SAMPLE_SECOND_PARTY } from "@/shared/constants/defaults";
 
@@ -193,6 +193,21 @@ export default function Home() {
           >
             <Mail className="w-3.5 h-3.5" /> Corporate Support
           </a>
+
+          {/* Agreement Registry — visible in docTypeSelect, form, workspace, adminDashboard */}
+          {appState !== "candidatePortal" && appState !== "home" && appState !== "login" && (
+            <button
+              onClick={() => setAppState("adminDashboard")}
+              className={`flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl border transition cursor-pointer ${
+                appState === "adminDashboard"
+                  ? "bg-[#2563EB] text-white border-[#2563EB]"
+                  : "border-[#DBEAFE] text-[#2563EB] bg-[#EFF6FF] hover:bg-[#DBEAFE]"
+              }`}
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Registry</span>
+            </button>
+          )}
         </div>
       </header>
 
