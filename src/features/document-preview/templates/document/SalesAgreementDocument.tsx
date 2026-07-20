@@ -571,7 +571,8 @@ export default function SalesAgreementDocument({
                     Follow all official company policies, sales guidelines, and
                     ethical standards issued by the Company from time to time.
                   </li>
-                <li>Maintain confidentiality of Company information and submit periodic sales and activity reports as reasonably requested.</li>
+                  <li>Maintain strict confidentiality regarding all Company information.</li>
+                  <li>Submit periodic sales/activity reports to the Company as reasonably requested.</li>
                 </ul>
               </Section>
             </>
