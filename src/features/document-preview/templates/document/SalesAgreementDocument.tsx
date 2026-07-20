@@ -527,16 +527,8 @@ export default function SalesAgreementDocument({
                   .
                 </p>
                 {d.isExclusive && (
-                  <p className="mt-2">
-                    For the duration of this Agreement, JEVXO will not appoint
-                    any other Country Sales Partner for the Territory of{" "}
-                    <strong><V>{d.territory}</V></strong>. This exclusivity applies
-                    specifically to the Country Sales Partner role; it does not
-                    restrict JEVXO&apos;s direct operations or unrelated brand
-                    partnerships outside the scope of this Agreement. If the
-                    Partner fails to meet the minimum performance targets set out
-                    in Section 3, the Company may at its discretion convert this
-                    exclusive appointment to non-exclusive.
+                  <p className="mt-2 text-[12.25px] italic text-slate-500">
+                    During this Agreement, JEVXO will not appoint another Country Sales Partner for the Territory of  <strong><V>{d.territory}</V></strong>. This exclusivity applies only to the Country Sales Partner role and does not affect JEVXO's direct operations or unrelated brand partnerships. If the Partner fails to meet the minimum performance targets in Section 3, the Company may convert this appointment to non-exclusive.
                   </p>
                 )}
                 {!d.isExclusive && (
