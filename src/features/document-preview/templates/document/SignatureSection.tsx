@@ -16,6 +16,7 @@ interface SignatureSectionProps {
   party3?: SignatureParty;
   titleText?: string;
   bodyText?: React.ReactNode;
+  party1Left?: string; // e.g. "left-25" or "left-10" — controls sig image offset
 }
 
 export default function SignatureSection({
@@ -24,6 +25,7 @@ export default function SignatureSection({
   party3,
   titleText = "Acceptance & Executory Signatures",
   bodyText,
+  party1Left = "left-10",
 }: SignatureSectionProps) {
   return (
     <section id="signatures-acceptance" className="pt-3 border-t border-slate-200">
@@ -39,7 +41,7 @@ export default function SignatureSection({
         {/* Party 1 — left */}
         <div className="flex flex-col">
           <div className="relative mt-4 pt-2 font-semibold text-slate-800 text-center">
-            <div className="absolute -top-10 left-10 right-10 h-12 w-48 flex items-end justify-start pointer-events-none select-none">
+            <div className={`absolute -top-10 ${party1Left} right-10 h-12 w-48 flex items-end justify-start pointer-events-none select-none`}>
               {party1.sigImg ? (
                 <Image
                   height={50}

@@ -262,9 +262,8 @@ export function useAppOrchestrator() {
         ...prev,
         agreementTemplate: "partner",
         salesAgreementType: type,
-        governingJurisdiction: prev.governingJurisdiction || "Bangladesh",
-        paymentCurrency: prev.paymentCurrency || "BDT",
-        paymentTerms: prev.paymentTerms || "14",
+        governingJurisdiction: prev.governingJurisdiction || "Hong Kong Special Administrative Region",
+        paymentCurrency: prev.paymentCurrency || "USD",
         noticePeriodSales: prev.noticePeriodSales || "30",
       }));
     } else if (type === "internship") {

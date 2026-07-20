@@ -182,12 +182,11 @@ export function SalesSettingsTab({ docSettings, setDocSettings, salesAgreementTy
       <TextInput label={isCSP ? "Country / Territory" : "Assigned Territory / Region"} value={docSettings.territory || ""} onChange={(e) => setDocSettings((p) => ({ ...p, territory: e.target.value }))} />
       <TextInput label="Governing Jurisdiction" value={docSettings.governingJurisdiction || ""} onChange={(e) => setDocSettings((p) => ({ ...p, governingJurisdiction: e.target.value }))} />
       <SliderField label={isCSP ? "Base Commission" : "Sales Commission"} value={docSettings.baseCommissionRate ?? 10} suffix="%" min={1} max={100} onChange={setNumber("baseCommissionRate", 1, 100)} />
-      <SliderField label="Recurring Commission" value={docSettings.recurringCommissionRate ?? (isCSP ? 12 : 10)} suffix="%" min={1} max={100} onChange={setNumber("recurringCommissionRate", 1, 100)} />
+      <SliderField label="Recurring Commission" value={docSettings.recurringCommissionRate ?? 10} suffix="%" min={1} max={100} onChange={setNumber("recurringCommissionRate", 1, 100)} />
       {isCSP && <SliderField label="Override Commission" value={docSettings.overrideCommissionRate ?? 10} suffix="%" min={1} max={100} onChange={setNumber("overrideCommissionRate", 1, 100)} />}
-      <SliderField label="Payment Window" value={docSettings.paymentDays ?? 14} suffix=" Days" min={1} max={90} onChange={setNumber("paymentDays", 1, 90)} />
+      {isCSP && <SliderField label="Initial Term" value={docSettings.initialTerm ?? 1} suffix=" Year(s)" min={1} max={10} onChange={setNumber("initialTerm", 1, 10)} />}
       <SliderField label="Notice Period" value={Number(docSettings.noticePeriodSales) || 30} suffix=" Days" min={1} max={90} onChange={setNotice} />
       <TextInput label="Payment Currency" value={docSettings.paymentCurrency || ""} onChange={(e) => setDocSettings((p) => ({ ...p, paymentCurrency: e.target.value }))} />
-      <TextInput label="Payment Terms" value={docSettings.paymentTerms || ""} onChange={(e) => setDocSettings((p) => ({ ...p, paymentTerms: e.target.value }))} />
     </div>
   );
 }

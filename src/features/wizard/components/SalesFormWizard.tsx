@@ -223,7 +223,7 @@ export default function SalesFormWizard(props: Props) {
           <Input value={docSettings.territory || ""} onChange={(e) => setSettings({ territory: e.target.value })} />
         </Field>
         <Field label="Governing Jurisdiction *">
-          <Input value={docSettings.governingJurisdiction || "Bangladesh"} onChange={(e) => setSettings({ governingJurisdiction: e.target.value })} />
+          <Input value={docSettings.governingJurisdiction || "Hong Kong Special Administrative Region"} readOnly />
         </Field>
         {isCSP ? (
           <div className="md:col-span-2">
@@ -250,25 +250,26 @@ export default function SalesFormWizard(props: Props) {
         )}
       </div>
     ) : activeStep === 4 ? (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-center">
         <div className="md:col-span-2">
           <h3 className="text-[#0F172A] font-bold text-base">Commission and payment configuration</h3>
         </div>
         <SliderControl label={isCSP ? "Base Commission" : "Sales Commission"} value={docSettings.baseCommissionRate ?? 10} min={1} max={100} onChange={(value) => setSettings({ baseCommissionRate: value })} />
-        <SliderControl label="Recurring Commission" value={docSettings.recurringCommissionRate ?? (isCSP ? 12 : 10)} min={1} max={100} onChange={(value) => setSettings({ recurringCommissionRate: value })} />
+        <SliderControl label="Recurring Commission" value={docSettings.recurringCommissionRate ?? 10} min={1} max={100} onChange={(value) => setSettings({ recurringCommissionRate: value })} />
         {isCSP && (
           <SliderControl label="Override Commission" value={docSettings.overrideCommissionRate ?? 10} min={1} max={100} onChange={(value) => setSettings({ overrideCommissionRate: value })} />
         )}
-        <SliderControl label="Payment Window" value={docSettings.paymentDays ?? 14} suffix=" Days" min={1} max={90} onChange={(value) => setSettings({ paymentDays: value })} />
         <Field label="Payment Currency *">
-          <select value={docSettings.paymentCurrency || "BDT"} onChange={(e) => setSettings({ paymentCurrency: e.target.value })} className="w-full bg-[#F8FAFC] border border-[#DBEAFE] rounded-xl py-3 px-4 text-sm">
-            {["BDT", "USD", "EUR", "GBP", "INR", "PKR", "AED", "SAR", "CAD", "AUD"].map((currency) => (
+          <select value={docSettings.paymentCurrency || "USD"} onChange={(e) => setSettings({ paymentCurrency: e.target.value })} className="w-full bg-[#F8FAFC] border border-[#DBEAFE] rounded-xl py-3 px-4 text-sm">
+            {["USD", "EUR", "GBP", "BDT"].map((currency) => (
               <option key={currency} value={currency}>{currency}</option>
             ))}
           </select>
         </Field>
-        <SliderControl label="Payment Terms" value={Number(docSettings.paymentTerms) || 14} suffix=" Days" min={1} max={90} onChange={(value) => setSettings({ paymentTerms: String(value) })} />
-        <SliderControl label="Notice Period" value={Number(docSettings.noticePeriodSales) || 30} suffix=" Days" min={1} max={90} onChange={(value) => setSettings({ noticePeriodSales: String(value) })} />
+        {isCSP && (
+          <SliderControl label="Initial Term" value={docSettings.initialTerm ?? 1} suffix=" Year(s)" min={1} max={10} onChange={(value) => setSettings({ initialTerm: value })} />
+        )}
+            <SliderControl label="Notice Period" value={Number(docSettings.noticePeriodSales) || 30} suffix=" Days" min={1} max={90} onChange={(value) => setSettings({ noticePeriodSales: String(value) })} />
       </div>
     ) : (
       <Step5 firstParty={firstParty} setFirstParty={setFirstParty} onClearError={onClearError} />

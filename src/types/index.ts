@@ -4,6 +4,8 @@ export interface FirstParty {
   role: string;
   ceoName?: string;
   ceoMobile?: string;
+  hrName?: string;
+  hrMobile?: string;
   currentAddress: string;
   permanentAddress: string;
   mobileNumber: string;
@@ -71,7 +73,7 @@ export interface DocSettings {
   territory?: string;
   isExclusive?: boolean;           // countrySales only
   partnerAgreementRef?: string;    // salesAgent only — which Partner they report to
-  paymentDays?: number;            // salesAgent commission payment window
+  initialTerm?: number;            // e.g. 1 (years) — countrySales initial term
   noticePeriodSales?: string;      // e.g. "7/14" or "30/60"
   governingJurisdiction?: string;
   salesExpiryDate?: string;        // ID card expiry for sales types
@@ -82,7 +84,6 @@ export interface DocSettings {
   recurringCommissionRate?: number;
   overrideCommissionRate?: number;
   paymentCurrency?: string;
-  paymentTerms?: string;
   reportingStructure?: string;
 }
 

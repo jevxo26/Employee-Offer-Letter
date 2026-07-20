@@ -128,11 +128,11 @@ function CommissionTable({ rows }: { rows: [string, React.ReactNode, string][] }
 function PartiesBlock({
   firstPartyName,
   firstPartyRep,
-  firstPartyRole,
+  ceoName,
+  firstPartyHR,
+  firstPartyHRcontact,
   firstPartyAddress,
   firstPartyEmail,
-  firstPartyContact,
-  firstPartyWebsite,
   partnerName,
   partnerContact,
   partnerNationality,
@@ -140,17 +140,18 @@ function PartiesBlock({
   partnerPassport,
   partnerEmail,
   partnerId,
+  salesRefId,
   partnerAddress,
   territory,
   date,
 }: {
   firstPartyName: string;
   firstPartyRep: string;
-  firstPartyRole: string;
+  ceoName: string,
+  firstPartyHR: string,
+  firstPartyHRcontact: string,
   firstPartyAddress: string;
   firstPartyEmail: string;
-  firstPartyContact: string;
-  firstPartyWebsite: string;
   partnerName: string;
   partnerContact: string;
   partnerNationality: string;
@@ -158,6 +159,7 @@ function PartiesBlock({
   partnerPassport: string;
   partnerEmail: string;
   partnerId: string;
+  salesRefId: string;
   partnerAddress: string;
   territory: string;
   date: string;
@@ -183,38 +185,30 @@ function PartiesBlock({
             <div className="grid grid-cols-3 gap-1">
               <span className="text-slate-400 font-medium">Rep By (CEO):</span>
               <span className="col-span-2 text-slate-800 font-bold">
+                {ceoName}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-1">
+              <span className="text-slate-400 font-medium">Founder:</span>
+              <span className="col-span-2 text-slate-700 font-medium">
                 {firstPartyRep}
               </span>
             </div>
             <div className="grid grid-cols-3 gap-1">
-              <span className="text-slate-400 font-medium">Designation:</span>
-              <span className="col-span-2 text-slate-700 font-medium">
-                {firstPartyRole}
-              </span>
+              <span className="text-slate-400 font-medium">HR:</span>
+              <span className="col-span-2 text-slate-700 font-mono">{firstPartyHR}</span>
             </div>
-            {/* <div className="grid grid-cols-3 gap-1">
+            <div className="grid grid-cols-3 gap-1">
+              <span className="text-slate-400 font-medium">HR Contact:</span>
+              <span className="col-span-2 text-slate-700 font-mono">{firstPartyHRcontact}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-1">
               <span className="text-slate-400 font-medium">Email:</span>
               <span className="col-span-2 text-slate-700 font-mono">{firstPartyEmail}</span>
-            </div> */}
-            <div className="grid grid-cols-3 gap-1">
-              <span className="text-slate-400 font-medium">Contact No:</span>
-              <span className="col-span-2 text-slate-700 font-mono">{firstPartyContact}</span>
             </div>
-            {/* <div className="grid grid-cols-3 gap-1">
-              <span className="text-slate-400 font-medium">Website:</span>
-              <span className="col-span-2 text-slate-700 font-mono">{firstPartyWebsite}</span>
-            </div> */}
             <div className="grid grid-cols-3 gap-1">
-              <span className="text-slate-400 font-medium">Reg Code:</span>
-              <span className="col-span-2 text-slate-700 font-mono font-semibold">JVX-REG-2026-081</span>
-            </div>
-            <div className="mt-1.5 border-t border-slate-200/40 pt-1.5">
-              <span className="text-[10px] text-slate-400 font-semibold uppercase block">
-                Corporate Address:
-              </span>
-              <span className="text-slate-700 text-[11px] leading-tight block">
-                {firstPartyAddress}
-              </span>
+              <span className="text-slate-400 font-medium">Reference ID:</span>
+              <span className="col-span-2 text-slate-700 font-mono font-semibold">{salesRefId}</span>
             </div>
           </div>
         </div>
@@ -322,6 +316,9 @@ export default function SalesAgreementDocument({
       }),
     companyName: firstParty.companyName || "JEVXO",
     companyRepName: firstParty.representedBy || "Authorized Signatory",
+    companyCEO: firstParty.ceoName || "Imtiaz Ahmed Tuhin",
+    companyHR: firstParty.hrName || "Juwel Khan",
+    companyHRcontact: firstParty.hrMobile || "01405749386",
     companyRepRole: firstParty.role || "Founder",
     companyEmail: firstParty.email || "info@jevxo.com",
     companyWebsite: firstParty.website || "www.jevxo.com",
@@ -347,14 +344,13 @@ export default function SalesAgreementDocument({
     isExclusive: settings.isExclusive ?? false,
     partnerAgreementRef:
       settings.partnerAgreementRef || "[PARTNER AGREEMENT REF. NO.]",
-    paymentDays: settings.paymentDays || 14,
+    initialTerm: settings.initialTerm ?? 1,
     noticePeriodSales: settings.noticePeriodSales || (isCSP ? "30/60" : "7/14"),
     baseCommissionRate: settings.baseCommissionRate ?? 10,
     recurringCommissionRate:
-      settings.recurringCommissionRate ?? (isCSP ? 12 : 10),
+      settings.recurringCommissionRate ?? 10,
     overrideCommissionRate: settings.overrideCommissionRate ?? 10,
     paymentCurrency: settings.paymentCurrency || "USD",
-    paymentTerms: settings.paymentTerms || "[PAYMENT TERMS]",
     effectiveDate: settings.date,
     governingJurisdiction:
       settings.governingJurisdiction || "Hong Kong Special Administrative Region",
@@ -441,11 +437,11 @@ export default function SalesAgreementDocument({
             <PartiesBlock
               firstPartyName={d.companyName}
               firstPartyRep={d.companyRepName}
-              firstPartyRole={d.companyRepRole}
+              ceoName={d.companyCEO}
+              firstPartyHR={d.companyHR}
+              firstPartyHRcontact={d.companyHRcontact}
               firstPartyAddress={d.companyAddress}
               firstPartyEmail={d.companyEmail}
-              firstPartyContact={firstParty.mobileNumber}
-              firstPartyWebsite={firstParty.website}
               partnerName={d.partnerName}
               partnerContact={d.partnerContact}
               partnerNationality={secondParty.nidNumber ? "Bangladeshi" : ""}
@@ -453,6 +449,7 @@ export default function SalesAgreementDocument({
               partnerPassport={secondParty.nidNumber || ""}
               partnerEmail={secondParty.email}
               partnerId={secondParty.salesPartnerId || d.salesPartnerId}
+              salesRefId={d.salesRefId}
               partnerAddress={secondParty.presentAddress}
               territory={d.territory}
               date={d.date}
@@ -514,8 +511,8 @@ export default function SalesAgreementDocument({
                   bind the Company to any contract, guarantee, or financial
                   obligation without the Company&apos;s prior written approval.
                 </p>
-                <p className="mt-2 font-semibold text-slate-800">Exclusivity</p>
-                <p className="mt-1">
+                <p className="mt-4 text-sm font-semibold text-slate-800">Exclusivity</p>
+                <p className="mt-1 mb-4">
                   This appointment is:{" "}
                   <span
                     className={
@@ -559,7 +556,7 @@ export default function SalesAgreementDocument({
                   following responsibilities in a professional, ethical, and
                   commercially reasonable manner:
                 </p>
-                <ul className="list-disc ml-5 mt-1 space-y-0.5">
+                <ul className="list-disc ml-5 mt-3 space-y-0.5">
                   <li>
                     Promote JEVXO&apos;s products and services within the assigned
                     Territory in line with Company branding and messaging.
@@ -574,6 +571,8 @@ export default function SalesAgreementDocument({
                     Follow all official company policies, sales guidelines, and
                     ethical standards issued by the Company from time to time.
                   </li>
+                  <li>Maintain strict confidentiality regarding all Company information.</li>
+                <li>Submit periodic sales/activity reports to the Company as reasonably requested.</li>
                 </ul>
               </Section>
             </>
@@ -659,8 +658,6 @@ export default function SalesAgreementDocument({
           {isCSP && (
             <Section num="02" title="Responsibilities of the Country Sales Partner &amp; Agent Network (Continued)">
               <ul className="list-disc ml-5 space-y-0.5">
-                <li>Maintain strict confidentiality regarding all Company information.</li>
-                <li>Submit periodic sales/activity reports to the Company as reasonably requested.</li>
                 <li>
                   <strong>Sales Agent Network:</strong> The Partner is granted
                   open authorization to recruit and manage a network of
@@ -703,14 +700,11 @@ export default function SalesAgreementDocument({
             <Section num="03" title="Performance &amp; Targets">
               <ul className="list-disc ml-5 space-y-0.5">
                 <li>
-                  <strong>Minimum Sales Target (per month):</strong>{" "}
-                  <V>10</V> new client sales.
+                  <strong>Minimum Sales Target:</strong>{" "}
+                  The Partner is expected to achieve a minimum of <V>10</V> new client sales per calendar month, unless otherwise agreed in writing by the Company. Performance shall be reviewed periodically.
                 </li>
                 <li>
-                  If the Partner fails to meet the agreed minimum target for
-                  two (2) consecutive review periods, the Company may, at its
-                  discretion, convert an exclusive appointment to
-                  non-exclusive, or terminate this Agreement.
+                  If the Partner fails to meet the agreed minimum sales target for two (2) consecutive review periods without reasonable justification accepted by the Company, JEVXO may, at its sole discretion, issue a performance improvement notice, convert an exclusive appointment to a non-exclusive appointment, or terminate this Agreement in accordance with its termination provisions.
                 </li>
               </ul>
             </Section>
@@ -831,11 +825,8 @@ export default function SalesAgreementDocument({
                   reconciled.
                 </li>
                 <li>
-                  Commission is paid to the Agent within{" "}
-                  <strong><V>{d.paymentDays}</V></strong> days of the Partner receiving
-                  the corresponding client payment and confirming it with JEVXO,
-                  under the agreed payment terms:{" "}
-                  <strong><V>{d.paymentTerms}</V></strong>.
+                  Commission is paid to the Agent by the Partner upon
+                  confirmation of the corresponding client payment with JEVXO.
                 </li>
                 <li>
                   The Agent should maintain their own record of closed sales and
@@ -947,14 +938,9 @@ export default function SalesAgreementDocument({
 
           {/* ── Section 06 (CSP): Data Protection ── */}
           {isCSP && (
-            <Section num="06" title="Data Protection">
+            <Section num="06" title="Data Protection & Privacy">
               <p>
-                Any personal data of clients or prospects that the Partner
-                accesses in the course of this role must be handled in
-                compliance with applicable data protection laws of the Territory
-                (e.g., GDPR, Kenya Data Protection Act, or local equivalent).
-                The Partner shall not retain, sell, or transfer client personal
-                data after termination of this Agreement.
+                The Partner shall collect, access, process, and use any personal data of clients or prospects solely for the purpose of performing responsibilities under this Agreement and in compliance with the applicable data protection and privacy laws of the relevant Territory. The Partner shall take reasonable measures to protect such data from unauthorized access, disclosure, misuse, or loss, and shall not disclose, sell, or transfer any personal data except as permitted by law or authorized by JEVXO. Upon termination of this Agreement, the Partner shall cease using such data and securely return or permanently delete it, unless retention is required by applicable law.
               </p>
             </Section>
           )}
@@ -965,11 +951,11 @@ export default function SalesAgreementDocument({
               <ul className="list-disc ml-5 space-y-0.5">
                 <li>
                   This Agreement begins on the signing date and continues for
-                  an initial term of: <strong>1 year</strong>.
+                  an initial term of: <strong><V>{d.initialTerm}</V> {d.initialTerm === 1 ? "year" : "years"}</strong>.
                 </li>
                 <li>
                   Either party may terminate this Agreement for convenience by
-                  giving no less than thirty (30) days&apos; written notice to
+                  giving no less than <strong>{d.noticePeriodSales} days'</strong>; written notice to
                   the other party.
                 </li>
                 <li>
@@ -991,19 +977,16 @@ export default function SalesAgreementDocument({
           {isCSP && (
             <Section num="08" title="Code of Conduct">
               <ul className="list-disc ml-5 space-y-0.5">
-                <li>Act honestly, professionally, and in the best interest of clients and the Company.</li>
-                <li>Avoid misleading, false, or exaggerated claims about JEVXO&apos;s products or services.</li>
+                <li>Conduct all business activities honestly, ethically, and professionally while acting in the best interests of both JEVXO and its clients.</li>
+                <li>Represent JEVXO's products, services, pricing, and policies accurately, and refrain from making any false, misleading, exaggerated, or unauthorized representations or commitments.</li>
                 <li>
-                  Respect all applicable laws and regulations of the Territory,
-                  including consumer protection and anti-bribery laws.
+                  Comply with all applicable laws and regulations of the Territory, including consumer protection, anti-bribery, anti-corruption, and fair business practice requirements.
                 </li>
                 <li>
-                  Maintain professional, respectful communication with clients
-                  and Company staff at all times.
+                  Maintain respectful, professional, and timely communication with clients, business partners, and Company representatives at all times.
                 </li>
                 <li>
-                  Immediately report any client complaint, legal notice, or
-                  regulatory inquiry related to JEVXO to the Company.
+                  Promptly report to JEVXO any significant client complaint, legal notice, regulatory inquiry, suspected fraud, or misconduct that may affect the Company's business, reputation, or legal compliance.
                 </li>
               </ul>
             </Section>
@@ -1125,7 +1108,7 @@ export default function SalesAgreementDocument({
                 The Parties agree that, in the event of any dispute,
                 controversy, or claim arising out of or relating to this
                 Agreement, they shall first attempt to resolve such dispute
-                through good-faith negotiations within thirty (30) calendar days
+                through good-faith negotiations within <strong>{d.noticePeriodSales} days' </strong>
                 after written notice of the dispute has been delivered by either
                 Party.
               </p>
@@ -1194,6 +1177,15 @@ export default function SalesAgreementDocument({
                 and international trade compliance requirements applicable
                 within the assigned territory.
               </p>
+
+               <p className="font-semibold text-slate-800 mt-3 mb-1">9.9 Entire Agreement</p>
+              <p>
+                This Agreement constitutes the complete understanding between
+                the Parties and supersedes all previous negotiations,
+                discussions, representations, and agreements, whether written
+                or oral. No amendment or modification shall be valid unless made
+                in writing and signed by both Parties.
+              </p>
             </Section>
           </div>
           <DocumentFooter
@@ -1218,15 +1210,6 @@ export default function SalesAgreementDocument({
 
             {/* Continuation of Section 09 sub-clauses */}
             <Section num="09" title="Governing Law (Continued)">
-              <p className="font-semibold text-slate-800 mb-1">9.9 Entire Agreement</p>
-              <p>
-                This Agreement constitutes the complete understanding between
-                the Parties and supersedes all previous negotiations,
-                discussions, representations, and agreements, whether written
-                or oral. No amendment or modification shall be valid unless made
-                in writing and signed by both Parties.
-              </p>
-
               <p className="font-semibold text-slate-800 mt-3 mb-1">9.10 Severability</p>
               <p>
                 If any provision of this Agreement is held to be invalid or
@@ -1285,7 +1268,8 @@ export default function SalesAgreementDocument({
             <SignatureSection
               party1={sigParty1}
               party2={sigParty2}
-              titleText="Acceptance & Executory Signatures"
+              party1Left="left-25"
+              titleText="Executory Signatures"
               bodyText={`This Country Sales Partner Agreement is executed between JEVXO and ${d.partnerName} as Country Sales Partner for the Territory of ${d.territory}, effective ${d.date}.`}
             />
           </div>
