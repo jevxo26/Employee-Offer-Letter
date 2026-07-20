@@ -511,8 +511,8 @@ export default function SalesAgreementDocument({
                   bind the Company to any contract, guarantee, or financial
                   obligation without the Company&apos;s prior written approval.
                 </p>
-                <p className="mt-4 text-sm font-semibold text-slate-800">Exclusivity</p>
-                <p className="mt-1 mb-4">
+                <p className="mt-3 text-sm font-semibold text-slate-800">Exclusivity</p>
+                <p className="mt-1 mb-3">
                   This appointment is:{" "}
                   <span
                     className={
