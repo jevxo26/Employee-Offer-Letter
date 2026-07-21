@@ -12,7 +12,9 @@ import {
   Loader2,
   Eye,
   FileSearch,
+  Trash2,
 } from "lucide-react";
+import Swal from "sweetalert2";
 import { AgreementSummary } from "@/types";
 import { buildVerifyUrl } from "@/lib/verifyUrl";
 import { useRegistryData } from "../hooks/useRegistryData";
@@ -88,20 +90,24 @@ function DocTypeBadge({
 interface RowActionsProps {
   agreement: AgreementSummary;
   resendingId: string | null;
+  deletingId: string | null;
   onResend: (id: string) => void;
   onDetails: (id: string) => void;
   onPreview: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
 function RowActions({
   agreement: a,
   resendingId,
+  deletingId,
   onResend,
   onDetails,
   onPreview,
+  onDelete,
 }: RowActionsProps) {
   return (
-    <div className="flex items-center justify-center gap-3 flex-wrap">
+    <div className="flex items-center justify-start gap-3 flex-wrap">
       {a.status !== "FULLY_EXECUTED" && (
         <button
           onClick={() => onResend(a.agreementId)}
@@ -140,6 +146,18 @@ function RowActions({
         Verify
         <ExternalLink className="w-2.5 h-2.5" />
       </a>
+      <button
+        onClick={() => onDelete(a.agreementId)}
+        disabled={deletingId === a.agreementId}
+        className="flex items-center gap-1 px-2.5 py-1.5 bg-[#FEF2F2] hover:bg-[#FEE2E2] border border-[#FEE2E2] rounded-lg text-[10px] font-bold text-[#EF4444] cursor-pointer disabled:opacity-50"
+      >
+        {deletingId === a.agreementId ? (
+          <Loader2 className="w-3 h-3 animate-spin" />
+        ) : (
+          <Trash2 className="w-3 h-3" />
+        )}
+        Delete
+      </button>
     </div>
   );
 }
@@ -155,6 +173,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
     useRegistryData();
 
   const [resendingId, setResendingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [detailsId, setDetailsId] = useState<string | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
 
@@ -166,11 +185,79 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Resend failed.");
-      alert("Signing link resent successfully.");
+      
+      await Swal.fire({
+        icon: "success",
+        title: "Success",
+        text: "Signing link resent successfully.",
+        confirmButtonColor: "#2563EB",
+      });
     } catch (e: unknown) {
-      alert((e as Error).message);
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: (e as Error).message,
+        confirmButtonColor: "#2563EB",
+      });
     } finally {
       setResendingId(null);
+    }
+  };
+
+  const handleDelete = async (agreementId: string) => {
+    const { value: pin } = await Swal.fire({
+      title: "Enter security PIN to delete",
+      input: "password",
+      inputPlaceholder: "Enter security PIN",
+      inputAttributes: {
+        autocapitalize: "off",
+        autocorrect: "off",
+      },
+      showCancelButton: true,
+      confirmButtonText: "Delete",
+      confirmButtonColor: "#EF4444",
+      cancelButtonColor: "#64748B",
+    });
+
+    if (pin === undefined || pin === null) return;
+    if (!pin.trim()) {
+      await Swal.fire({
+        icon: "warning",
+        title: "PIN Required",
+        text: "A valid PIN is required to perform deletion.",
+        confirmButtonColor: "#2563EB",
+      });
+      return;
+    }
+
+    setDeletingId(agreementId);
+    try {
+      const res = await fetch(`/api/offers/${agreementId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ pin }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Delete failed.");
+      
+      await Swal.fire({
+        icon: "success",
+        title: "Deleted!",
+        text: "Document deleted successfully.",
+        confirmButtonColor: "#2563EB",
+      });
+      reload();
+    } catch (e: unknown) {
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: (e as Error).message,
+        confirmButtonColor: "#2563EB",
+      });
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -255,7 +342,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-[#DBEAFE] bg-[#F8FAFC] text-left">
+                  <tr className="border-b border-[#DBEAFE] bg-[#F8FAFC] text-center">
                     <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
                       Agreement
                     </th>
@@ -268,7 +355,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                     <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
                       Created
                     </th>
-                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B] text-center">
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
                       Actions
                     </th>
                   </tr>
@@ -310,13 +397,15 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                             })
                           : "—"}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 flex justify-end">
                         <RowActions
                           agreement={a}
                           resendingId={resendingId}
+                          deletingId={deletingId}
                           onResend={handleResend}
                           onDetails={setDetailsId}
                           onPreview={setPreviewId}
+                          onDelete={handleDelete}
                         />
                       </td>
                     </tr>

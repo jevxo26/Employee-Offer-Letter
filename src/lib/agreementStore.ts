@@ -210,11 +210,14 @@ export async function listAgreements() {
   const mongoList = await tryMongo(async () => {
     const docs = await Agreement.find({}, "-letterPDFdata -cardPDFdata")
       .sort({ createdAt: -1 })
-      .limit(200);
+      .limit(500);
     return docs.map((d) => d.toObject());
   });
 
   if (mongoList) return mongoList;
+
+  // File store fallback — only reached when MongoDB is genuinely unavailable
+  console.warn("[listAgreements] MongoDB unavailable — serving local file store.");
   const fileList = await fileStore.fileListAgreements();
   return fileList.map(
     ({ letterPDFdata: _letter, cardPDFdata: _card, ...rest }) => rest,
@@ -240,6 +243,13 @@ export async function updateAgreement(
 }
 
 export function toAgreementSummary(agreement: Record<string, unknown>) {
+  // salesAgreementType may be stored at the top level OR inside docSettings
+  const salesAgreementType =
+    (agreement.salesAgreementType as string | undefined) ||
+    (agreement.docSettings as Record<string, unknown> | undefined)
+      ?.salesAgreementType as string | undefined ||
+    undefined;
+
   return {
     agreementId: agreement.agreementId,
     partnerId: agreement.partnerId,
@@ -247,9 +257,7 @@ export function toAgreementSummary(agreement: Record<string, unknown>) {
     agreementTemplate:
       (agreement.docSettings as Record<string, string> | undefined)
         ?.agreementTemplate || undefined,
-    salesAgreementType:
-      (agreement.docSettings as Record<string, unknown> | undefined)
-        ?.salesAgreementType || undefined,
+    salesAgreementType,
     status: agreement.status,
     founderSigned: agreement.founderSigned,
     partnerSigned: agreement.partnerSigned,
@@ -268,4 +276,19 @@ export function toAgreementSummary(agreement: Record<string, unknown>) {
       (agreement.secondParty as Record<string, string> | undefined)?.position ||
       "",
   };
+}
+
+export async function deleteAgreement(id: string): Promise<boolean> {
+  const normalized = decodeURIComponent(id).trim();
+
+  const mongoDeleted = await tryMongo(async () => {
+    let res = await Agreement.deleteOne({ agreementId: normalized });
+    if (res.deletedCount === 0) {
+      res = await Agreement.deleteOne({ partnerId: normalized });
+    }
+    return res.deletedCount > 0;
+  });
+
+  if (mongoDeleted !== null) return mongoDeleted;
+  return fileStore.fileDeleteAgreement(normalized);
 }

@@ -377,7 +377,7 @@ export function useAppOrchestrator() {
       } else if (activeStep === 2) {
         if (!p.fullName.trim() || !validEmail(p.email) || !p.mobileNumber.trim()) return isCSP ? "Partner name, valid email, and phone are required." : "Sales Agent name, valid email, and phone are required.";
         if (isCSP && !p.presentAddress.trim()) return "Partner address is required.";
-        if (!isCSP && (!partner?.fullName.trim() || !validEmail(partner.email) || !partner.phone.trim() || !docSettings.partnerAgreementRef?.trim())) return "Country Sales Partner name, email, phone, and agreement reference are required.";
+        if (!isCSP && (!partner?.fullName.trim() || !validEmail(partner.email) || !partner.phone.trim() || !partner?.partnerId?.trim())) return "Please select a Country Sales Partner from the dropdown.";
       } else if (activeStep === 3) {
         if (!docSettings.territory?.trim() || !docSettings.governingJurisdiction?.trim()) return "Territory and governing jurisdiction are required.";
       } else if (activeStep === 4) {

@@ -50,5 +50,7 @@ const AgreementSchema: Schema = new Schema(
   { timestamps: true, versionKey: false },
 );
 
+AgreementSchema.index({ createdAt: -1 });
+
 export default mongoose.models.Agreement ||
   mongoose.model<IAgreement>("Agreement", AgreementSchema, "docsAgreement");

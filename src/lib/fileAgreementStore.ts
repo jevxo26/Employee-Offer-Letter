@@ -83,3 +83,23 @@ export async function fileGenerateIds() {
     partnerId: `JVX-PT-${currentYearStr}-${sequenceStr}`,
   };
 }
+
+export async function fileDeleteAgreement(id: string): Promise<boolean> {
+  await ensureDir();
+  try {
+    const filePath = path.join(DATA_DIR, `${id}.json`);
+    await fs.unlink(filePath);
+    return true;
+  } catch {
+    try {
+      const all = await fileListAgreements();
+      const match = all.find((a) => a.agreementId === id || a.partnerId === id);
+      if (match && match.agreementId) {
+        const filePath = path.join(DATA_DIR, `${match.agreementId}.json`);
+        await fs.unlink(filePath);
+        return true;
+      }
+    } catch {}
+    return false;
+  }
+}

@@ -22,7 +22,7 @@ export interface RegistryFilters {
   page: number;
 }
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 25;
 
 function matchesDocType(
   a: AgreementSummary,

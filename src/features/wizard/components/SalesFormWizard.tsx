@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { Check, ChevronLeft, ChevronRight, FileText } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, FileText, Loader2 } from "lucide-react";
 import { Step5 } from "@/features/wizard/steps/partner/WizardSteps";
 import {
   DocSettings,
@@ -10,6 +10,17 @@ import {
   SalesAgreementType,
   SecondParty,
 } from "@/types";
+
+// ─── CSP option shape returned by /api/offers/csp-list ───────────────────────
+interface CspOption {
+  salesPartnerId: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  salesRefId: string;
+  territory: string;
+}
 
 const labels = [
   "1. Agreement",
@@ -120,18 +131,45 @@ export default function SalesFormWizard(props: Props) {
     agreementType,
   } = props;
   const isCSP = agreementType === "countrySales";
-  const partner = docSettings.salesPartner || {
-    fullName: "",
-    email: "",
-    phone: "",
-    address: "",
-    partnerId: "",
-  };
-  const setPartner = (patch: Partial<typeof partner>) =>
+
+  // ── CSP list for SAG step 2 ────────────────────────────────────────────────
+  const [cspOptions, setCspOptions] = useState<CspOption[]>([]);
+  const [cspLoading, setCspLoading] = useState(false);
+
+  useEffect(() => {
+    if (isCSP || activeStep !== 2) return;
+    setCspLoading(true);
+    fetch("/api/offers/csp-list")
+      .then((r) => r.json())
+      .then((data) => setCspOptions(data.cspList || []))
+      .catch(() => setCspOptions([]))
+      .finally(() => setCspLoading(false));
+  }, [isCSP, activeStep]);
+
+  const selectedCspId = docSettings.salesPartner?.partnerId || "";
+
+  const handleCspSelect = (cspId: string) => {
+    const found = cspOptions.find((c) => c.salesPartnerId === cspId);
+    if (!found) {
+      setDocSettings((p) => ({ ...p, salesPartner: undefined, partnerAgreementRef: undefined }));
+      return;
+    }
     setDocSettings((p) => ({
       ...p,
-      salesPartner: { ...(p.salesPartner || partner), ...patch },
+      partnerAgreementRef: found.salesRefId,
+      salesPartner: {
+        fullName: found.fullName,
+        email: found.email,
+        phone: found.phone,
+        address: found.address,
+        partnerId: found.salesPartnerId,
+      },
     }));
+  };
+
+  const partner = docSettings.salesPartner || { fullName: "", email: "", phone: "", address: "", partnerId: "" };
+  const setPartner = (patch: Partial<typeof partner>) =>
+    setDocSettings((p) => ({ ...p, salesPartner: { ...(p.salesPartner || partner), ...patch } }));
   const setSettings = (patch: Partial<DocSettings>) =>
     setDocSettings((p) => ({ ...p, ...patch }));
 
@@ -181,37 +219,89 @@ export default function SalesFormWizard(props: Props) {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="md:col-span-2">
-            <h3 className="text-[#0F172A] font-bold text-base">Contracting parties</h3>
-            <p className="text-[#64748B] text-xs mt-1">
-              The Country Sales Partner contracts with the Sales Agent. JEVXO approves the agreement.
-            </p>
+        /* ── SAG Step 2: two-block layout ─────────────────────────────────── */
+        <div className="flex flex-col gap-6">
+
+          {/* Block 1 — Country Sales Partner (auto-populated from DB) */}
+          <div className="border border-[#DBEAFE] rounded-2xl p-5 bg-[#F8FAFC]">
+            <div className="mb-4">
+              <h3 className="text-[#0F172A] font-bold text-sm">Country Sales Partner</h3>
+              <p className="text-[#64748B] text-xs mt-0.5">
+                Select an existing CSP by ID. Their details will auto-fill from the registry.
+              </p>
+            </div>
+
+            {/* CSP ID Dropdown */}
+            <div className="mb-4">
+              <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wide mb-1.5">
+                CSP Partner ID *
+              </label>
+              {cspLoading ? (
+                <div className="flex items-center gap-2 text-xs text-[#64748B] py-3">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2563EB]" />
+                  Loading CSP list…
+                </div>
+              ) : (
+                <select
+                  value={selectedCspId}
+                  onChange={(e) => handleCspSelect(e.target.value)}
+                  className="w-full bg-white border border-[#DBEAFE] focus:border-[#2563EB] rounded-xl py-3 px-4 text-sm text-[#0F172A] focus:outline-none transition cursor-pointer"
+                >
+                  <option value="">— Select Country Sales Partner ID —</option>
+                  {cspOptions.map((c) => (
+                    <option key={c.salesPartnerId} value={c.salesPartnerId}>
+                      {c.salesPartnerId}{c.territory ? ` — ${c.territory}` : ""}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {cspOptions.length === 0 && !cspLoading && (
+                <p className="text-[11px] text-amber-600 mt-1.5 font-medium">
+                  No fully executed CSP agreements found in the registry.
+                </p>
+              )}
+            </div>
+
+            {/* Auto-filled read-only fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field label="Partner Full Name">
+                <Input value={partner.fullName} readOnly placeholder="Auto-filled on ID select" />
+              </Field>
+              <Field label="Partner Email">
+                <Input value={partner.email} readOnly placeholder="Auto-filled on ID select" />
+              </Field>
+              <Field label="Partner Phone">
+                <Input value={partner.phone} readOnly placeholder="Auto-filled on ID select" />
+              </Field>
+              <Field label="Agreement Reference">
+                <Input value={docSettings.partnerAgreementRef || ""} readOnly placeholder="Auto-filled on ID select" />
+              </Field>
+            </div>
           </div>
-          <Field label="Country Sales Partner Name *">
-            <Input value={partner.fullName} onChange={(e) => setPartner({ fullName: e.target.value })} />
-          </Field>
-          <Field label="Partner Agreement Reference *">
-            <Input value={docSettings.partnerAgreementRef || ""} onChange={(e) => setSettings({ partnerAgreementRef: e.target.value })} />
-          </Field>
-          <Field label="Partner Email *">
-            <Input type="email" value={partner.email} onChange={(e) => setPartner({ email: e.target.value })} />
-          </Field>
-          <Field label="Partner Phone *">
-            <Input value={partner.phone} onChange={(e) => setPartner({ phone: e.target.value })} />
-          </Field>
-          <Field label="Sales Agent Full Name *">
-            <Input value={secondParty.fullName} onChange={(e) => setSecondParty((p) => ({ ...p, fullName: e.target.value }))} />
-          </Field>
-          <Field label="Sales Agent Email *">
-            <Input type="email" value={secondParty.email} onChange={(e) => setSecondParty((p) => ({ ...p, email: e.target.value }))} />
-          </Field>
-          <Field label="Sales Agent Phone *">
-            <Input value={secondParty.mobileNumber} onChange={(e) => setSecondParty((p) => ({ ...p, mobileNumber: e.target.value }))} />
-          </Field>
-          <Field label="Sales Agent ID">
-            <Input value={secondParty.salesPartnerId || ""} readOnly />
-          </Field>
+
+          {/* Block 2 — Sales Agent (manual input) */}
+          <div className="border border-[#DBEAFE] rounded-2xl p-5 bg-white">
+            <div className="mb-4">
+              <h3 className="text-[#0F172A] font-bold text-sm">Sales Agent</h3>
+              <p className="text-[#64748B] text-xs mt-0.5">
+                Enter the Sales Agent&apos;s personal details for this agreement.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field label="Sales Agent Full Name *">
+                <Input value={secondParty.fullName} onChange={(e) => setSecondParty((p) => ({ ...p, fullName: e.target.value }))} />
+              </Field>
+              <Field label="Sales Agent ID">
+                <Input value={secondParty.salesPartnerId || ""} readOnly />
+              </Field>
+              <Field label="Sales Agent Email *">
+                <Input type="email" value={secondParty.email} onChange={(e) => setSecondParty((p) => ({ ...p, email: e.target.value }))} />
+              </Field>
+              <Field label="Sales Agent Phone *">
+                <Input value={secondParty.mobileNumber} onChange={(e) => setSecondParty((p) => ({ ...p, mobileNumber: e.target.value }))} />
+              </Field>
+            </div>
+          </div>
         </div>
       )
     ) : activeStep === 3 ? (

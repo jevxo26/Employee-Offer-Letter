@@ -484,7 +484,7 @@ export default function SalesAgreementDocument({
                   ["Agreement Reference No.", <V key="ref">{d.salesRefId}</V>],
                   ["Effective Date", <V key="ed">{d.effectiveDate}</V>],
                   ["Territory / Local Area", <V key="terr">{d.territory}</V>],
-                  ["Country Sales Partner", <V key="csp">{d.partnerName}</V>],
+                  ["Country Sales Partner Name & ID", <V key="csp">{d.partnerName} ({salesPartner?.partnerId || "[CSP ID]"})</V>],
                   ["Agent Contact", <V key="ac">{d.agentContact}</V>],
                 ]}
               />
@@ -511,8 +511,8 @@ export default function SalesAgreementDocument({
                   bind the Company to any contract, guarantee, or financial
                   obligation without the Company&apos;s prior written approval.
                 </p>
-                <p className="mt-3 text-sm font-semibold text-slate-800">Exclusivity</p>
-                <p className="mt-1 mb-3">
+                <p className="mt-2 text-[13.5px] font-bold text-slate-800">Exclusivity</p>
+                <p className="mt-1 mb-2">
                   This appointment is:{" "}
                   <span
                     className={
@@ -532,11 +532,8 @@ export default function SalesAgreementDocument({
                   </p>
                 )}
                 {!d.isExclusive && (
-                  <p className="mt-2">
-                    JEVXO may appoint additional Country Sales Partners or agents
-                    for this Territory. The Partner&apos;s appointment does not
-                    prevent JEVXO from engaging other representatives or partners
-                    within the same Territory.
+                  <p className="mt-2 text-[13px] italic text-slate-500">
+                    JEVXO may appoint additional Country Sales Partners, Sales Agents, or other authorized representatives within the same Territory. The Partner acknowledges that this non-exclusive appointment does not restrict the Company's right to conduct business directly or engage other representatives, distributors, or business partners in the Territory as it deems appropriate.
                   </p>
                 )}
               </Section>
@@ -563,8 +560,7 @@ export default function SalesAgreementDocument({
                     Follow all official company policies, sales guidelines, and
                     ethical standards issued by the Company from time to time.
                   </li>
-                  <li>Maintain strict confidentiality regarding all Company information.</li>
-                  <li>Submit periodic sales/activity reports to the Company as reasonably requested.</li>
+                  <li>Maintain confidentiality of Company information and submit periodic sales and activity reports as reasonably requested.</li>
                 </ul>
               </Section>
             </>

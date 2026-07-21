@@ -27,19 +27,19 @@ async function dbConnect() {
     const opts = {
       bufferCommands: false,
       dbName: "jevxo-doc-engine",
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000,
-      socketTimeoutMS: 10000,
+      // Raised from 5 s → 30 s to handle Atlas cold-start / serverless wake-up
+      serverSelectionTimeoutMS: 30000,
+      connectTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
     };
 
-    cached.promise = mongoose.connect(mongodbUri, opts).then((mongoose) => {
-      return mongoose;
-    });
+    cached.promise = mongoose.connect(mongodbUri, opts).then((m) => m);
   }
 
   try {
     cached.conn = await cached.promise;
   } catch (e) {
+    // Reset so the next request retries the connection
     cached.promise = null;
     throw e;
   }
