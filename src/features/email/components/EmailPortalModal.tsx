@@ -264,8 +264,8 @@ export default function EmailPortalModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3 shrink-0">
-          <a
+        <div className="p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row justify-end items-center gap-3 shrink-0">
+          {/* <a
             href={candidateLink}
             target="_blank"
             rel="noopener noreferrer"
@@ -277,7 +277,7 @@ export default function EmailPortalModal({
               : isSalesType
               ? "Open Sales Agreement Portal"
               : "Open Candidate Portal"}
-          </a>
+          </a> */}
 
           <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2.5">
             <button

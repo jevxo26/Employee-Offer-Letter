@@ -63,6 +63,8 @@ export default function WorkspaceSidebar({
   salesAgreementType,
 }: WorkspaceSidebarProps) {
   const isInternship = agreementTemplate === "internship";
+  const isCSPAgreement = salesAgreementType === "countrySales";
+  const isSAGAgreement = salesAgreementType === "salesAgent";
   const isSalesAgreement = salesAgreementType === "countrySales" || salesAgreementType === "salesAgent";
 
   return (
@@ -155,7 +157,7 @@ export default function WorkspaceSidebar({
           )}
           <div className="flex justify-between text-[11px] text-[#64748B] px-1 font-semibold">
             <span>A4 dimensions output</span>
-            <span>{isDemo ? "1 page" : isInternship ? "1 page" : isSalesAgreement ? "5 pages" : "2 pages"} automatic layout</span>
+            <span>{isDemo ? "1 page" : isInternship ? "1 page" : isCSPAgreement ? "5 pages" : isSAGAgreement ? "3 pages" : "2 pages"} automatic layout</span>
           </div>
         </div>
       </div>

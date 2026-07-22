@@ -33,9 +33,9 @@ export default function SignatureSection({
         {titleText}
       </h4>
       {bodyText && (
-        <p className="text-[13px] text-slate-600 leading-relaxed font-sans bg-white/50 p-3 rounded-md border border-slate-100 shadow-sm text-justify">
+        <div className="text-[13px] text-slate-600 leading-relaxed font-sans bg-white/50 p-3 rounded-md border border-slate-100 shadow-sm text-justify">
           {bodyText}
-        </p>
+        </div>
       )}
       <div className={`grid ${party3 ? "grid-cols-3 gap-5" : "grid-cols-2 gap-12"} pt-10 font-sans text-[13px]`}>
         {/* Party 1 — left */}

@@ -358,7 +358,7 @@ export default function SalesAgreementDocument({
   };
 
   const verifyUrl = buildVerifyUrl(d.salesRefId);
-  // CSP now uses 5 pages; SAG stays at 3
+  // CSP uses 5 pages; SAG uses 4 pages
   const totalPages = isCSP ? 5 : 3;
   const docTitle = isCSP
     ? "Country Sales Partner Agreement"
@@ -368,33 +368,33 @@ export default function SalesAgreementDocument({
   // Signature parties
   const sigParty1 = isCSP
     ? {
-        name: d.partnerName,
-        role: "Country Sales Partner",
-        sigImg: secondParty.signatureImg,
-        date: settings.partnerSignedDate || "",
-        awaitingLabel: "Awaiting Partner Sign *",
-      }
+      name: d.partnerName,
+      role: "Country Sales Partner",
+      sigImg: secondParty.signatureImg,
+      date: settings.partnerSignedDate || "",
+      awaitingLabel: "Awaiting Partner Sign *",
+    }
     : {
-        name: d.partnerName,
-        role: "Country Sales Partner",
-        sigImg: activeCSPSig,
-        date: settings.partnerSignedDate || "",
-        awaitingLabel: "Awaiting Partner Sign *",
-      };
+      name: d.partnerName,
+      role: "Country Sales Partner",
+      sigImg: activeCSPSig,
+      date: settings.partnerSignedDate || "",
+      awaitingLabel: "Awaiting Partner Sign *",
+    };
 
   const sigParty2 = isCSP
     ? {
-        name: d.companyRepName,
-        role: `For JEVXO (${d.companyRepRole})`,
-        sigImg: d.companySignature,
-        date: d.date,
-      }
+      name: d.companyRepName,
+      role: `For JEVXO (${d.companyRepRole})`,
+      sigImg: d.companySignature,
+      date: d.date,
+    }
     : {
-        name: secondParty.fullName || "Agent Name",
-        role: "Sales Agent",
-        sigImg: activeAgentSig,
-        date: activeAgentSig ? d.date : "",
-      };
+      name: secondParty.fullName || "Agent Name",
+      role: "Sales Agent",
+      sigImg: activeAgentSig,
+      date: activeAgentSig ? d.date : "",
+    };
 
   const founderApproval = {
     name: d.companyRepName,
@@ -984,83 +984,89 @@ export default function SalesAgreementDocument({
           {!isCSP && (
             <Section num="08" title="Confidentiality, Professional Standards &amp; Ethical Conduct">
               <p>
-                The Agent agrees to keep confidential all non-public business
-                information shared by the Partner or JEVXO, including pricing
-                structures, client data, commission terms, and internal
-                strategy, both during and after the term of this Agreement.
+                The Agent shall keep confidential all non-public information received from the Partner or JEVXO, including pricing, client data, commission structures, and business strategies, during and after this Agreement.
               </p>
               <p className="mt-2">
-                The Agent shall conduct all business activities honestly,
-                professionally, and in accordance with applicable laws,
-                JEVXO&apos;s policies, and the Country Sales Partner&apos;s
-                reasonable instructions. The Agent shall not engage in
-                fraudulent activities, misleading sales practices, unauthorized
-                pricing, false representations, harassment, discrimination, or
-                any conduct that may reasonably damage the reputation, goodwill,
-                or client relationships of JEVXO or the Country Sales Partner.
+                The Agent shall conduct all business honestly, professionally, and in compliance with applicable laws, JEVXO's policies, and the Partner's reasonable instructions, and shall not engage in fraud, misleading practices, unauthorized representations, discrimination, harassment, or any conduct that may harm the reputation or client relationships of JEVXO or the Partner.
               </p>
             </Section>
           )}
 
-          {/* ── Section 09 (SAG) ── */}
-          {!isCSP && (
+          {/* ── Section 09 (SAG) ── Governing Law — expanded, splits onto page 4 */}
+          {!isCSP && (<>
             <Section num="09" title="Governing Law &amp; Dispute Resolution">
-              <p>
-                This Agreement shall be governed by and construed in accordance
-                with the laws of{" "}
-                <strong><V>{d.governingJurisdiction}</V></strong>. Any dispute,
-                controversy, or claim arising out of or relating to this
-                Agreement shall first be addressed through good-faith written
-                discussions between the Agent and the Partner, with the intent
-                to reach an amicable resolution prior to initiating any formal
-                proceedings. If such discussions fail, the parties may pursue
-                formal resolution through the competent courts or tribunals of
-                Bangladesh, subject to applicable law.
-              </p>
-              <p className="mt-1 text-[12px] italic text-slate-500">
-                Note: This template is provided solely as a standardized
-                business document and does not constitute formal legal advice.
-                Because Sales Agent Agreements may be executed across multiple
-                jurisdictions with differing labor, contractor, and commercial
-                laws, each Territory-specific version must be reviewed and
-                approved by a qualified local lawyer prior to execution. The
-                parties acknowledge that independent legal or professional advice
-                should be sought to ensure compliance with applicable laws and
-                regulations.
+              <ul className="list-disc pl-5 space-y-2">
+                <li>
+                  <strong>Governing Law &amp; Resolution:</strong> This Agreement shall be
+                  governed by the laws of <strong><V>{d.governingJurisdiction}</V></strong>.
+                  Any dispute shall first be resolved through good-faith written discussions
+                  within <strong><V>{d.noticePeriodSales}</V> days</strong>. If unresolved,
+                  it shall be submitted to the competent courts of the governing
+                  jurisdiction. JEVXO may participate where its rights or interests are
+                  directly affected.
+                </li>
+
+                <li>
+                  <strong>Performance &amp; Force Majeure:</strong> Unless otherwise agreed,
+                  both parties shall continue performing undisputed obligations during any
+                  pending dispute. Neither party shall be liable for delays caused by events
+                  beyond its reasonable control, including natural disasters, war, civil
+                  unrest, government actions, pandemics, or infrastructure failures.
+                </li>
+
+                <li>
+                  <strong>Liability &amp; Intellectual Property:</strong> Except for fraud,
+                  willful misconduct, or gross negligence, neither party shall be liable for
+                  indirect, consequential, or punitive damages. The Partner's liability
+                  shall not exceed the commissions paid to the Agent during the preceding
+                  three (3) months. All JEVXO intellectual property remains its exclusive
+                  property and shall not be reproduced or misused without prior written
+                  authorization.
+                </li>
+
+                <li>
+                  <strong>Compliance, Severability &amp; Survival:</strong> The Agent shall
+                  comply with all applicable laws and regulations. If any provision is held
+                  unenforceable, the remaining provisions shall remain in full force and
+                  effect. Confidentiality, Intellectual Property, Liability, Governing Law,
+                  and Dispute Resolution obligations shall survive termination.
+                </li>
+              </ul>
+
+              <p className="mt-3 text-[12px] italic text-slate-500">
+                Note: This Agreement is a standardized business document and does not
+                constitute legal advice. Territory-specific versions should be reviewed by
+                a qualified local legal professional before execution.
               </p>
             </Section>
-          )}
+            <SignatureSection
+              party1={sigParty1}
+              party2={sigParty2}
+              party3={founderApproval}
+              titleText="Signatures & Acceptance"
+              bodyText={
+                <>
+                  <p>
+                    This Agreement constitutes the entire understanding between the applicable
+                    parties and supersedes all prior discussions or representations. Any written
+                    amendment accepted by both parties shall be valid. Electronic and digital
+                    signatures on this <V>{docTitle}</V> have the same legal effect as handwritten
+                    signatures.
+                  </p>
 
-          {/* SAG-only Section 10 — Final Agreement */}
-          {!isCSP && (
-            <>
-              <Section num="10" title="Final Agreement &amp; Acceptance">
-                <p>
-                  This Agreement constitutes the entire agreement between the
-                  applicable contracting parties concerning its subject matter
-                  and supersedes all prior discussions, representations, or
-                  understandings relating to that subject matter. No amendment,
-                  variation, or waiver is valid unless made in writing and
-                  accepted by the applicable parties.
-                </p>
-                <p className="mt-2">
-                  Electronic signatures, digital signatures, and signed
-                  counterparts of this Agreement are valid and enforceable to
-                  the fullest extent permitted by applicable law. By signing,
-                  each applicable party confirms that it has read, understood,
-                  and voluntarily accepted this <V>{docTitle}</V>, and
-                  acknowledges that it has had sufficient opportunity to seek
-                  independent legal or professional advice before signing.
-                </p>
-              </Section>
-              <SignatureSection
-                party1={sigParty1}
-                party2={sigParty2}
-                party3={founderApproval}
-                titleText="Acceptance & Executory Signatures"
-                bodyText={`This Sales Agent Agreement is executed between ${d.partnerName} (Country Sales Partner) and ${secondParty.fullName || "Agent Name"} (Sales Agent) for the Territory of ${d.territory}, effective ${d.date}. JEVXO acknowledges and approves this appointment but is not a contracting party.`}
-              />
-            </>
+                  <p className="mt-3">
+                    By signing below, the parties confirm that they have read, understood,
+                    and accepted this Agreement. This Sales Agent Agreement is executed
+                    between <strong><V>{d.partnerName}</V></strong> (Country Sales Partner)
+                    and <strong><V>{secondParty.fullName || "Agent Name"}</V></strong> (Sales
+                    Agent) for the Territory of{" "}
+                    <strong><V>{d.territory}</V></strong>. JEVXO acknowledges and approves
+                    this appointment but is not a contracting party.
+                  </p>
+                </>
+              }
+            />
+          </>
           )}
         </div>
         <DocumentFooter
@@ -1071,6 +1077,7 @@ export default function SalesAgreementDocument({
           totalPages={totalPages}
         />
       </DocumentLayout>
+
 
       {/* ══════════════════════════════════════ PAGE 4 (CSP only) ══ */}
       {isCSP && (
@@ -1166,7 +1173,7 @@ export default function SalesAgreementDocument({
                 within the assigned territory.
               </p>
 
-               <p className="font-semibold text-slate-800 mt-3 mb-1">9.9 Entire Agreement</p>
+              <p className="font-semibold text-slate-800 mt-3 mb-1">9.9 Entire Agreement</p>
               <p>
                 This Agreement constitutes the complete understanding between
                 the Parties and supersedes all previous negotiations,
