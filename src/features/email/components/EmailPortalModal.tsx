@@ -32,6 +32,7 @@ export default function EmailPortalModal({
   const [sent, setSent] = useState(false);
   const [apiError, setApiError] = useState("");
   const isInternship = agreementTemplate === "internship";
+  const isHrHiring = agreementTemplate === "hrHiringNotice";
   const isCSP = salesAgreementType === "countrySales";
   const isSalesAgent = salesAgreementType === "salesAgent";
   const isSalesType = isCSP || isSalesAgent;
@@ -45,11 +46,13 @@ export default function EmailPortalModal({
   const fromAddress = "JEVXO <info@jevxo.com>";
   const emailSubject = isInternship
     ? "Internship Offer Letter — JEVXO"
-    : isCSP
-    ? "Country Sales Partner Agreement — JEVXO"
-    : isSalesAgent
-    ? "Sales Agent Agreement — JEVXO"
-    : "Offer of Partnership & Appointment Letter — JEVXO";
+    : isHrHiring
+      ? "HR Hiring Notice — JEVXO"
+      : isCSP
+        ? "Country Sales Partner Agreement — JEVXO"
+        : isSalesAgent
+          ? "Sales Agent Agreement — JEVXO"
+          : "Offer of Partnership & Appointment Letter — JEVXO";
 
   if (!isOpen) return null;
 
@@ -109,11 +112,13 @@ export default function EmailPortalModal({
             <h3 className="font-extrabold text-sm text-slate-800 uppercase tracking-wider">
               {isInternship
                 ? "JEVXO Internship Offer Portal"
-                : isCSP
-                ? "JEVXO Country Sales Partner Portal"
-                : isSalesAgent
-                ? "JEVXO Sales Agent Agreement Portal"
-                : "JEVXO Offer Dispatch Portal"}
+                : isHrHiring
+                  ? "JEVXO HR Hiring Notice Portal"
+                  : isCSP
+                    ? "JEVXO Country Sales Partner Portal"
+                    : isSalesAgent
+                      ? "JEVXO Sales Agent Agreement Portal"
+                      : "JEVXO Offer Dispatch Portal"}
             </h3>
           </div>
           <button
@@ -162,7 +167,7 @@ export default function EmailPortalModal({
             </div>
           )}
           <p className="font-bold text-slate-900">Dear {displayName},</p>
-          
+
           {isInternship ? (
             <>
               <p>
@@ -178,6 +183,25 @@ export default function EmailPortalModal({
                 <li>Apply your digital signature to the signature block.</li>
                 <li>Press the Confirm button once everything looks correct.</li>
               </ol>
+            </>
+          ) : isHrHiring ? (
+            <>
+              <p>
+                Please find attached the <strong>HR Hiring Notice</strong> prepared by the <strong>{firstParty.companyName}</strong> HR Department.
+              </p>
+              <p>
+                The HR team has initiated a formal recruitment drive and requires your kind review and approval to proceed with screening and selection for the advertised position.
+              </p>
+              <p>The notice includes the following details for your reference:</p>
+              <ol className="list-decimal pl-5 space-y-2 font-medium text-slate-600">
+                <li>Position details, vacancies, and department information.</li>
+                <li>Employment type, work mode, and location.</li>
+                <li>Recruitment period and required skills matrix.</li>
+                <li>HR representative sign-off and approval block.</li>
+              </ol>
+              <p className="text-slate-600 text-xs italic mt-1">
+                You may download the PDF directly from the notice link below for your records.
+              </p>
             </>
           ) : isSalesType ? (
             <>
@@ -197,7 +221,7 @@ export default function EmailPortalModal({
           ) : (
             <>
               <p>
-                On behalf of <strong>{firstParty.companyName}</strong>, I am thrilled to extend to you our official offer of partnership for the position of <strong>{secondParty.position}</strong>. 
+                On behalf of <strong>{firstParty.companyName}</strong>, I am thrilled to extend to you our official offer of partnership for the position of <strong>{secondParty.position}</strong>.
               </p>
               <p>
                 At JEVXO, we operate on a partnership-based structure where every team member is expected to lead with an ownership mindset. We are excited about the prospect of you joining us to collaborate on core achievements and drive the company forward.
@@ -220,9 +244,11 @@ export default function EmailPortalModal({
               <span>
                 {isInternship
                   ? "Intern Signature Portal Link"
-                  : isSalesType
-                  ? "Sales Agreement Signature Portal Link"
-                  : "Candidate Signature Portal Link"}
+                  : isHrHiring
+                    ? "HR Hiring Notice Link"
+                    : isSalesType
+                      ? "Sales Agreement Signature Portal Link"
+                      : "Candidate Signature Portal Link"}
               </span>
             </p>
             <div className="flex items-center gap-2">
@@ -234,11 +260,10 @@ export default function EmailPortalModal({
               />
               <button
                 onClick={handleCopy}
-                className={`h-9 px-3.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-                  copied
-                    ? "bg-emerald-600 text-white"
-                    : "bg-white border border-blue-200 text-blue-800 hover:bg-blue-50"
-                }`}
+                className={`h-9 px-3.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${copied
+                  ? "bg-emerald-600 text-white"
+                  : "bg-white border border-blue-200 text-blue-800 hover:bg-blue-50"
+                  }`}
               >
                 {copied ? (
                   <><Check className="w-3.5 h-3.5" /> Copied</>
@@ -290,11 +315,10 @@ export default function EmailPortalModal({
             <button
               onClick={handleSend}
               disabled={sending || sent}
-              className={`h-11 px-6 font-bold text-white text-xs rounded-xl flex items-center justify-center gap-2 transition shadow-md cursor-pointer ${
-                sent
-                  ? "bg-emerald-600 shadow-emerald-600/10"
-                  : "bg-blue-600 hover:bg-blue-700 shadow-blue-600/10 hover:shadow-blue-600/25"
-              }`}
+              className={`h-11 px-6 font-bold text-white text-xs rounded-xl flex items-center justify-center gap-2 transition shadow-md cursor-pointer ${sent
+                ? "bg-emerald-600 shadow-emerald-600/10"
+                : "bg-blue-600 hover:bg-blue-700 shadow-blue-600/10 hover:shadow-blue-600/25"
+                }`}
             >
               {sending ? (
                 <>

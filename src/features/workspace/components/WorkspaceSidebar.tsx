@@ -3,7 +3,7 @@
 import React from "react";
 import { Settings, User, BookOpen, Mail, RefreshCw } from "lucide-react";
 import { FirstParty, SecondParty, DocSettings, AgreementTemplate, SalesAgreementType } from "@/types";
-import { SettingsTab, InternshipSettingsTab, SalesSettingsTab } from "./sidebar/SettingsTab";
+import { SettingsTab, InternshipSettingsTab, SalesSettingsTab, HRSettingsTab } from "./sidebar/SettingsTab";
 import { FirstPartyTab, SecondPartyTab, SalesPartyTab } from "./sidebar/PartiesTab";
 
 // ─── Main sidebar tabs configuration ─────────────────────────────────────────
@@ -23,6 +23,11 @@ const SALES_TABS = [
   { id: "settings", label: "Sales Terms", icon: Settings },
   { id: "secondParty", label: "Parties", icon: User },
   { id: "firstParty", label: "JEVXO Approval", icon: BookOpen },
+];
+
+const HR_TABS = [
+  { id: "settings", label: "Notice Details", icon: Settings },
+  { id: "firstParty", label: "HR / Approval", icon: BookOpen },
 ];
 
 interface WorkspaceSidebarProps {
@@ -63,6 +68,7 @@ export default function WorkspaceSidebar({
   salesAgreementType,
 }: WorkspaceSidebarProps) {
   const isInternship = agreementTemplate === "internship";
+  const isHrHiring = agreementTemplate === "hrHiringNotice";
   const isCSPAgreement = salesAgreementType === "countrySales";
   const isSAGAgreement = salesAgreementType === "salesAgent";
   const isSalesAgreement = salesAgreementType === "countrySales" || salesAgreementType === "salesAgent";
@@ -72,8 +78,8 @@ export default function WorkspaceSidebar({
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Header */}
         <div className="space-y-2">
-          <span className={`text-[10px] border font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block ${isInternship ? "bg-[#F0F9FF] border-[#BAE6FD] text-[#0EA5E9]" : "bg-[#EFF6FF] border-[#DBEAFE]/50 text-[#1E3A8A]"}`}>
-            {isInternship ? "Internship Offer Ready!" : isSalesAgreement ? `${salesAgreementType === "countrySales" ? "Country Sales Partner" : "Sales Agent"} Agreement Ready!` : "Agreement ready!"}
+          <span className={`text-[10px] border font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block ${isInternship ? "bg-[#F0F9FF] border-[#BAE6FD] text-[#0EA5E9]" : isHrHiring ? "bg-violet-50 border-violet-200 text-violet-700" : "bg-[#EFF6FF] border-[#DBEAFE]/50 text-[#1E3A8A]"}`}>
+            {isInternship ? "Internship Offer Ready!" : isHrHiring ? "HR Hiring Notice Ready!" : isSalesAgreement ? `${salesAgreementType === "countrySales" ? "Country Sales Partner" : "Sales Agent"} Agreement Ready!` : "Agreement ready!"}
           </span>
           <h2 className="text-xl font-bold text-[#0F172A]">
             Document Workspace
@@ -81,23 +87,24 @@ export default function WorkspaceSidebar({
           <p className="text-[#64748B] text-xs">
             {isInternship
               ? "Adjust internship offer details with live preview."
-              : isSalesAgreement
-              ? "Adjust sales agreement details with a live document preview."
-              : "Fine-tune standard clause parameters with real-time browser preview compilation."}
+              : isHrHiring
+                ? "Adjust hiring notice details with live document preview."
+                : isSalesAgreement
+                  ? "Adjust sales agreement details with a live document preview."
+                  : "Fine-tune standard clause parameters with real-time browser preview compilation."}
           </p>
         </div>
 
         {/* Tab headers */}
         <div className="flex border-b border-[#DBEAFE]">
-          {(isInternship ? INTERN_TABS : isSalesAgreement ? SALES_TABS : PARTNER_TABS).map(({ id, label, icon: Icon }) => (
+          {(isInternship ? INTERN_TABS : isHrHiring ? HR_TABS : isSalesAgreement ? SALES_TABS : PARTNER_TABS).map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
-              className={`flex-1 pb-3 text-xs font-bold tracking-wide border-b-2 transition flex flex-col md:flex-row items-center justify-center gap-1.5 cursor-pointer ${
-                activeTab === id
-                  ? "border-[#2563EB] text-[#2563EB]"
-                  : "border-transparent text-[#64748B] hover:text-[#0F172A]"
-              }`}
+              className={`flex-1 pb-3 text-xs font-bold tracking-wide border-b-2 transition flex flex-col md:flex-row items-center justify-center gap-1.5 cursor-pointer ${activeTab === id
+                ? "border-[#2563EB] text-[#2563EB]"
+                : "border-transparent text-[#64748B] hover:text-[#0F172A]"
+                }`}
             >
               <Icon className="w-3.5 h-3.5" />
               <span>{label}</span>
@@ -110,6 +117,8 @@ export default function WorkspaceSidebar({
           {activeTab === "settings" && (
             isInternship ? (
               <InternshipSettingsTab docSettings={docSettings} setDocSettings={setDocSettings} />
+            ) : isHrHiring ? (
+              <HRSettingsTab docSettings={docSettings} setDocSettings={setDocSettings} />
             ) : isSalesAgreement ? (
               <SalesSettingsTab docSettings={docSettings} setDocSettings={setDocSettings} salesAgreementType={salesAgreementType!} />
             ) : (
@@ -157,7 +166,7 @@ export default function WorkspaceSidebar({
           )}
           <div className="flex justify-between text-[11px] text-[#64748B] px-1 font-semibold">
             <span>A4 dimensions output</span>
-            <span>{isDemo ? "1 page" : isInternship ? "1 page" : isCSPAgreement ? "5 pages" : isSAGAgreement ? "3 pages" : "2 pages"} automatic layout</span>
+            <span>{isDemo ? "1 page" : isInternship ? "1 page" : isHrHiring ? "1 page" : isCSPAgreement ? "5 pages" : isSAGAgreement ? "3 pages" : "2 pages"} automatic layout</span>
           </div>
         </div>
       </div>

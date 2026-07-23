@@ -11,7 +11,8 @@ export type DocTypeFilter =
   | "partner"
   | "internship"
   | "countrySales"
-  | "salesAgent";
+  | "salesAgent"
+  | "hrHiringNotice";
 
 export interface RegistryFilters {
   search: string;
@@ -44,10 +45,18 @@ function matchesDocType(
       a.docType?.includes("Intern") ||
       a.docType === "Intern Offerletter & ID Card"
     );
+  if (docType === "hrHiringNotice")
+    return (
+      a.agreementTemplate === "hrHiringNotice" ||
+      a.docType === "HR Hiring Notice" ||
+      a.docType?.includes("Hiring Notice")
+    );
   if (docType === "partner")
     return (
       !a.salesAgreementType &&
       !a.docType?.includes("Intern") &&
+      !a.docType?.includes("Hiring Notice") &&
+      a.agreementTemplate !== "hrHiringNotice" &&
       (a.docType === "Partner Agreement & ID Card" ||
         a.agreementTemplate === "partner" ||
         a.docType === "appointment" ||

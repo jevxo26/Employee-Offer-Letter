@@ -4,6 +4,7 @@ import {
   generateInternIds,
   generateCountrySalesPartnerIds,
   generateSalesAgentIds,
+  generateHrHiringIds,
   listAgreements,
 } from "../../../lib/agreementStore";
 
@@ -30,6 +31,11 @@ export async function GET(request: Request) {
     if (action === "nextSalesAgent") {
       const { salesRefId, salesPartnerId, storage } = await generateSalesAgentIds();
       return NextResponse.json({ salesRefId, salesPartnerId, storage });
+    }
+
+    if (action === "nextHrHiring") {
+      const { hrNoticeRefId, hrNoticeId, storage } = await generateHrHiringIds();
+      return NextResponse.json({ hrNoticeRefId, hrNoticeId, storage });
     }
 
     if (action === "check") {

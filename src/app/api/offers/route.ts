@@ -4,6 +4,7 @@ import {
   generateInternIds,
   generateCountrySalesPartnerIds,
   generateSalesAgentIds,
+  generateHrHiringIds,
   listAgreements,
   saveAgreement,
   toAgreementSummary,
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
 
     const resolvedTemplate = agreementTemplate || docSettings?.agreementTemplate || "partner";
     const isInternship = resolvedTemplate === "internship";
+    const isHrHiring   = resolvedTemplate === "hrHiringNotice";
     const salesType: string | undefined = salesAgreementType || docSettings?.salesAgreementType;
     const isCountrySales = salesType === "countrySales";
     const isSalesAgent   = salesType === "salesAgent";
@@ -46,7 +48,12 @@ export async function POST(request: Request) {
     let partnerId: string;
     let storage: string;
 
-    if (isInternship) {
+    if (isHrHiring) {
+      const generated = await generateHrHiringIds();
+      agreementId = docSettings?.hrNoticeRefId || generated.hrNoticeRefId;
+      partnerId   = docSettings?.hrNoticeId    || generated.hrNoticeId;
+      storage     = generated.storage;
+    } else if (isInternship) {
       // Use intern-prefixed IDs; prefer the ones already in docSettings (set by the form)
       const generated = await generateInternIds();
       agreementId = docSettings?.internRefId || generated.internRefId;
@@ -71,8 +78,10 @@ export async function POST(request: Request) {
 
     // ── Derive a descriptive docType label for MongoDB ────────────────────────
     let resolvedDocType: string = docType;
-    if (docType === "both" || isSalesAgreement) {
-      if (isInternship) {
+    if (docType === "both" || isSalesAgreement || isHrHiring) {
+      if (isHrHiring) {
+        resolvedDocType = "HR Hiring Notice";
+      } else if (isInternship) {
         resolvedDocType = "Intern Offerletter & ID Card";
       } else if (isCountrySales) {
         resolvedDocType = "Country Sales Partner Agreement & ID Card";
@@ -91,7 +100,9 @@ export async function POST(request: Request) {
     const updatedDocSettings = {
       ...docSettings,
       agreementTemplate: resolvedTemplate,
-      ...(isInternship
+      ...(isHrHiring
+        ? { hrNoticeRefId: agreementId, hrNoticeId: partnerId }
+        : isInternship
         ? { internRefId: agreementId, internId: partnerId }
         : isSalesAgreement
         ? { salesRefId: agreementId, salesPartnerId: partnerId, salesAgreementType: salesType }

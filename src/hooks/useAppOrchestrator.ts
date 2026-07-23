@@ -157,9 +157,35 @@ export function useAppOrchestrator() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agreementTemplate]);
 
-  // Pre-load sales IDs
+  // Pre-load HR Hiring Notice IDs
   useEffect(() => {
     if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("candidateView")) return;
+    if (agreementTemplate !== "hrHiringNotice") return;
+    async function fetchNextHrIds() {
+      try {
+        const res = await fetch("/api/check-id?action=nextHrHiring");
+        if (res.ok) {
+          const data = await res.json();
+          const refSerial = data.hrNoticeRefId?.split("-").pop() || "001";
+          const idSerial  = data.hrNoticeId?.split("-").pop()    || "001";
+          setDocSettings((p) => ({
+            ...p,
+            hrNoticeRefId:        data.hrNoticeRefId,
+            hrNoticeRefIdSerial:  refSerial,
+            hrNoticeId:           data.hrNoticeId,
+            hrNoticeIdSerial:     idSerial,
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch next HR hiring IDs", err);
+      }
+    }
+    fetchNextHrIds();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agreementTemplate]);
+
+  // Pre-load sales IDs
+  useEffect(() => {    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("candidateView")) return;
     if (!salesAgreementType) return;
 
     const action = salesAgreementType === "countrySales" ? "nextCountrySales" : "nextSalesAgent";
@@ -254,7 +280,7 @@ export function useAppOrchestrator() {
     }
   }, []);
 
-  const handleTemplateSelect = (type: "partner" | "internship" | "countrySales" | "salesAgent") => {
+  const handleTemplateSelect = (type: "partner" | "internship" | "countrySales" | "salesAgent" | "hrHiringNotice") => {
     if (type === "countrySales" || type === "salesAgent") {
       setSalesAgreementType(type);
       setAgreementTemplate("partner");
@@ -273,6 +299,22 @@ export function useAppOrchestrator() {
         ...prev,
         agreementTemplate: "internship" as AgreementTemplate,
         salesAgreementType: undefined,
+      }));
+    } else if (type === "hrHiringNotice") {
+      setSalesAgreementType(undefined);
+      setAgreementTemplate("hrHiringNotice");
+      setDocSettings((prev) => ({
+        ...prev,
+        agreementTemplate: "hrHiringNotice" as AgreementTemplate,
+        salesAgreementType: undefined,
+        hrPreparedByName: prev.hrPreparedByName || DEFAULT_FIRST_PARTY.hrName || "Juwel Khan Shanto",
+        hrPreparedByDesignation: prev.hrPreparedByDesignation || "Head of HR Department",
+        hrOrganization: prev.hrOrganization || DEFAULT_FIRST_PARTY.companyName || "JEVXO",
+        hrVacancies: prev.hrVacancies ?? 1,
+        hrEmploymentType: prev.hrEmploymentType || "Full-Time",
+        hrWorkMode: prev.hrWorkMode || "Onsite",
+        hrLocation: prev.hrLocation || "Rajshahi",
+        hrRecipientRole: prev.hrRecipientRole || "CEO",
       }));
     } else {
       setSalesAgreementType(undefined);
@@ -298,7 +340,13 @@ export function useAppOrchestrator() {
     setEmployeeCard((prev) => ({
       ...prev,
       fullName: secondParty.fullName,
-      position: salesAgreementType === "countrySales" ? "Country Sales Partner" : salesAgreementType === "salesAgent" ? "Sales Agent" : secondParty.position,
+      position: agreementTemplate === "hrHiringNotice"
+        ? (docSettings.hrPositionName || secondParty.position)
+        : salesAgreementType === "countrySales"
+        ? "Country Sales Partner"
+        : salesAgreementType === "salesAgent"
+        ? "Sales Agent"
+        : secondParty.position,
       bloodGroup: secondParty.bloodGroup || "Select",
       ...(agreementTemplate === "internship" && docSettings.internExpiryDate
         ? { expiryDate: docSettings.internExpiryDate }
@@ -366,10 +414,30 @@ export function useAppOrchestrator() {
   const validateStep = () => {
     const p = secondParty;
     const isInternship = agreementTemplate === "internship";
+    const isHrHiring   = agreementTemplate === "hrHiringNotice";
     const isSalesAgreement = Boolean(salesAgreementType);
 
-    if (isSalesAgreement) {
-      const isCSP = salesAgreementType === "countrySales";
+    if (isHrHiring) {
+      if (activeStep === 1) {
+        if (!docSettings.hrRecipientRole?.trim() || docSettings.hrRecipientRole === "__custom__") return "Recipient role is required.";
+        if (!docSettings.hrNoticeTitle?.trim()) return "Notice title is required.";
+        if (!docSettings.hrSubject?.trim()) return "Subject line is required.";
+        if (!docSettings.date?.trim()) return "Notice date is required.";
+      } else if (activeStep === 2) {
+        if (!docSettings.hrPositionName?.trim()) return "Position name is required.";
+        if (!docSettings.hrDepartment?.trim()) return "Department is required.";
+        if (!docSettings.hrEmploymentType?.trim()) return "Employment type is required.";
+        if (!docSettings.hrWorkMode?.trim()) return "Work mode is required.";
+        if (!docSettings.hrRequiredSkills?.length) return "Please add at least one required skill.";
+      } else if (activeStep === 3) {
+        if (!firstParty.signatureImg) return "HR / Founder approval signature is required.";
+        if (!docSettings.hrPreparedByName?.trim()) return "Prepared-by name is required.";
+        if (!docSettings.hrPreparedByDesignation?.trim()) return "Designation is required.";
+      }
+      return "";
+    }
+
+    if (isSalesAgreement) {      const isCSP = salesAgreementType === "countrySales";
       const partner = docSettings.salesPartner;
       const validEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
       if (activeStep === 1) {
@@ -444,7 +512,7 @@ export function useAppOrchestrator() {
     return "";
   };
 
-  const ACTIVE_TOTAL_STEPS = agreementTemplate === "internship" ? 3 : TOTAL_STEPS;
+  const ACTIVE_TOTAL_STEPS = (agreementTemplate === "internship" || agreementTemplate === "hrHiringNotice") ? 3 : TOTAL_STEPS;
 
   const handleNext = () => {
     const error = validateStep();
@@ -601,7 +669,8 @@ export function useAppOrchestrator() {
       setAppState("docTypeSelect");
     } else if (appState === "workspace") {
       setAppState("form");
-      setActiveStep(5);
+      const lastStep = (agreementTemplate === "internship" || agreementTemplate === "hrHiringNotice") ? 3 : 5;
+      setActiveStep(lastStep);
     } else if (appState === "idCard") {
       setAppState("docTypeSelect");
     } else if (appState === "docTypeSelect") {

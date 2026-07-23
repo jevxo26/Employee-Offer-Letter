@@ -35,7 +35,7 @@ export interface SecondParty {
   signatureImg: string;
 }
 
-export type AgreementTemplate = 'partner' | 'internship' | 'sales_agent' | 'country_sales_partner';
+export type AgreementTemplate = 'partner' | 'internship' | 'sales_agent' | 'country_sales_partner' | 'hrHiringNotice';
 
 export type SalesAgreementType = 'countrySales' | 'salesAgent';
 
@@ -64,6 +64,26 @@ export interface DocSettings {
   internshipDuration?: string; // e.g. "3 months"
   isPaid?: boolean;
   internExpiryDate?: string;   // expiry date shown on the internee ID card
+  // ── HR Hiring Notice-specific ────────────────────────────────────────────
+  hrNoticeId?: string;          // e.g. "JVX-HR-26-001"
+  hrNoticeIdSerial?: string;
+  hrNoticeRefId?: string;       // e.g. "JVX-HR-REF-26-001"
+  hrNoticeRefIdSerial?: string;
+  hrRecipientRole?: string;     // e.g. "CEO", "CTO", "Founder"
+  hrNoticeTitle?: string;       // e.g. "UI/UX Designer Recruitment"
+  hrSubject?: string;           // full subject line
+  hrPositionName?: string;      // e.g. "UI/UX Designer"
+  hrVacancies?: number;         // e.g. 4
+  hrDepartment?: string;        // e.g. "Design Department"
+  hrEmploymentType?: string;    // e.g. "Internship" | "Full-Time"
+  hrWorkMode?: string;          // e.g. "Onsite" | "Remote" | "Hybrid"
+  hrLocation?: string;          // e.g. "Rajshahi"
+  hrRecruitmentStartDate?: string;
+  hrRecruitmentEndDate?: string;
+  hrRequiredSkills?: string[];  // dynamic skill tags
+  hrPreparedByName?: string;    // e.g. "Juwel Khan Shanto"
+  hrPreparedByDesignation?: string; // e.g. "Head of HR Department"
+  hrOrganization?: string;      // default: "JEVXO"
   // ── Sales Agreement-specific ─────────────────────────────────────────────
   salesAgreementType?: SalesAgreementType;
   salesRefId?: string;             // e.g. "JVX-CSP-REF-26-001" or "JVX-SAG-REF-26-001"

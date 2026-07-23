@@ -43,9 +43,11 @@ function StatusBadge({ status }: { status: string }) {
 function DocTypeBadge({
   docType,
   salesAgreementType,
+  agreementTemplate,
 }: {
   docType: string;
   salesAgreementType?: string;
+  agreementTemplate?: string;
 }) {
   // Resolve by salesAgreementType first (most reliable), then fallback to docType string
   const isCSP =
@@ -59,6 +61,11 @@ function DocTypeBadge({
     !isSA &&
     (docType?.toLowerCase().includes("intern") ||
       docType === "Intern Offerletter & ID Card");
+  const isHrHiring =
+    !isCSP &&
+    !isSA &&
+    !isIntern &&
+    (agreementTemplate === "hrHiringNotice" || docType === "HR Hiring Notice");
 
   if (isCSP)
     return (
@@ -76,6 +83,12 @@ function DocTypeBadge({
     return (
       <span className="inline-block text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100">
         Internship
+      </span>
+    );
+  if (isHrHiring)
+    return (
+      <span className="inline-block text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-100">
+        HR Hiring Notice
       </span>
     );
   return (
@@ -185,7 +198,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Resend failed.");
-      
+
       await Swal.fire({
         icon: "success",
         title: "Success",
@@ -241,7 +254,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Delete failed.");
-      
+
       await Swal.fire({
         icon: "success",
         title: "Deleted!",
@@ -374,6 +387,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                           <DocTypeBadge
                             docType={a.docType}
                             salesAgreementType={a.salesAgreementType}
+                            agreementTemplate={a.agreementTemplate}
                           />
                         </div>
                       </td>
@@ -391,10 +405,10 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                       <td className="px-4 py-3 text-xs text-[#64748B]">
                         {a.createdAt
                           ? new Date(a.createdAt).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })
                           : "—"}
                       </td>
                       <td className="px-4 py-3 flex justify-end">

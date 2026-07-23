@@ -27,6 +27,7 @@ const DOCTYPE_OPTS: { value: DocTypeFilter; label: string }[] = [
   { value: "internship", label: "Internship" },
   { value: "countrySales", label: "CSP" },
   { value: "salesAgent", label: "Sales Agent" },
+  { value: "hrHiringNotice", label: "HR Hiring Notice" },
 ];
 
 const SORT_FIELDS: { value: SortField; label: string }[] = [

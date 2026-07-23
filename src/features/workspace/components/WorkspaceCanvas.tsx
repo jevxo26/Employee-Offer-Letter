@@ -4,6 +4,7 @@ import React from "react";
 import DocumentPreview from "@/features/document-preview/components/DocumentPreview";
 import InternshipDocumentPreview from "@/features/document-preview/components/InternshipDocumentPreview";
 import SalesAgreementDocument from "@/features/document-preview/templates/document/SalesAgreementDocument";
+import HRHiringNoticeDocument from "@/features/document-preview/templates/document/HRHiringNoticeDocument";
 import A4DocumentScaler from "@/features/document-preview/components/A4DocumentScaler";
 import { TOTAL_DOCUMENT_PAGES } from "@/lib/documentConstants";
 import {
@@ -38,13 +39,14 @@ export default function WorkspaceCanvas({
 }: WorkspaceCanvasProps) {
   const template = agreementTemplate ?? settings.agreementTemplate ?? "partner";
   const isInternship = template === "internship";
+  const isHrHiring = template === "hrHiringNotice";
 
   const salesType = salesAgreementType ?? settings.salesAgreementType;
   const isSalesAgreement =
     salesType === "countrySales" || salesType === "salesAgent";
 
   // Page count depends on document type
-  const pageCount = isInternship
+  const pageCount = isInternship || isHrHiring
     ? 1
     : isSalesAgreement
       ? salesType === "countrySales" ? 5 : 3
@@ -54,7 +56,13 @@ export default function WorkspaceCanvas({
     <div className="flex-1 bg-[#F1F5F9] flex flex-col items-center justify-start p-6 overflow-y-auto scroll-smooth">
       <div className="w-full max-w-[860px]">
         <A4DocumentScaler pageCount={pageCount}>
-          {isInternship ? (
+          {isHrHiring ? (
+            <HRHiringNoticeDocument
+              firstParty={firstParty}
+              settings={settings}
+              previewRefs={previewRefs}
+            />
+          ) : isInternship ? (
             <InternshipDocumentPreview
               firstParty={firstParty}
               secondParty={secondParty}

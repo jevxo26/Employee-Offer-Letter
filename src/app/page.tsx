@@ -13,6 +13,7 @@ import DocTypeSelector from "@/features/doc-select/components/DocTypeSelector";
 import FormWizard from "@/features/wizard/components/FormWizard";
 import SalesFormWizard from "@/features/wizard/components/SalesFormWizard";
 import InternshipFormWizard from "@/features/wizard/components/InternshipFormWizard";
+import HRHiringNoticeWizard from "@/features/wizard/components/HRHiringNoticeWizard";
 import CeoWorkspace from "@/features/workspace/components/CeoWorkspace";
 import CandidatePortal from "@/features/candidate-portal/components/CandidatePortal";
 import EmailPortalModal from "@/features/email/components/EmailPortalModal";
@@ -198,11 +199,10 @@ export default function Home() {
           {appState !== "candidatePortal" && appState !== "home" && appState !== "login" && (
             <button
               onClick={() => setAppState("adminDashboard")}
-              className={`flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl border transition cursor-pointer ${
-                appState === "adminDashboard"
-                  ? "bg-[#2563EB] text-white border-[#2563EB]"
-                  : "border-[#DBEAFE] text-[#2563EB] bg-[#EFF6FF] hover:bg-[#DBEAFE]"
-              }`}
+              className={`flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl border transition cursor-pointer ${appState === "adminDashboard"
+                ? "bg-[#2563EB] text-white border-[#2563EB]"
+                : "border-[#DBEAFE] text-[#2563EB] bg-[#EFF6FF] hover:bg-[#DBEAFE]"
+                }`}
             >
               <LayoutDashboard className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Registry</span>
@@ -263,6 +263,19 @@ export default function Home() {
                 activeStep={activeStep}
                 secondParty={secondParty}
                 setSecondParty={setSecondParty}
+                firstParty={firstParty}
+                setFirstParty={setFirstParty}
+                validationError={validationError}
+                onClearError={() => setValidationError("")}
+                onNext={handleNext}
+                onPrev={handlePrev}
+                docSettings={docSettings}
+                setDocSettings={setDocSettings}
+              />
+            ) : agreementTemplate === "hrHiringNotice" ? (
+              <HRHiringNoticeWizard
+                key="hrHiringNoticeForm"
+                activeStep={activeStep}
                 firstParty={firstParty}
                 setFirstParty={setFirstParty}
                 validationError={validationError}

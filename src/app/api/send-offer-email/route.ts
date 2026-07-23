@@ -27,6 +27,10 @@ export async function POST(request: Request) {
       agreementTemplate === "internship" ||
       (agreement.docSettings as Record<string, unknown>)?.agreementTemplate === "internship";
 
+    const isHrHiring =
+      agreementTemplate === "hrHiringNotice" ||
+      (agreement.docSettings as Record<string, unknown>)?.agreementTemplate === "hrHiringNotice";
+
     const salesType = (agreement.docSettings as Record<string, unknown>)?.salesAgreementType as string | undefined;
     const isCountrySales = salesType === "countrySales";
     const isSalesAgent   = salesType === "salesAgent";
@@ -46,13 +50,85 @@ export async function POST(request: Request) {
 
     const subject = isInternship
       ? "Internship Offer Letter — JEVXO"
+      : isHrHiring
+      ? "HR Hiring Notice — JEVXO"
       : isCountrySales
       ? "Country Sales Partner Agreement — JEVXO"
       : isSalesAgent
       ? "Sales Agent Agreement — JEVXO"
       : "JEVXO Offer Letter & Partnership Agreement";
 
-    const emailHtml = isInternship
+    const emailHtml = isHrHiring
+      ? /* ── HR Hiring Notice email ───────────────────────────────────── */ `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px 20px; border: 1px solid #e2e8f0; border-radius: 20px; background-color: #ffffff; color: #0f172a;">
+        <div style="text-align: center; margin-bottom: 25px;">
+          <h2 style="color: #7c3aed; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: 0.5px;">JEVXO</h2>
+          <div style="height: 3px; background: linear-gradient(to right, transparent, #7c3aed, transparent); margin-top: 12px; width: 100%;"></div>
+          <p style="font-size: 11px; color: #94a3b8; margin-top: 6px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">HR Department · Internal Circular</p>
+        </div>
+
+        <p style="font-size: 16px; font-weight: 700; margin-top: 0; color: #0f172a;">Dear ${candidateName},</p>
+
+        <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
+          The <strong>${firstParty.hrName || "HR Department"}</strong> of <strong>${firstParty.companyName}</strong> has prepared an official <strong style="color: #7c3aed;">HR Hiring Notice</strong> for your review and approval.
+        </p>
+
+        <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
+          A formal recruitment drive has been initiated and requires your authorization to proceed with candidate screening and selection.
+        </p>
+
+        <div style="background-color: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 12px; padding: 15px 20px; margin: 20px 0;">
+          <h4 style="margin: 0 0 10px 0; color: #5b21b6; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Notice Summary</h4>
+          <table style="width: 100%; font-size: 13px; color: #475569; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 4px 0; font-weight: 600;">Notice Ref:</td>
+              <td style="padding: 4px 0; text-align: right; font-weight: 700; color: #7c3aed;">${docSettings.hrNoticeRefId || "—"}</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; font-weight: 600;">Position:</td>
+              <td style="padding: 4px 0; text-align: right; font-weight: 700; color: #0f172a;">${docSettings.hrPositionName || "—"}</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; font-weight: 600;">Vacancies:</td>
+              <td style="padding: 4px 0; text-align: right; font-weight: 700; color: #7c3aed;">${docSettings.hrVacancies || 1}</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; font-weight: 600;">Department:</td>
+              <td style="padding: 4px 0; text-align: right; font-weight: 700; color: #0f172a;">${docSettings.hrDepartment || "—"}</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; font-weight: 600;">Employment Type:</td>
+              <td style="padding: 4px 0; text-align: right; font-weight: 700; color: #0f172a;">${docSettings.hrEmploymentType || "—"}</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; font-weight: 600;">Work Mode:</td>
+              <td style="padding: 4px 0; text-align: right; font-weight: 700; color: #0f172a;">${docSettings.hrWorkMode || "—"}</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0; font-weight: 600;">Recruitment Period:</td>
+              <td style="padding: 4px 0; text-align: right; font-weight: 700; color: #0f172a;">${docSettings.hrRecruitmentStartDate || "—"} → ${docSettings.hrRecruitmentEndDate || "—"}</td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${ctaLink}" target="_blank" style="background-color: #7c3aed; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block; font-size: 14px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);">
+            View Hiring Notice &amp; Download PDF
+          </a>
+        </div>
+
+        <p style="font-size: 12px; line-height: 1.6; color: #64748b; margin-top: 25px;">
+          Should you have any questions, feel free to reply to this email or contact us at ${firstParty.mobileNumber}.
+        </p>
+
+        <div style="font-size: 13px; line-height: 1.6; color: #475569; border-top: 1px solid #e2e8f0; padding-top: 15px; margin-top: 25px;">
+          Best Regards,<br />
+          <strong style="color: #0f172a;">${docSettings.hrPreparedByName || firstParty.hrName || firstParty.representedBy}</strong><br />
+          ${docSettings.hrPreparedByDesignation || "Head of HR Department"}, ${firstParty.companyName}
+        </div>
+      </div>
+    `
+      : isInternship
       ? /* ── Internship email ─────────────────────────────────────────── */ `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px 20px; border: 1px solid #e2e8f0; border-radius: 20px; background-color: #ffffff; color: #0f172a;">
         <div style="text-align: center; margin-bottom: 25px;">
