@@ -61,6 +61,7 @@ export default function Home() {
     salesAgentModalOpen,
     setSalesAgentModalOpen,
     candidateLink,
+    hrNoticePdfBase64,
     previewRefs,
     candidateCardFrontRef,
     candidateCardBackRef,
@@ -106,7 +107,7 @@ export default function Home() {
       )}
 
       {/* ── Finalize loading overlay — shown while generating + emailing PDFs ── */}
-      {isExporting && appState === "candidatePortal" && (
+      {isExporting && appState === "candidatePortal" && agreementTemplate !== "hrHiringNotice" && (
         <div className="fixed inset-0 z-[9999] bg-[#0F172A]/70 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
           <svg
             className="w-12 h-12 text-white animate-spin"
@@ -412,6 +413,8 @@ export default function Home() {
         offerId={offerId}
         agreementTemplate={agreementTemplate}
         salesAgreementType={salesAgreementType}
+        docSettings={docSettings}
+        hrNoticePdfBase64={hrNoticePdfBase64}
       />
     </div>
   );

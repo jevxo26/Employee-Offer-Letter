@@ -3,7 +3,7 @@
 import React, { useRef, useState } from "react";
 import { motion } from "motion/react";
 import { toast } from "react-toastify";
-import { Upload } from "lucide-react";
+import { Upload, Download, RefreshCw, FileText } from "lucide-react";
 import CandidateSidebar from "./CandidateSidebar";
 import WorkspaceCanvas from "@/features/workspace/components/WorkspaceCanvas";
 import { IdCardFront, IdCardBack } from "@/features/id-card/components/EmployeeIdCard";
@@ -118,10 +118,129 @@ export default function CandidatePortal({
   }, [candidatePhotoUrl, isCompleted, offerId]);
 
   const isInternship = agreementTemplate === "internship";
+  const isHrHiring = agreementTemplate === "hrHiringNotice";
   const isCSP = salesAgreementType === "countrySales";
   const isSalesAgent = salesAgreementType === "salesAgent";
   const isSalesType = isCSP || isSalesAgent;
   const isPendingCSP = isSalesAgent && (!docSettings.salesPartner || !docSettings.salesPartner.signatureImg);
+
+  // ── HR Notice: read-only view with PDF download only ─────────────────────
+  if (isHrHiring) {
+    return (
+      <motion.section
+        key="candidatePortalHR"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex-1 flex flex-col xl:flex-row w-full relative min-h-0"
+      >
+        {/* Sidebar */}
+        <div className="w-full xl:w-[360px] bg-[#F8FAFC] border-b xl:border-b-0 xl:border-r border-violet-100 flex flex-col shrink-0 xl:sticky xl:top-15 xl:h-[calc(100vh-60px)] xl:overflow-y-auto">
+          <div className="p-6 space-y-5 flex-1">
+            {/* Badge + title */}
+            <div className="space-y-2">
+              <span className="text-[10px] bg-violet-50 border border-violet-200 text-violet-700 font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block">
+                HR Recruitment Notice
+              </span>
+              <h2 className="text-xl font-bold text-[#0F172A]">Hiring Notice</h2>
+              <p className="text-[#64748B] text-xs leading-relaxed">
+                This is an official HR Hiring Notice from{" "}
+                <strong className="text-slate-800">{firstParty.companyName}</strong>.
+                This notice is for your information and records — no action is required.
+              </p>
+            </div>
+
+            {/* Notice summary card */}
+            <div className="bg-white border border-violet-100 rounded-2xl p-4 space-y-2.5 text-xs">
+              <div className="flex items-center gap-2 mb-1">
+                <FileText className="w-3.5 h-3.5 text-violet-500" />
+                <span className="font-bold text-violet-700 uppercase tracking-wide text-[10px]">Notice Details</span>
+              </div>
+              {docSettings.hrNoticeRefId && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400 font-semibold">Ref ID:</span>
+                  <span className="font-bold text-slate-800 font-mono text-[11px]">{docSettings.hrNoticeRefId}</span>
+                </div>
+              )}
+              {docSettings.hrPositionName && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400 font-semibold">Position:</span>
+                  <span className="font-bold text-violet-700">{docSettings.hrPositionName}</span>
+                </div>
+              )}
+              {docSettings.hrDepartment && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400 font-semibold">Department:</span>
+                  <span className="font-bold text-slate-800">{docSettings.hrDepartment}</span>
+                </div>
+              )}
+              {docSettings.hrVacancies != null && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400 font-semibold">Vacancies:</span>
+                  <span className="font-bold text-violet-700">{docSettings.hrVacancies}</span>
+                </div>
+              )}
+              {docSettings.hrEmploymentType && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400 font-semibold">Type:</span>
+                  <span className="font-bold text-slate-800">{docSettings.hrEmploymentType}</span>
+                </div>
+              )}
+              {(docSettings.hrRecruitmentStartDate || docSettings.hrRecruitmentEndDate) && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400 font-semibold">Period:</span>
+                  <span className="font-bold text-slate-800 text-right">
+                    {docSettings.hrRecruitmentStartDate || "—"} → {docSettings.hrRecruitmentEndDate || "—"}
+                  </span>
+                </div>
+              )}
+              {docSettings.hrPreparedByName && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400 font-semibold">Issued by:</span>
+                  <span className="font-bold text-slate-800">{docSettings.hrPreparedByName}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Info note */}
+            <div className="p-3 bg-violet-50/70 border border-violet-100 rounded-xl text-[11px] text-violet-700 font-medium leading-relaxed">
+              You may download the official PDF of this notice for your records using the button below.
+            </div>
+          </div>
+
+          {/* Footer action */}
+          <div className="p-5 border-t border-violet-100 bg-[#F8FAFC] shrink-0">
+            <button
+              onClick={onExport}
+              disabled={isExporting}
+              className="w-full py-3.5 px-6 bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-60 disabled:cursor-not-allowed font-bold text-white text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-violet-500/20 cursor-pointer"
+            >
+              {isExporting ? (
+                <><RefreshCw className="w-4 h-4 animate-spin" /> Generating PDF…</>
+              ) : (
+                <><Download className="w-4 h-4" /> Download Notice PDF</>
+              )}
+            </button>
+            <p className="text-[10px] text-slate-400 text-center mt-2 font-medium">A4 · Single page · Official HR Document</p>
+          </div>
+        </div>
+
+        {/* Document canvas */}
+        <WorkspaceCanvas
+          firstParty={firstParty}
+          secondParty={secondParty}
+          settings={docSettings}
+          previewRefs={previewRefs}
+          isExporting={isExporting}
+          onExport={onExport}
+          isDemo={false}
+          agreementTemplate={agreementTemplate}
+          salesAgreementType={salesAgreementType}
+        />
+      </motion.section>
+    );
+  }
 
   // When the partner draws/saves their signature, stamp today's date into docSettings
   // so the document preview updates instantly with the correct signed date.
@@ -256,30 +375,29 @@ export default function CandidatePortal({
             label: isInternship
               ? "📄 Internship Offer Letter"
               : isCSP
-              ? "📄 Country Sales Partner Agreement"
-              : isSalesAgent
-              ? "📄 Sales Agent Agreement"
-              : "📄 Appointment Letter",
+                ? "📄 Country Sales Partner Agreement"
+                : isSalesAgent
+                  ? "📄 Sales Agent Agreement"
+                  : "📄 Appointment Letter",
           },
           !(isSalesAgent && isPendingCSP) ? {
             id: "idcard" as const,
             label: isInternship
               ? "🪪 Your Internee ID Card"
               : isCSP
-              ? "🪪 Your Country Sales Partner ID Card"
-              : isSalesAgent
-              ? "🪪 Your Sales Agent ID Card"
-              : "🪪 Your ID Card",
+                ? "🪪 Your Country Sales Partner ID Card"
+                : isSalesAgent
+                  ? "🪪 Your Sales Agent ID Card"
+                  : "🪪 Your ID Card",
           } : null,
         ].filter(Boolean).map(({ id, label }: any) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
-            className={`px-6 py-3.5 text-xs font-bold uppercase tracking-wide border-b-2 transition cursor-pointer ${
-              activeTab === id
-                ? "border-[#2563EB] text-[#2563EB]"
-                : "border-transparent text-[#64748B] hover:text-[#0F172A]"
-            }`}
+            className={`px-6 py-3.5 text-xs font-bold uppercase tracking-wide border-b-2 transition cursor-pointer ${activeTab === id
+              ? "border-[#2563EB] text-[#2563EB]"
+              : "border-transparent text-[#64748B] hover:text-[#0F172A]"
+              }`}
           >
             {label}
             {id === "idcard" && !candidatePhotoUrl && !isCompleted && (
@@ -404,10 +522,10 @@ export default function CandidatePortal({
                   {isInternship
                     ? "Internship Offer Letter"
                     : isCSP
-                    ? "Country Sales Partner Agreement"
-                    : isSalesAgent
-                    ? "Sales Agent Agreement"
-                    : "Appointment Letter"}{" "}
+                      ? "Country Sales Partner Agreement"
+                      : isSalesAgent
+                        ? "Sales Agent Agreement"
+                        : "Appointment Letter"}{" "}
                   tab to sign and confirm.
                 </p>
               )}

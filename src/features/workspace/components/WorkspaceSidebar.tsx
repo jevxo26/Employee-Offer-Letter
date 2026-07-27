@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Settings, User, BookOpen, Mail, RefreshCw } from "lucide-react";
+import { Settings, User, BookOpen, Mail, RefreshCw, Download } from "lucide-react";
 import { FirstParty, SecondParty, DocSettings, AgreementTemplate, SalesAgreementType } from "@/types";
 import { SettingsTab, InternshipSettingsTab, SalesSettingsTab, HRSettingsTab } from "./sidebar/SettingsTab";
 import { FirstPartyTab, SecondPartyTab, SalesPartyTab } from "./sidebar/PartiesTab";
@@ -142,6 +142,34 @@ export default function WorkspaceSidebar({
             <div className="w-full py-4 px-6 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold rounded-2xl text-center">
               PDF Export Disabled in Demo Mode
             </div>
+          ) : isHrHiring ? (
+            /* HR Notice: two-button layout — Email Notice + Download PDF */
+            <div className="space-y-2.5">
+              <button
+                onClick={onSendOffer}
+                disabled={isOfferSent || isOpeningModal}
+                className="w-full py-3.5 px-6 bg-[#7C3AED] hover:bg-[#6D28D9] disabled:bg-emerald-600 disabled:hover:bg-emerald-600 disabled:cursor-not-allowed font-bold text-white text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-violet-500/10 hover:shadow-violet-500/25 cursor-pointer"
+              >
+                {isOpeningModal ? (
+                  <><RefreshCw className="w-4 h-4 animate-spin" /> Preparing Notice…</>
+                ) : isOfferSent ? (
+                  <><Mail className="w-4 h-4" /> Notice Sent Successfully</>
+                ) : (
+                  <><Mail className="w-4 h-4" /> Email Notice to Recipient</>
+                )}
+              </button>
+              <button
+                onClick={onExport}
+                disabled={isExporting}
+                className="w-full py-3 px-6 bg-white hover:bg-violet-50 border-2 border-[#7C3AED]/40 hover:border-[#7C3AED] font-bold text-[#7C3AED] text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isExporting ? (
+                  <><RefreshCw className="w-4 h-4 animate-spin" /> Generating PDF…</>
+                ) : (
+                  <><Download className="w-4 h-4" /> Download PDF</>
+                )}
+              </button>
+            </div>
           ) : (
             <button
               onClick={onSendOffer}
@@ -149,18 +177,11 @@ export default function WorkspaceSidebar({
               className="w-full py-3.5 px-6 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-emerald-600 disabled:hover:bg-emerald-600 disabled:cursor-not-allowed font-bold text-white text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-[#2563EB]/10 hover:shadow-[#2563EB]/25 cursor-pointer"
             >
               {isOpeningModal ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" /> Opening Offer
-                  Letter Modal…
-                </>
+                <><RefreshCw className="w-4 h-4 animate-spin" /> Opening Offer Letter Modal…</>
               ) : isOfferSent ? (
-                <>
-                  <Mail className="w-4 h-4" /> Sent Offer Letter Successfully
-                </>
+                <><Mail className="w-4 h-4" /> Sent Offer Letter Successfully</>
               ) : (
-                <>
-                  <Mail className="w-4 h-4" /> Send Offer to Candidate
-                </>
+                <><Mail className="w-4 h-4" /> Send Offer to Candidate</>
               )}
             </button>
           )}

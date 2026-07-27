@@ -82,6 +82,7 @@ export function useAppOrchestrator() {
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [salesAgentModalOpen, setSalesAgentModalOpen] = useState(false);
   const [candidateLink, setCandidateLink] = useState("");
+  const [hrNoticePdfBase64, setHrNoticePdfBase64] = useState("");
 
   const previewRef0 = useRef<HTMLDivElement>(null);
   const previewRef1 = useRef<HTMLDivElement>(null);
@@ -361,7 +362,39 @@ export function useAppOrchestrator() {
   };
 
   const handleSendOffer = async (options?: { cardPDFdata?: string }) => {
-    setisOpeningModal(true);
+    const isHrHiring = agreementTemplate === "hrHiringNotice";
+
+    // For HR notices: generate the PDF first so it can be sent as an attachment
+    let hrNoticePdfBase64 = "";
+    if (isHrHiring) {
+      setisOpeningModal(true);
+      try {
+        document.documentElement.classList.add("a4-exporting");
+        const { jsPDF } = await import("jspdf");
+        const html2canvas = (await import("html2canvas-pro")).default;
+        const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+        const pages = previewRefs
+          .map((ref) => ref.current)
+          .filter((el): el is HTMLDivElement => el != null && el.style.display !== "none");
+        if (pages.length) {
+          for (let i = 0; i < pages.length; i++) {
+            const canvas = await html2canvas(pages[i] as HTMLElement, {
+              scale: 2, useCORS: true, logging: false, allowTaint: false, backgroundColor: "#ffffff",
+            });
+            pdf.addImage(canvas.toDataURL("image/jpeg", 0.82), "JPEG", 0, 0, 210, 297, undefined, "FAST");
+            if (i < pages.length - 1) pdf.addPage();
+          }
+          hrNoticePdfBase64 = arrayBufferToBase64(pdf.output("arraybuffer"));
+        }
+      } catch (pdfErr) {
+        console.warn("HR notice PDF pre-generation failed:", pdfErr);
+      } finally {
+        document.documentElement.classList.remove("a4-exporting");
+      }
+    } else {
+      setisOpeningModal(true);
+    }
+
     const tempId = Math.random().toString(36).substring(2, 11);
     const stateToSave = { firstParty, secondParty, docSettings, agreementTemplate };
     localStorage.setItem("jevxo_offer_" + tempId, JSON.stringify(stateToSave));
@@ -408,6 +441,10 @@ export function useAppOrchestrator() {
     const link = `${window.location.origin}${window.location.pathname}?candidateView=${dbAgreementId}`;
     setCandidateLink(link);
     setOfferId(dbAgreementId);
+    // Store PDF data so the modal can pass it to the send API
+    if (isHrHiring && hrNoticePdfBase64) {
+      setHrNoticePdfBase64(hrNoticePdfBase64);
+    }
     setEmailModalOpen(true);
   };
 
@@ -418,8 +455,13 @@ export function useAppOrchestrator() {
     const isSalesAgreement = Boolean(salesAgreementType);
 
     if (isHrHiring) {
+      const validEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
       if (activeStep === 1) {
-        if (!docSettings.hrRecipientRole?.trim() || docSettings.hrRecipientRole === "__custom__") return "Recipient role is required.";
+        if (!docSettings.hrRecipientRole?.trim()) return "Recipient role is required.";
+        if (docSettings.hrRecipientRole === "Other" && !docSettings.hrRecipientRoleCustom?.trim()) return "Please specify the recipient role.";
+        if (!docSettings.hrRecipientName?.trim()) return "Recipient name is required.";
+        if (!docSettings.hrRecipientEmail?.trim()) return "Recipient email is required.";
+        if (!validEmail(docSettings.hrRecipientEmail)) return "Please enter a valid recipient email address.";
         if (!docSettings.hrNoticeTitle?.trim()) return "Notice title is required.";
         if (!docSettings.hrSubject?.trim()) return "Subject line is required.";
         if (!docSettings.date?.trim()) return "Notice date is required.";
@@ -430,7 +472,7 @@ export function useAppOrchestrator() {
         if (!docSettings.hrWorkMode?.trim()) return "Work mode is required.";
         if (!docSettings.hrRequiredSkills?.length) return "Please add at least one required skill.";
       } else if (activeStep === 3) {
-        if (!firstParty.signatureImg) return "HR / Founder approval signature is required.";
+        if (!firstParty.signatureImg) return "HR signature is required to issue the notice.";
         if (!docSettings.hrPreparedByName?.trim()) return "Prepared-by name is required.";
         if (!docSettings.hrPreparedByDesignation?.trim()) return "Designation is required.";
       }
@@ -584,6 +626,15 @@ export function useAppOrchestrator() {
       if (appState === "candidatePortal") {
         const pdfData = arrayBufferToBase64(pdf.output("arraybuffer"));
 
+        // HR notice in candidate portal: just download — no signing flow needed
+        if (agreementTemplate === "hrHiringNotice") {
+          const noticeName = docSettings.hrNoticeTitle?.trim() || "HR Hiring Notice";
+          pdf.save(`${noticeName} - ${docSettings.hrNoticeRefId || "JEVXO"}.pdf`);
+          document.documentElement.classList.remove("a4-exporting");
+          setIsExporting(false);
+          return;
+        }
+
         const res = await fetch(`/api/offers/${offerId}/sign`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -640,10 +691,18 @@ export function useAppOrchestrator() {
           }
         }
       } else {
-        const partnerName = secondParty.fullName
-          ? secondParty.fullName.trim()
-          : "Partner";
-        pdf.save(`${partnerName} - Appointment Letter.pdf`);
+        const isHrNotice = agreementTemplate === "hrHiringNotice";
+        if (isHrNotice) {
+          const noticeName = docSettings.hrNoticeTitle
+            ? docSettings.hrNoticeTitle.trim()
+            : "HR Hiring Notice";
+          pdf.save(`${noticeName} - ${docSettings.hrNoticeRefId || "JEVXO"}.pdf`);
+        } else {
+          const partnerName = secondParty.fullName
+            ? secondParty.fullName.trim()
+            : "Partner";
+          pdf.save(`${partnerName} - Appointment Letter.pdf`);
+        }
       }
     } catch (err: unknown) {
       const e = err as Error;
@@ -721,6 +780,7 @@ export function useAppOrchestrator() {
     setSalesAgentModalOpen,
     candidateLink,
     setCandidateLink,
+    hrNoticePdfBase64,
     previewRefs,
     candidateCardFrontRef,
     candidateCardBackRef,

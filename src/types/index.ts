@@ -70,6 +70,9 @@ export interface DocSettings {
   hrNoticeRefId?: string;       // e.g. "JVX-HR-REF-26-001"
   hrNoticeRefIdSerial?: string;
   hrRecipientRole?: string;     // e.g. "CEO", "CTO", "Founder"
+  hrRecipientRoleCustom?: string; // set when hrRecipientRole === "Other"
+  hrRecipientName?: string;     // e.g. "Imtiaz Ahmed Tuhin"
+  hrRecipientEmail?: string;    // e.g. "ceo@jevxo.com"
   hrNoticeTitle?: string;       // e.g. "UI/UX Designer Recruitment"
   hrSubject?: string;           // full subject line
   hrPositionName?: string;      // e.g. "UI/UX Designer"
@@ -81,6 +84,8 @@ export interface DocSettings {
   hrRecruitmentStartDate?: string;
   hrRecruitmentEndDate?: string;
   hrRequiredSkills?: string[];  // dynamic skill tags
+  hrExperienceRequired?: string;    // e.g. "2+ years", "Fresher / No Experience"
+  hrExperienceNote?: string;        // optional elaboration, e.g. "in UI/UX or product design"
   hrPreparedByName?: string;    // e.g. "Juwel Khan Shanto"
   hrPreparedByDesignation?: string; // e.g. "Head of HR Department"
   hrOrganization?: string;      // default: "JEVXO"
