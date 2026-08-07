@@ -33,9 +33,11 @@ export interface SecondParty {
   bloodGroup: string;
   photoUrl?: string;
   signatureImg: string;
+  department?: string;
+  performanceGrade?: string;
 }
 
-export type AgreementTemplate = 'partner' | 'internship' | 'sales_agent' | 'country_sales_partner' | 'hrHiringNotice';
+export type AgreementTemplate = 'partner' | 'internship' | 'sales_agent' | 'country_sales_partner' | 'hrHiringNotice' | 'internCertificate';
 
 export type SalesAgreementType = 'countrySales' | 'salesAgent';
 
@@ -110,6 +112,17 @@ export interface DocSettings {
   overrideCommissionRate?: number;
   paymentCurrency?: string;
   reportingStructure?: string;
+  // ── Certificate-specific ─────────────────────────────────────────────────
+  certId?: string;             // e.g. "JVX-CRT-26-001"
+  certIdSerial?: string;
+  certRefId?: string;          // e.g. "JVX-CRT-REF-26-001"
+  certRefIdSerial?: string;
+  certStartDate?: string;
+  certEndDate?: string;
+  certPerformanceGrade?: string;
+  certOriginalAgreementId?: string;
+  certInternId?: string;
+  certificateGenerated?: boolean;
 }
 
 export interface EmployeeCard {

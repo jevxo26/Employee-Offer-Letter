@@ -3,7 +3,7 @@
 import React from "react";
 import { Settings, User, BookOpen, Mail, RefreshCw, Download } from "lucide-react";
 import { FirstParty, SecondParty, DocSettings, AgreementTemplate, SalesAgreementType } from "@/types";
-import { SettingsTab, InternshipSettingsTab, SalesSettingsTab, HRSettingsTab } from "./sidebar/SettingsTab";
+import { SettingsTab, InternshipSettingsTab, SalesSettingsTab, HRSettingsTab, InternCertificateSettingsTab } from "./sidebar/SettingsTab";
 import { FirstPartyTab, SecondPartyTab, SalesPartyTab } from "./sidebar/PartiesTab";
 
 // ─── Main sidebar tabs configuration ─────────────────────────────────────────
@@ -28,6 +28,12 @@ const SALES_TABS = [
 const HR_TABS = [
   { id: "settings", label: "Notice Details", icon: Settings },
   { id: "firstParty", label: "HR / Approval", icon: BookOpen },
+];
+
+const CERT_TABS = [
+  { id: "settings", label: "Cert Details", icon: Settings },
+  { id: "secondParty", label: "Intern Details", icon: User },
+  { id: "firstParty", label: "Issuer Info", icon: BookOpen },
 ];
 
 interface WorkspaceSidebarProps {
@@ -69,6 +75,7 @@ export default function WorkspaceSidebar({
 }: WorkspaceSidebarProps) {
   const isInternship = agreementTemplate === "internship";
   const isHrHiring = agreementTemplate === "hrHiringNotice";
+  const isCertificate = agreementTemplate === "internCertificate";
   const isCSPAgreement = salesAgreementType === "countrySales";
   const isSAGAgreement = salesAgreementType === "salesAgent";
   const isSalesAgreement = salesAgreementType === "countrySales" || salesAgreementType === "salesAgent";
@@ -78,26 +85,36 @@ export default function WorkspaceSidebar({
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Header */}
         <div className="space-y-2">
-          <span className={`text-[10px] border font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block ${isInternship ? "bg-[#F0F9FF] border-[#BAE6FD] text-[#0EA5E9]" : isHrHiring ? "bg-violet-50 border-violet-200 text-violet-700" : "bg-[#EFF6FF] border-[#DBEAFE]/50 text-[#1E3A8A]"}`}>
-            {isInternship ? "Internship Offer Ready!" : isHrHiring ? "HR Hiring Notice Ready!" : isSalesAgreement ? `${salesAgreementType === "countrySales" ? "Country Sales Partner" : "Sales Agent"} Agreement Ready!` : "Agreement ready!"}
+          <span className={`text-[10px] border font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block ${
+            isCertificate
+              ? "bg-indigo-50 border-indigo-200 text-indigo-700"
+              : isInternship
+              ? "bg-[#F0F9FF] border-[#BAE6FD] text-[#0EA5E9]"
+              : isHrHiring
+              ? "bg-violet-50 border-violet-200 text-violet-700"
+              : "bg-[#EFF6FF] border-[#DBEAFE]/50 text-[#1E3A8A]"
+          }`}>
+            {isCertificate ? "Intern Certificate Ready!" : isInternship ? "Internship Offer Ready!" : isHrHiring ? "HR Hiring Notice Ready!" : isSalesAgreement ? `${salesAgreementType === "countrySales" ? "Country Sales Partner" : "Sales Agent"} Agreement Ready!` : "Agreement ready!"}
           </span>
           <h2 className="text-xl font-bold text-[#0F172A]">
             Document Workspace
           </h2>
           <p className="text-[#64748B] text-xs">
-            {isInternship
+            {isCertificate
+              ? "Adjust certificate details with live landscape preview."
+              : isInternship
               ? "Adjust internship offer details with live preview."
               : isHrHiring
-                ? "Adjust hiring notice details with live document preview."
-                : isSalesAgreement
-                  ? "Adjust sales agreement details with a live document preview."
-                  : "Fine-tune standard clause parameters with real-time browser preview compilation."}
+              ? "Adjust hiring notice details with live document preview."
+              : isSalesAgreement
+              ? "Adjust sales agreement details with a live document preview."
+              : "Fine-tune standard clause parameters with real-time browser preview compilation."}
           </p>
         </div>
 
         {/* Tab headers */}
         <div className="flex border-b border-[#DBEAFE]">
-          {(isInternship ? INTERN_TABS : isHrHiring ? HR_TABS : isSalesAgreement ? SALES_TABS : PARTNER_TABS).map(({ id, label, icon: Icon }) => (
+          {(isCertificate ? CERT_TABS : isInternship ? INTERN_TABS : isHrHiring ? HR_TABS : isSalesAgreement ? SALES_TABS : PARTNER_TABS).map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
@@ -115,7 +132,9 @@ export default function WorkspaceSidebar({
         {/* Tab content */}
         <div className="space-y-5">
           {activeTab === "settings" && (
-            isInternship ? (
+            isCertificate ? (
+              <InternCertificateSettingsTab docSettings={docSettings} setDocSettings={setDocSettings} />
+            ) : isInternship ? (
               <InternshipSettingsTab docSettings={docSettings} setDocSettings={setDocSettings} />
             ) : isHrHiring ? (
               <HRSettingsTab docSettings={docSettings} setDocSettings={setDocSettings} />
@@ -142,26 +161,34 @@ export default function WorkspaceSidebar({
             <div className="w-full py-4 px-6 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold rounded-2xl text-center">
               PDF Export Disabled in Demo Mode
             </div>
-          ) : isHrHiring ? (
-            /* HR Notice: two-button layout — Email Notice + Download PDF */
+          ) : (isHrHiring || isCertificate) ? (
+            /* HR Notice or Certificate: two-button layout — Email + Download PDF */
             <div className="space-y-2.5">
               <button
                 onClick={onSendOffer}
                 disabled={isOfferSent || isOpeningModal}
-                className="w-full py-3.5 px-6 bg-[#7C3AED] hover:bg-[#6D28D9] disabled:bg-emerald-600 disabled:hover:bg-emerald-600 disabled:cursor-not-allowed font-bold text-white text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-violet-500/10 hover:shadow-violet-500/25 cursor-pointer"
+                className={`w-full py-3.5 px-6 font-bold text-white text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md cursor-pointer disabled:bg-emerald-600 disabled:hover:bg-emerald-600 disabled:cursor-not-allowed ${
+                  isCertificate
+                    ? "bg-[#6366F1] hover:bg-[#4F46E5] shadow-indigo-500/10 hover:shadow-indigo-500/25"
+                    : "bg-[#7C3AED] hover:bg-[#6D28D9] shadow-violet-500/10 hover:shadow-violet-500/25"
+                }`}
               >
                 {isOpeningModal ? (
-                  <><RefreshCw className="w-4 h-4 animate-spin" /> Preparing Notice…</>
+                  <><RefreshCw className="w-4 h-4 animate-spin" /> {isCertificate ? "Preparing Certificate…" : "Preparing Notice…"}</>
                 ) : isOfferSent ? (
-                  <><Mail className="w-4 h-4" /> Notice Sent Successfully</>
+                  <><Mail className="w-4 h-4" /> {isCertificate ? "Certificate Sent Successfully" : "Notice Sent Successfully"}</>
                 ) : (
-                  <><Mail className="w-4 h-4" /> Email Notice to Recipient</>
+                  <><Mail className="w-4 h-4" /> {isCertificate ? "Email Certificate to Intern" : "Email Notice to Recipient"}</>
                 )}
               </button>
               <button
                 onClick={onExport}
                 disabled={isExporting}
-                className="w-full py-3 px-6 bg-white hover:bg-violet-50 border-2 border-[#7C3AED]/40 hover:border-[#7C3AED] font-bold text-[#7C3AED] text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all cursor-pointer disabled:opacity-50"
+                className={`w-full py-3 px-6 bg-white border-2 font-bold text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all cursor-pointer disabled:opacity-50 ${
+                  isCertificate
+                    ? "hover:bg-indigo-50 border-[#6366F1]/40 hover:border-[#6366F1] text-[#6366F1]"
+                    : "hover:bg-violet-50 border-[#7C3AED]/40 hover:border-[#7C3AED] text-[#7C3AED]"
+                }`}
               >
                 {isExporting ? (
                   <><RefreshCw className="w-4 h-4 animate-spin" /> Generating PDF…</>
@@ -187,7 +214,7 @@ export default function WorkspaceSidebar({
           )}
           <div className="flex justify-between text-[11px] text-[#64748B] px-1 font-semibold">
             <span>A4 dimensions output</span>
-            <span>{isDemo ? "1 page" : isInternship ? "1 page" : isHrHiring ? "1 page" : isCSPAgreement ? "5 pages" : isSAGAgreement ? "3 pages" : "2 pages"} automatic layout</span>
+            <span>{isDemo ? "1 page" : isInternship ? "1 page" : isHrHiring ? "1 page" : isCertificate ? "1 page" : isCSPAgreement ? "5 pages" : isSAGAgreement ? "3 pages" : "2 pages"} automatic layout</span>
           </div>
         </div>
       </div>

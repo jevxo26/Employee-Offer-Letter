@@ -185,6 +185,31 @@ export function useAppOrchestrator() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agreementTemplate]);
 
+  // Pre-load Certificate IDs
+  useEffect(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("candidateView")) return;
+    if (agreementTemplate !== "internCertificate") return;
+    async function fetchNextCertIds() {
+      try {
+        const res = await fetch("/api/check-id?action=nextCert");
+        if (res.ok) {
+          const data = await res.json();
+          setDocSettings((p) => ({
+            ...p,
+            certId: data.certId,
+            certIdSerial: data.certId?.split("-").pop() || "001",
+            certRefId: data.certRefId,
+            certRefIdSerial: data.certRefId?.split("-").pop() || "001",
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch next certificate IDs", err);
+      }
+    }
+    fetchNextCertIds();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agreementTemplate]);
+
   // Pre-load sales IDs
   useEffect(() => {    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("candidateView")) return;
     if (!salesAgreementType) return;
@@ -281,7 +306,7 @@ export function useAppOrchestrator() {
     }
   }, []);
 
-  const handleTemplateSelect = (type: "partner" | "internship" | "countrySales" | "salesAgent" | "hrHiringNotice") => {
+  const handleTemplateSelect = (type: "partner" | "internship" | "countrySales" | "salesAgent" | "hrHiringNotice" | "internCertificate") => {
     if (type === "countrySales" || type === "salesAgent") {
       setSalesAgreementType(type);
       setAgreementTemplate("partner");
@@ -300,6 +325,19 @@ export function useAppOrchestrator() {
         ...prev,
         agreementTemplate: "internship" as AgreementTemplate,
         salesAgreementType: undefined,
+      }));
+    } else if (type === "internCertificate") {
+      setSalesAgreementType(undefined);
+      setAgreementTemplate("internCertificate");
+      setDocSettings((prev) => ({
+        ...prev,
+        agreementTemplate: "internCertificate" as AgreementTemplate,
+        salesAgreementType: undefined,
+        certPerformanceGrade: "Outstanding",
+        certStartDate: "",
+        certEndDate: "",
+        certId: "",
+        certRefId: "",
       }));
     } else if (type === "hrHiringNotice") {
       setSalesAgreementType(undefined);
@@ -363,16 +401,22 @@ export function useAppOrchestrator() {
 
   const handleSendOffer = async (options?: { cardPDFdata?: string }) => {
     const isHrHiring = agreementTemplate === "hrHiringNotice";
+    const isCertificate = agreementTemplate === "internCertificate";
 
-    // For HR notices: generate the PDF first so it can be sent as an attachment
+    // For HR notices and Certificates: generate the PDF first so it can be sent as an attachment
     let hrNoticePdfBase64 = "";
-    if (isHrHiring) {
+    if (isHrHiring || isCertificate) {
       setisOpeningModal(true);
       try {
         document.documentElement.classList.add("a4-exporting");
         const { jsPDF } = await import("jspdf");
         const html2canvas = (await import("html2canvas-pro")).default;
-        const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+        const pdf = new jsPDF({
+          orientation: isCertificate ? "l" : "p",
+          unit: "mm",
+          format: "a4",
+          compress: true,
+        });
         const pages = previewRefs
           .map((ref) => ref.current)
           .filter((el): el is HTMLDivElement => el != null && el.style.display !== "none");
@@ -381,13 +425,22 @@ export function useAppOrchestrator() {
             const canvas = await html2canvas(pages[i] as HTMLElement, {
               scale: 2, useCORS: true, logging: false, allowTaint: false, backgroundColor: "#ffffff",
             });
-            pdf.addImage(canvas.toDataURL("image/jpeg", 0.82), "JPEG", 0, 0, 210, 297, undefined, "FAST");
+            pdf.addImage(
+              canvas.toDataURL("image/jpeg", 0.82),
+              "JPEG",
+              0,
+              0,
+              isCertificate ? 297 : 210,
+              isCertificate ? 210 : 297,
+              undefined,
+              "FAST"
+            );
             if (i < pages.length - 1) pdf.addPage();
           }
           hrNoticePdfBase64 = arrayBufferToBase64(pdf.output("arraybuffer"));
         }
       } catch (pdfErr) {
-        console.warn("HR notice PDF pre-generation failed:", pdfErr);
+        console.warn("PDF pre-generation failed:", pdfErr);
       } finally {
         document.documentElement.classList.remove("a4-exporting");
       }
@@ -403,16 +456,18 @@ export function useAppOrchestrator() {
     let saved = false;
     let dbAgreementId = "";
 
+    const endpoint = isCertificate ? "/api/offers/certificate" : "/api/offers";
+
     for (let i = 0; i < 3; i++) {
       try {
-        const res = await fetch("/api/offers", {
+        const res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             firstParty,
             secondParty,
             docSettings,
-            docType,
+            docType: isCertificate ? "Intern Certificate" : docType,
             agreementTemplate,
             salesAgreementType,
             ...(cardPDFdata ? { cardPDFdata } : {}),
@@ -442,7 +497,7 @@ export function useAppOrchestrator() {
     setCandidateLink(link);
     setOfferId(dbAgreementId);
     // Store PDF data so the modal can pass it to the send API
-    if (isHrHiring && hrNoticePdfBase64) {
+    if ((isHrHiring || isCertificate) && hrNoticePdfBase64) {
       setHrNoticePdfBase64(hrNoticePdfBase64);
     }
     setEmailModalOpen(true);
@@ -452,7 +507,23 @@ export function useAppOrchestrator() {
     const p = secondParty;
     const isInternship = agreementTemplate === "internship";
     const isHrHiring   = agreementTemplate === "hrHiringNotice";
+    const isCertificate = agreementTemplate === "internCertificate";
     const isSalesAgreement = Boolean(salesAgreementType);
+
+    if (isCertificate) {
+      if (activeStep === 1) {
+        if (!docSettings.certOriginalAgreementId) return "Please select an Intern from the lookup list.";
+        if (!p.fullName.trim()) return "Intern Name is required.";
+        if (!p.position.trim()) return "Internship Position is required.";
+        if (!p.department?.trim()) return "Department is required.";
+        if (!docSettings.certStartDate?.trim()) return "Internship Start Date is required.";
+        if (!docSettings.certEndDate?.trim()) return "Internship End Date is required.";
+        if (!docSettings.certPerformanceGrade?.trim()) return "Performance Rating is required.";
+      } else if (activeStep === 2) {
+        if (!firstParty.signatureImg) return "Founder & CEO signature is required to authorize the certificate.";
+      }
+      return "";
+    }
 
     if (isHrHiring) {
       const validEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -554,7 +625,7 @@ export function useAppOrchestrator() {
     return "";
   };
 
-  const ACTIVE_TOTAL_STEPS = (agreementTemplate === "internship" || agreementTemplate === "hrHiringNotice") ? 3 : TOTAL_STEPS;
+  const ACTIVE_TOTAL_STEPS = agreementTemplate === "internCertificate" ? 2 : (agreementTemplate === "internship" || agreementTemplate === "hrHiringNotice") ? 3 : TOTAL_STEPS;
 
   const handleNext = () => {
     const error = validateStep();
@@ -588,8 +659,9 @@ export function useAppOrchestrator() {
     setIsExporting(true);
     document.documentElement.classList.add("a4-exporting");
     try {
+      const isLandscape = agreementTemplate === "internCertificate";
       const pdf = new jsPDF({
-        orientation: "p",
+        orientation: isLandscape ? "l" : "p",
         unit: "mm",
         format: "a4",
         compress: true,
@@ -616,8 +688,8 @@ export function useAppOrchestrator() {
           "JPEG",
           0,
           0,
-          210,
-          297,
+          isLandscape ? 297 : 210,
+          isLandscape ? 210 : 297,
           undefined,
           "FAST",
         );
@@ -692,11 +764,17 @@ export function useAppOrchestrator() {
         }
       } else {
         const isHrNotice = agreementTemplate === "hrHiringNotice";
+        const isCertificate = agreementTemplate === "internCertificate";
         if (isHrNotice) {
           const noticeName = docSettings.hrNoticeTitle
             ? docSettings.hrNoticeTitle.trim()
             : "HR Hiring Notice";
           pdf.save(`${noticeName} - ${docSettings.hrNoticeRefId || "JEVXO"}.pdf`);
+        } else if (isCertificate) {
+          const internName = secondParty.fullName
+            ? secondParty.fullName.trim()
+            : "Intern";
+          pdf.save(`${internName} - Internship Certificate.pdf`);
         } else {
           const partnerName = secondParty.fullName
             ? secondParty.fullName.trim()
@@ -728,7 +806,7 @@ export function useAppOrchestrator() {
       setAppState("docTypeSelect");
     } else if (appState === "workspace") {
       setAppState("form");
-      const lastStep = (agreementTemplate === "internship" || agreementTemplate === "hrHiringNotice") ? 3 : 5;
+      const lastStep = agreementTemplate === "internCertificate" ? 2 : (agreementTemplate === "internship" || agreementTemplate === "hrHiringNotice") ? 3 : 5;
       setActiveStep(lastStep);
     } else if (appState === "idCard") {
       setAppState("docTypeSelect");

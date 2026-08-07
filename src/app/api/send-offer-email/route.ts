@@ -100,6 +100,10 @@ export async function POST(request: Request) {
       agreementTemplate === "hrHiringNotice" ||
       (agreement.docSettings as Record<string, unknown>)?.agreementTemplate === "hrHiringNotice";
 
+    const isCertificate =
+      agreementTemplate === "internCertificate" ||
+      (agreement.docSettings as Record<string, unknown>)?.agreementTemplate === "internCertificate";
+
     const salesType = (agreement.docSettings as Record<string, unknown>)?.salesAgreementType as string | undefined;
     const isCountrySales = salesType === "countrySales";
     const isSalesAgent   = salesType === "salesAgent";
@@ -163,6 +167,8 @@ export async function POST(request: Request) {
       ? "Internship Offer Letter — JEVXO"
       : isHrHiring
       ? `HR Hiring Notice: ${docSettings.hrPositionName || "Open Position"}`
+      : isCertificate
+      ? "Certificate of Internship Completion — JEVXO"
       : isCountrySales
       ? "Country Sales Partner Agreement — JEVXO"
       : isSalesAgent
@@ -206,6 +212,29 @@ export async function POST(request: Request) {
     <strong>${hrContact}</strong>.
   </p>
   ${hrSignature}
+</div>`
+
+      : isCertificate
+      ? /* ── Internship Certificate completion notice ── */ `
+<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px 20px; border: 1px solid #e2e8f0; border-radius: 20px; background-color: #ffffff; color: #0f172a;">
+  <div style="text-align: center; margin-bottom: 25px;">
+    <h2 style="color: #2563eb; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: 0.5px;">JEVXO</h2>
+    <div style="height: 3px; background: linear-gradient(to right, transparent, #2563eb, transparent); margin-top: 12px; width: 100%;"></div>
+    <p style="font-size: 11px; color: #94a3b8; margin-top: 6px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">Internship Completion Certificate</p>
+  </div>
+
+  <p style="font-size: 16px; font-weight: 700; margin-top: 0; color: #0f172a;">Dear ${candidateName},</p>
+  <p style="font-size: 14px; line-height: 1.7; color: #334155; margin-bottom: 14px;">Congratulations on completing your internship!</p>
+  <p style="font-size: 14px; line-height: 1.7; color: #334155; margin-bottom: 14px;">
+    On behalf of <strong>${firstParty.companyName}</strong>, we are pleased to congratulate you on successfully completing your internship as a <strong>${secondParty.position}</strong>.
+  </p>
+  <p style="font-size: 14px; line-height: 1.7; color: #334155; margin-bottom: 14px;">
+    We want to thank you for your commitment, hard work, and contributions to our growth during your tenure. Your performance grade was evaluated as <strong style="color: #2563eb;">${docSettings.certPerformanceGrade || "Outstanding"}</strong>.
+  </p>
+  <p style="font-size: 14px; line-height: 1.7; color: #334155; margin-bottom: 14px;">
+    Kindly find attached your official, digitally-signed <strong>Certificate of Internship Completion</strong>. We wish you the absolute best in all your future endeavors.
+  </p>
+  ${ceoSignature}
 </div>`
 
       : isInternship
@@ -374,9 +403,11 @@ export async function POST(request: Request) {
   ${ceoSignature}
 </div>`;
 
-    // ── Attachment (HR notice only) ─────────────────────────────────────────
+    // ── Attachment (HR notice and Certificate only) ──────────────────────────
     const noticeName = isHrHiring
       ? `HR_Hiring_Notice_${(docSettings.hrPositionName || "Notice").replace(/\s+/g, "_")}.pdf`
+      : isCertificate
+      ? `Internship_Certificate_${(secondParty.fullName || "Intern").replace(/\s+/g, "_")}.pdf`
       : undefined;
 
     const emailResult = await resend.emails.send({
@@ -384,7 +415,7 @@ export async function POST(request: Request) {
       to:   [candidateEmail],
       subject,
       html: emailHtml,
-      ...(isHrHiring && hrNoticePdfBase64 && noticeName
+      ...((isHrHiring || isCertificate) && hrNoticePdfBase64 && noticeName
         ? { attachments: [{ filename: noticeName, content: hrNoticePdfBase64 }] }
         : {}),
     });

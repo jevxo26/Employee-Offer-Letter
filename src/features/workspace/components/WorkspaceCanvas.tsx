@@ -3,6 +3,7 @@
 import React from "react";
 import DocumentPreview from "@/features/document-preview/components/DocumentPreview";
 import InternshipDocumentPreview from "@/features/document-preview/components/InternshipDocumentPreview";
+import InternCertificatePreview from "@/features/document-preview/components/InternCertificatePreview";
 import SalesAgreementDocument from "@/features/document-preview/templates/document/SalesAgreementDocument";
 import HRHiringNoticeDocument from "@/features/document-preview/templates/document/HRHiringNoticeDocument";
 import A4DocumentScaler from "@/features/document-preview/components/A4DocumentScaler";
@@ -40,13 +41,14 @@ export default function WorkspaceCanvas({
   const template = agreementTemplate ?? settings.agreementTemplate ?? "partner";
   const isInternship = template === "internship";
   const isHrHiring = template === "hrHiringNotice";
+  const isCertificate = template === "internCertificate";
 
   const salesType = salesAgreementType ?? settings.salesAgreementType;
   const isSalesAgreement =
     salesType === "countrySales" || salesType === "salesAgent";
 
   // Page count depends on document type
-  const pageCount = isInternship || isHrHiring
+  const pageCount = isInternship || isHrHiring || isCertificate
     ? 1
     : isSalesAgreement
       ? salesType === "countrySales" ? 5 : 3
@@ -54,9 +56,16 @@ export default function WorkspaceCanvas({
 
   return (
     <div className="flex-1 bg-[#F1F5F9] flex flex-col items-center justify-start p-6 overflow-y-auto scroll-smooth">
-      <div className="w-full max-w-[860px]">
-        <A4DocumentScaler pageCount={pageCount}>
-          {isHrHiring ? (
+      <div className={`w-full transition-all duration-300 ${isCertificate ? "max-w-[1180px]" : "max-w-[860px]"}`}>
+        <A4DocumentScaler pageCount={pageCount} orientation={isCertificate ? "landscape" : "portrait"}>
+          {isCertificate ? (
+            <InternCertificatePreview
+              firstParty={firstParty}
+              secondParty={secondParty}
+              settings={settings}
+              previewRefs={previewRefs}
+            />
+          ) : isHrHiring ? (
             <HRHiringNoticeDocument
               firstParty={firstParty}
               settings={settings}

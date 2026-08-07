@@ -220,6 +220,49 @@ export async function generateSalesAgentIds() {  const currentYearStr = new Date
   };
 }
 
+export async function generateCertificateIds() {
+  const currentYearStr = new Date().getFullYear().toString().slice(-2);
+  const refPrefix  = `JVX-CRT-REF-${currentYearStr}-`;
+  const certPrefix = `JVX-CRT-${currentYearStr}-`;
+
+  const mongoIds = await tryMongo(async () => {
+    const certDocs = await Agreement.find({
+      agreementId: new RegExp(`^JVX-CRT-REF-${currentYearStr}-`),
+    }, "agreementId");
+
+    let maxSequence = 0;
+    for (const doc of certDocs) {
+      const parts = doc.agreementId.split("-");
+      const seq = parseInt(parts[parts.length - 1], 10);
+      if (!isNaN(seq) && seq > maxSequence) maxSequence = seq;
+    }
+
+    const seq = (maxSequence + 1).toString().padStart(3, "0");
+    return {
+      certId:    `${certPrefix}${seq}`,
+      certRefId: `${refPrefix}${seq}`,
+    };
+  });
+
+  if (mongoIds) return { ...mongoIds, storage: "mongodb" as const };
+
+  const fileList = await fileStore.fileListAgreements();
+  let maxSeq = 0;
+  for (const a of fileList) {
+    if (typeof a.agreementId === "string" && a.agreementId.startsWith(refPrefix)) {
+      const parts = (a.agreementId as string).split("-");
+      const seq = parseInt(parts[parts.length - 1], 10);
+      if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
+    }
+  }
+  const seq = (maxSeq + 1).toString().padStart(3, "0");
+  return {
+    certId:    `${certPrefix}${seq}`,
+    certRefId: `${refPrefix}${seq}`,
+    storage: "file" as const,
+  };
+}
+
 export async function saveAgreement(data: Record<string, unknown>) {
   const mongoDoc = await tryMongo(async () => {
     const doc = new Agreement(data);

@@ -37,6 +37,7 @@ export default function EmailPortalModal({
   const [apiError, setApiError] = useState("");
   const isInternship = agreementTemplate === "internship";
   const isHrHiring = agreementTemplate === "hrHiringNotice";
+  const isCertificate = agreementTemplate === "internCertificate";
   const isCSP = salesAgreementType === "countrySales";
   const isSalesAgent = salesAgreementType === "salesAgent";
   const isSalesType = isCSP || isSalesAgent;
@@ -67,13 +68,15 @@ export default function EmailPortalModal({
 
   const emailSubject = isHrHiring
     ? `HR Hiring Notice: ${docSettings?.hrPositionName || "Open Position"}`
-    : isInternship
-      ? "Internship Offer Letter — JEVXO"
-      : isCSP
-        ? "Country Sales Partner Agreement — JEVXO"
-        : isSalesAgent
-          ? "Sales Agent Agreement — JEVXO"
-          : "Offer of Partnership & Appointment Letter — JEVXO";
+    : isCertificate
+      ? "Certificate of Internship Completion — JEVXO"
+      : isInternship
+        ? "Internship Offer Letter — JEVXO"
+        : isCSP
+          ? "Country Sales Partner Agreement — JEVXO"
+          : isSalesAgent
+            ? "Sales Agent Agreement — JEVXO"
+            : "Offer of Partnership & Appointment Letter — JEVXO";
 
   if (!isOpen) return null;
 
@@ -92,11 +95,11 @@ export default function EmailPortalModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           offerId,
-          candidateEmail: isHrHiring ? displayEmail : secondParty.email,
-          candidateName: isHrHiring ? displayName : secondParty.fullName,
+          candidateEmail: (isHrHiring || isCertificate) ? displayEmail : secondParty.email,
+          candidateName: (isHrHiring || isCertificate) ? displayName : secondParty.fullName,
           agreementTemplate,
           salesAgreementType,
-          ...(isHrHiring && hrNoticePdfBase64 ? { hrNoticePdfBase64 } : {}),
+          ...((isHrHiring || isCertificate) && hrNoticePdfBase64 ? { hrNoticePdfBase64 } : {}),
         }),
       });
       const data = await response.json();
@@ -138,19 +141,21 @@ export default function EmailPortalModal({
         <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center shrink-0">
           <div className="flex items-center gap-2">
             <div
-              className={`w-2.5 h-2.5 rounded-full animate-pulse ${isHrHiring ? "bg-violet-600" : "bg-blue-600"
+              className={`w-2.5 h-2.5 rounded-full animate-pulse ${isHrHiring ? "bg-violet-600" : isCertificate ? "bg-indigo-600" : "bg-blue-600"
                 }`}
             />
             <h3 className="font-extrabold text-sm text-slate-800 uppercase tracking-wider">
               {isHrHiring
                 ? "JEVXO HR Hiring Notice Dispatch"
-                : isInternship
-                  ? "JEVXO Internship Offer Portal"
-                  : isCSP
-                    ? "JEVXO Country Sales Partner Portal"
-                    : isSalesAgent
-                      ? "JEVXO Sales Agent Agreement Portal"
-                      : "JEVXO Offer Dispatch Portal"}
+                : isCertificate
+                  ? "JEVXO Intern Certificate Dispatch"
+                  : isInternship
+                    ? "JEVXO Internship Offer Portal"
+                    : isCSP
+                      ? "JEVXO Country Sales Partner Portal"
+                      : isSalesAgent
+                        ? "JEVXO Sales Agent Agreement Portal"
+                        : "JEVXO Offer Dispatch Portal"}
             </h3>
           </div>
           <button
@@ -189,7 +194,7 @@ export default function EmailPortalModal({
               {emailSubject}
             </span>
           </div>
-          {isHrHiring && (
+          {(isHrHiring || isCertificate) && (
             <div className="flex items-center gap-3">
               <span className="w-14 text-right">Attach:</span>
               <span
@@ -200,10 +205,12 @@ export default function EmailPortalModal({
               >
                 {hrNoticePdfBase64 ? (
                   <>
-                    <Check className="w-3 h-3" /> HR_Hiring_Notice.pdf — ready to attach
+                    <Check className="w-3 h-3" /> {isCertificate ? "Internship_Certificate.pdf" : "HR_Hiring_Notice.pdf"} — ready to attach
                   </>
                 ) : (
-                  "⚠ PDF not ready — notice may send without attachment"
+                  isCertificate
+                    ? "⚠ PDF not ready — certificate may send without attachment"
+                    : "⚠ PDF not ready — notice may send without attachment"
                 )}
               </span>
             </div>
@@ -225,24 +232,45 @@ export default function EmailPortalModal({
               <p>
                 This is to formally notify you that kindly find attached the official{" "}
                 <strong>HR Hiring Notice</strong> for the recruitment of{" "}
-                <strong>{hrPosition}</strong> ({hrVacancies}{" "}
-                {hrVacancies === 1 ? "vacancy" : "vacancies"}), scheduled between{" "}
-                <strong>{hrStartDate}</strong> and <strong>{hrEndDate}</strong>.
+                <strong>{docSettings?.hrPositionName || "Open Position"}</strong> ({docSettings?.hrVacancies ?? 1}{" "}
+                {(docSettings?.hrVacancies ?? 1) === 1 ? "vacancy" : "vacancies"}), scheduled between{" "}
+                <strong>{docSettings?.hrRecruitmentStartDate || "—"}</strong> and <strong>{docSettings?.hrRecruitmentEndDate || "—"}</strong>.
               </p>
               <p>
-                This notice has been prepared and issued by <strong>{hrPreparedBy}</strong>,{" "}
-                {hrDesignation} to support our upcoming operational demands and project
+                This notice has been prepared and issued by <strong>{docSettings?.hrPreparedByName || firstParty.hrName || firstParty.representedBy}</strong>,{" "}
+                {docSettings?.hrPreparedByDesignation || "Head of HR Department"} to support our upcoming operational demands and project
                 commitments.
               </p>
               <p>
                 Kindly review the attached PDF for the full position breakdown and required
                 skill set. If you have any questions or feedback, feel free to reach out to
-                us at <strong>{hrContact}</strong>.
+                us at <strong>{firstParty.email || firstParty.mobileNumber || "info@jevxo.com"}</strong>.
               </p>
               <p className="pt-2 border-t border-slate-100 text-xs text-slate-500 font-medium">
                 Best regards,
                 <br />
                 <strong>{firstParty.companyName}</strong>
+              </p>
+            </div>
+          ) : isCertificate ? (
+            <div className="space-y-4">
+              <p className="font-bold text-slate-900">Dear {displayName},</p>
+              <p>Congratulations on completing your internship!</p>
+              <p>
+                On behalf of <strong>{firstParty.companyName}</strong>, we are pleased to congratulate you on successfully completing your internship as a <strong>{secondParty.position}</strong>.
+              </p>
+              <p>
+                We want to thank you for your commitment, hard work, and contributions to our growth during your tenure. Your performance grade was evaluated as <strong className="text-blue-600 font-extrabold">{docSettings?.certPerformanceGrade || "Outstanding"}</strong>.
+              </p>
+              <p>
+                Kindly find attached your official, digitally-signed <strong>Certificate of Internship Completion</strong>. We wish you the absolute best in all your future endeavors.
+              </p>
+              <p className="pt-2 border-t border-slate-100 text-xs text-slate-500 font-medium">
+                Best regards,
+                <br />
+                <strong>{firstParty.representedBy}</strong>
+                <br />
+                {firstParty.role}, {firstParty.companyName}
               </p>
             </div>
           ) : (
@@ -388,7 +416,9 @@ export default function EmailPortalModal({
                 ? "bg-emerald-600"
                 : isHrHiring
                   ? "bg-violet-600 hover:bg-violet-700"
-                  : "bg-blue-600 hover:bg-blue-700"
+                  : isCertificate
+                    ? "bg-indigo-600 hover:bg-indigo-700"
+                    : "bg-blue-600 hover:bg-blue-700"
               }`}
           >
             {sending ? (
@@ -399,12 +429,12 @@ export default function EmailPortalModal({
             ) : sent ? (
               <>
                 <Check className="w-4 h-4" />
-                <span>{isHrHiring ? "Notice Sent!" : "Sent Successfully!"}</span>
+                <span>{isHrHiring ? "Notice Sent!" : isCertificate ? "Certificate Sent!" : "Sent Successfully!"}</span>
               </>
             ) : (
               <>
                 <Send className="w-4 h-4" />
-                <span>{isHrHiring ? "Send Notice" : "Send Offer"}</span>
+                <span>{isHrHiring ? "Send Notice" : isCertificate ? "Send Certificate" : "Send Offer"}</span>
               </>
             )}
           </button>

@@ -2,11 +2,11 @@
 
 import React from "react";
 import { motion } from "motion/react";
-import { ArrowRight, LayoutDashboard, FileText, CreditCard, BriefcaseIcon } from "lucide-react";
+import { ArrowRight, LayoutDashboard, FileText, CreditCard, BriefcaseIcon, Award } from "lucide-react";
 
 // Local union — covers all selectable doc types including the new sales types.
 // Not exported from types/index.ts intentionally (only used at the selector layer).
-type SelectableDocType = "partner" | "internship" | "countrySales" | "salesAgent" | "hrHiringNotice";
+type SelectableDocType = "partner" | "internship" | "countrySales" | "salesAgent" | "hrHiringNotice" | "internCertificate";
 
 interface DocTypeSelectorProps {
   onSelect: (type: SelectableDocType) => void;
@@ -180,6 +180,34 @@ export default function DocTypeSelector({ onSelect, onOpenAdmin }: DocTypeSelect
                 </div>
               </div>
               <ArrowRight className="w-5 h-5 shrink-0 mt-1 text-[#7C3AED] group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </motion.button>
+
+          {/* Intern Certificate Generator */}
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={() => onSelect("internCertificate")}
+            className="w-full text-left p-6 rounded-2xl border border-[#DBEAFE] bg-white shadow-sm cursor-pointer group transition-all hover:border-[#6366F1] hover:shadow-md hover:shadow-[#6366F1]/10"
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 rounded-xl bg-[#6366F1]/10 shrink-0">
+                <Award className="w-5 h-5 text-[#6366F1]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-[#0F172A] text-base leading-snug">
+                  Intern Certificate
+                </h3>
+                <p className="text-xs text-[#64748B] mt-1.5 leading-relaxed">
+                  Generate premium, digital-signed completion certificates for interns. Mutates database and notifies intern via automated email.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {["Landscape A4", "Database Sync", "CEO Signature", "Email Dispatch", "Completion Letter"].map((tag) => (
+                    <span key={tag} className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#6366F1]/10 text-[#6366F1]">{tag}</span>
+                  ))}
+                </div>
+              </div>
+              <ArrowRight className="w-5 h-5 shrink-0 mt-1 text-[#6366F1] group-hover:translate-x-0.5 transition-transform" />
             </div>
           </motion.button>
         </div>

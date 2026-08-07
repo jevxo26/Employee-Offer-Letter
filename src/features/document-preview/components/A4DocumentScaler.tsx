@@ -11,18 +11,24 @@ interface A4DocumentScalerProps {
   children: React.ReactNode;
   pageCount?: number;
   className?: string;
+  orientation?: "portrait" | "landscape";
 }
 
 export default function A4DocumentScaler({
   children,
   pageCount = 2,
   className = "",
+  orientation = "portrait",
 }: A4DocumentScalerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
+  const isLandscape = orientation === "landscape";
+  const docWidth = isLandscape ? 1123 : 794;
+  const docHeight = isLandscape ? 794 : 1123;
+
   const naturalHeight =
-    pageCount * A4_HEIGHT + Math.max(0, pageCount - 1) * A4_PAGE_GAP;
+    pageCount * docHeight + Math.max(0, pageCount - 1) * A4_PAGE_GAP;
 
   useEffect(() => {
     const el = containerRef.current;
@@ -30,7 +36,7 @@ export default function A4DocumentScaler({
 
     const update = () => {
       const available = el.clientWidth - 48;
-      setScale(Math.min(1, Math.max(0.25, available / A4_WIDTH)));
+      setScale(Math.min(1, Math.max(0.25, available / docWidth)));
     };
 
     update();
@@ -41,18 +47,18 @@ export default function A4DocumentScaler({
       ro.disconnect();
       window.removeEventListener("resize", update);
     };
-  }, []);
+  }, [docWidth]);
 
   return (
     <div ref={containerRef} className={`a4-scaler-container w-full ${className}`}>
       <div
         className="a4-scaler-spacer relative mx-auto"
-        style={{ width: A4_WIDTH * scale, height: naturalHeight * scale }}
+        style={{ width: docWidth * scale, height: naturalHeight * scale }}
       >
         <div
           className="a4-scaler-inner absolute top-0 left-0"
           style={{
-            width: A4_WIDTH,
+            width: docWidth,
             transform: `scale(${scale})`,
             transformOrigin: "top left",
           }}
