@@ -133,8 +133,8 @@ export default function CeoWorkspace({
         {/* Tab bar */}
         <div className="sticky top-15 z-20 w-full flex border-b border-[#DBEAFE] bg-[#F8FAFC] px-3 sm:px-6 overflow-x-auto">
           {[
-            { id: "settings", label: salesAgreementType === "countrySales" ? "📄 Country Sales Partner Agreement" : salesAgreementType === "salesAgent" ? "📄 Sales Agent Agreement" : agreementTemplate === "internship" ? "📄 Internship Offer" : agreementTemplate === "hrHiringNotice" ? "📋 HR Hiring Notice" : "📄 Appointment Docs" },
-            ...(agreementTemplate === "hrHiringNotice" ? [] : [
+            { id: "settings", label: salesAgreementType === "countrySales" ? "📄 Country Sales Partner Agreement" : salesAgreementType === "salesAgent" ? "📄 Sales Agent Agreement" : agreementTemplate === "internship" ? "📄 Internship Offer" : agreementTemplate === "hrHiringNotice" ? "📋 HR Hiring Notice" : agreementTemplate === "internCertificate" ? "📄 Intern Certificate" : "📄 Appointment Docs" },
+            ...(agreementTemplate === "hrHiringNotice" || agreementTemplate === "internCertificate" ? [] : [
               { id: "idCard", label: salesAgreementType === "countrySales" ? "🪪 Country Sales Partner ID Card" : salesAgreementType === "salesAgent" ? "🪪 Sales Agent ID Card" : agreementTemplate === "internship" ? "🪪 Internee ID Card" : "🪪 Partner ID Card" }
             ]),
           ].map(({ id, label }) => (

@@ -319,6 +319,7 @@ export async function updateAgreement(
 
     Object.assign(agreement, updates);
     if (updates.secondParty) agreement.markModified("secondParty");
+    if (updates.docSettings) agreement.markModified("docSettings");
     await agreement.save();
     return agreement.toObject();
   });

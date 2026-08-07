@@ -4,6 +4,60 @@ import React from "react";
 import { FirstParty, SecondParty, DocSettings } from "@/types";
 import JevxoLogo from "@/shared/layout/JevxoLogo";
 
+interface GradientTextCanvasProps {
+  text: string;
+}
+
+function GradientTextCanvas({ text }: GradientTextCanvasProps) {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const draw = () => {
+      const scale = 3;
+      const baseWidth = 800;
+      const baseHeight = 50;
+
+      canvas.width = baseWidth * scale;
+      canvas.height = baseHeight * scale;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.scale(scale, scale);
+
+      // Create linear gradient matching CSS stops
+      const gradient = ctx.createLinearGradient(200, 0, 600, 0);
+      gradient.addColorStop(0, "#2563EB");
+      gradient.addColorStop(1, "#7C3AED");
+
+      ctx.fillStyle = gradient;
+      ctx.font = "900 30px 'Inter', sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      ctx.fillText(text, baseWidth / 2, baseHeight / 2);
+    };
+
+    draw();
+
+    if (typeof document !== "undefined" && (document as any).fonts) {
+      (document as any).fonts.ready.then(draw);
+    }
+  }, [text]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ width: 800, height: 50 }}
+      className="mx-auto block select-none pointer-events-none"
+    />
+  );
+}
+
 interface InternCertificatePreviewProps {
   firstParty: FirstParty;
   secondParty: SecondParty;
@@ -25,7 +79,7 @@ export default function InternCertificatePreview({
     endDate: settings.certEndDate || "—",
     performanceGrade: settings.certPerformanceGrade || "Outstanding",
     certId: settings.certId || "JVX-CRT-26-001",
-    refId: settings.certRefId || "JVX-CRT-REF-26-001",
+    internId: secondParty.partnerId || settings.certInternId || "JVX-INT-2026-04",
     companyName: firstParty.companyName || "JEVXO",
     ceoName: firstParty.representedBy || "Founder Name",
     ceoRole: firstParty.role || "Founder & CEO",
@@ -109,9 +163,9 @@ export default function InternCertificatePreview({
               <p className="ml-8 md:ml-11 lg:ml-15 text-[9px] md:text-xs lg:text-sm"><strong> Build your Empire </strong></p>
             </div>
           </div>
-          <div className="text-right font-mono text-[12px] font-semibold text-slate-400 space-y-0.5">
-            <p>Ref ID: <span className="text-slate-600 font-bold">{d.refId}</span></p>
-            <p>Cert ID: <span className="text-slate-600 font-bold">{d.certId}</span></p>
+          <div className="text-right font-mono text-[13px] font-semibold text-slate-400 space-y-0.5">
+            <p>Intern ID: <span className="text-slate-600 font-bold">{d.internId}</span></p>
+            <p>Certificate ID: <span className="text-slate-600 font-bold">{d.certId}</span></p>
           </div>
         </div>
 
@@ -127,10 +181,8 @@ export default function InternCertificatePreview({
           <p className="text-sm italic text-slate-500">This certificate is proudly presented to</p>
 
           {/* Prominent Intern Name */}
-          <div className="space-y-2">
-            <h3 className="text-3xl font-black bg-gradient-to-r from-[#2563EB] to-[#7C3AED] bg-clip-text text-transparent px-4">
-              {d.internName}
-            </h3>
+          <div className="space-y-2 select-none pointer-events-none">
+            <GradientTextCanvas text={d.internName} />
             <div className="w-48 h-0.5 bg-slate-200 mx-auto" />
           </div>
 

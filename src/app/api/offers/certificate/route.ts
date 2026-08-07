@@ -78,6 +78,9 @@ export async function POST(request: Request) {
         await updateAgreement(originalAgreementId, {
           secondParty: updatedOriginalSecondParty,
           docSettings: updatedOriginalDocSettings,
+          isCertificateIssued: true,
+          certificateId: certId,
+          certificatePdfUrl: `/storage/certificates/${certId}.pdf`,
         });
 
         console.log(`[certificate API] Mutated original agreement ${originalAgreementId} successfully.`);

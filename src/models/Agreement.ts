@@ -22,6 +22,11 @@ export interface IAgreement extends Document {
   // ID card
   idCardGenerated?: boolean;
   cardPDFdata?: string; // base64
+
+  // Certificate properties
+  isCertificateIssued?: boolean;
+  certificateId?: string;
+  certificatePdfUrl?: string;
 }
 
 const AgreementSchema: Schema = new Schema(
@@ -46,6 +51,11 @@ const AgreementSchema: Schema = new Schema(
     // ID card
     idCardGenerated: { type: Boolean, default: false },
     cardPDFdata: { type: String },
+
+    // Certificate properties
+    isCertificateIssued: { type: Boolean, default: false },
+    certificateId: { type: String },
+    certificatePdfUrl: { type: String },
   },
   { timestamps: true, versionKey: false },
 );

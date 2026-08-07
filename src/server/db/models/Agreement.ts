@@ -18,6 +18,11 @@ export interface IAgreement extends Document {
   letterSentToBoth?: boolean;
   idCardGenerated?: boolean;
   cardPDFdata?: string;     // base64
+
+  // Certificate properties
+  isCertificateIssued?: boolean;
+  certificateId?: string;
+  certificatePdfUrl?: string;
 }
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
@@ -38,6 +43,11 @@ const AgreementSchema = new Schema<IAgreement>(
     letterSentToBoth: { type: Boolean, default: false },
     idCardGenerated:  { type: Boolean, default: false },
     cardPDFdata:      { type: String },
+
+    // Certificate properties
+    isCertificateIssued: { type: Boolean, default: false },
+    certificateId: { type: String },
+    certificatePdfUrl: { type: String },
   },
   { timestamps: true, versionKey: false },
 );

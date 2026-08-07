@@ -364,7 +364,7 @@ export function useAppOrchestrator() {
         salesAgreementType: undefined,
       }));
     }
-    setDocType("both");
+    setDocType(type === "internCertificate" ? "doc" : "both");
     setIsOfferSent(false);
     setActiveStep(1);
     setAppState("form");
