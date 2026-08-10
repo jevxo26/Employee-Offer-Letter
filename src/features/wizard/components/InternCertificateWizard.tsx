@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "motion/react";
 import { Award, ChevronLeft, ChevronRight, Check, Upload, Calendar, User, Briefcase, ShieldCheck, Mail, BookOpen } from "lucide-react";
 import { FirstParty, SecondParty, DocSettings } from "@/types";
 import SignaturePad from "@/features/candidate-portal/components/SignaturePad";
 import { StepHeader } from "@/shared/ui/FormPrimitives";
+import { useDataCache, InternOption } from "@/context/DataCacheContext";
 
 const STEP_LABELS = ["1. Intern Lookup & Hydration", "2. Signature Block"];
 const TOTAL_STEPS = 2;
@@ -25,17 +26,8 @@ interface InternCertificateWizardProps {
   setDocSettings: React.Dispatch<React.SetStateAction<DocSettings>>;
 }
 
-interface FetchedIntern {
-  agreementId: string;
-  internId: string;
-  fullName: string;
-  email: string;
-  position: string;
-  department: string;
-  startDate: string;
-  endDate: string;
-  performanceGrade: string;
-}
+// Keep the local alias so the rest of the file is unchanged
+type FetchedIntern = InternOption;
 
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wide">
@@ -89,28 +81,13 @@ export default function InternCertificateWizard({
   docSettings,
   setDocSettings,
 }: InternCertificateWizardProps) {
-  const [interns, setInterns] = useState<FetchedIntern[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { cache } = useDataCache();
+  // Read from cache — populated at login. Fall back to empty array while loading.
+  const interns: FetchedIntern[] = cache.internsList ?? [];
+  const loading = cache.internsList === null;
+
   const [selectedInternId, setSelectedInternId] = useState("");
   const [customGrade, setCustomGrade] = useState("");
-
-  useEffect(() => {
-    async function fetchInterns() {
-      try {
-        setLoading(true);
-        const res = await fetch("/api/offers/interns-list");
-        if (res.ok) {
-          const data = await res.json();
-          setInterns(data.internsList || []);
-        }
-      } catch (err) {
-        console.error("Failed to fetch interns list", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchInterns();
-  }, []);
 
   const handleInternChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
@@ -380,9 +357,8 @@ export default function InternCertificateWizard({
           {Array.from({ length: TOTAL_STEPS }).map((_, idx) => (
             <div
               key={idx}
-              className={`h-full flex-1 transition-all duration-300 ${
-                idx + 1 <= activeStep ? "bg-[#6366F1]" : "bg-[#DBEAFE]"
-              } ${idx < TOTAL_STEPS - 1 ? "border-r border-white" : ""}`}
+              className={`h-full flex-1 transition-all duration-300 ${idx + 1 <= activeStep ? "bg-[#6366F1]" : "bg-[#DBEAFE]"
+                } ${idx < TOTAL_STEPS - 1 ? "border-r border-white" : ""}`}
             />
           ))}
         </div>
@@ -392,13 +368,12 @@ export default function InternCertificateWizard({
           {STEP_LABELS.map((label, idx) => (
             <span
               key={idx}
-              className={`text-[10px] font-bold px-3 py-1 rounded-full border transition ${
-                idx + 1 === activeStep
-                  ? "bg-[#6366F1] border-[#6366F1] text-white"
-                  : idx + 1 < activeStep
+              className={`text-[10px] font-bold px-3 py-1 rounded-full border transition ${idx + 1 === activeStep
+                ? "bg-[#6366F1] border-[#6366F1] text-white"
+                : idx + 1 < activeStep
                   ? "bg-indigo-50 border-[#6366F1] text-[#6366F1]"
                   : "bg-white border-[#DBEAFE] text-[#94A3B8]"
-              }`}
+                }`}
             >
               {idx + 1 < activeStep ? (
                 <span className="inline-flex items-center gap-1">

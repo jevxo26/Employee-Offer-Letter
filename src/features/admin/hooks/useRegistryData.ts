@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { AgreementSummary } from "@/types";
+import { useDataCache } from "@/context/DataCacheContext";
 
 export type SortField = "createdAt" | "agreementId";
 export type SortDir = "asc" | "desc";
@@ -10,6 +11,7 @@ export type DocTypeFilter =
   | "all"
   | "partner"
   | "internship"
+  | "internCertificate"
   | "countrySales"
   | "salesAgent"
   | "hrHiringNotice";
@@ -25,10 +27,7 @@ export interface RegistryFilters {
 
 const PAGE_SIZE = 25;
 
-function matchesDocType(
-  a: AgreementSummary,
-  docType: DocTypeFilter,
-): boolean {
+function matchesDocType(a: AgreementSummary, docType: DocTypeFilter): boolean {
   if (docType === "all") return true;
   if (docType === "countrySales")
     return (
@@ -42,8 +41,15 @@ function matchesDocType(
     );
   if (docType === "internship")
     return (
-      a.docType?.includes("Intern") ||
-      a.docType === "Intern Offerletter & ID Card"
+      (a.docType?.includes("Intern") ||
+        a.docType === "Intern Offerletter & ID Card") &&
+      a.agreementTemplate !== "internCertificate" &&
+      a.docType !== "Intern Certificate"
+    );
+  if (docType === "internCertificate")
+    return (
+      a.agreementTemplate === "internCertificate" ||
+      a.docType === "Intern Certificate"
     );
   if (docType === "hrHiringNotice")
     return (
@@ -67,8 +73,12 @@ function matchesDocType(
 
 function matchesStatus(a: AgreementSummary, status: StatusFilter): boolean {
   if (status === "all") return true;
-  if (status === "pending") return a.status !== "FULLY_EXECUTED";
-  if (status === "executed") return a.status === "FULLY_EXECUTED";
+  // HR hiring notices have no signing flow — treat them as always executed
+  const isHrHiring =
+    a.agreementTemplate === "hrHiringNotice" ||
+    a.docType === "HR Hiring Notice";
+  if (status === "pending") return !isHrHiring && a.status !== "FULLY_EXECUTED";
+  if (status === "executed") return isHrHiring || a.status === "FULLY_EXECUTED";
   return true;
 }
 
@@ -84,8 +94,14 @@ function matchesSearch(a: AgreementSummary, search: string): boolean {
 }
 
 export function useRegistryData() {
-  const [allAgreements, setAllAgreements] = useState<AgreementSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { cache, refreshAgreements, removeAgreement, isPrefetching } =
+    useDataCache();
+
+  // Local state is only used while the cache is still empty (first load race)
+  const [localAgreements, setLocalAgreements] = useState<AgreementSummary[]>(
+    [],
+  );
+  const [localLoading, setLocalLoading] = useState(false);
   const [error, setError] = useState("");
 
   const [filters, setFilters] = useState<RegistryFilters>({
@@ -97,25 +113,38 @@ export function useRegistryData() {
     page: 1,
   });
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  // If cache already has data, use it; otherwise fall back to a local fetch
+  const allAgreements: AgreementSummary[] = cache.agreements ?? localAgreements;
+
+  const loading =
+    cache.agreements === null ? isPrefetching || localLoading : false;
+
+  // Only fetch locally when cache is empty AND prefetch hasn't started
+  useEffect(() => {
+    if (cache.agreements !== null || isPrefetching) return;
+    setLocalLoading(true);
     setError("");
-    try {
-      const res = await fetch("/api/offers");
-      if (!res.ok) throw new Error("Failed to load agreements.");
-      const data = await res.json();
-      setAllAgreements(data.agreements || []);
-    } catch (e: unknown) {
-      setError((e as Error).message || "Failed to load agreements.");
-    } finally {
-      setLoading(false);
-    }
+    fetch("/api/offers")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load agreements.");
+        return res.json();
+      })
+      .then((data) => setLocalAgreements(data.agreements || []))
+      .catch((e: unknown) =>
+        setError((e as Error).message || "Failed to load agreements."),
+      )
+      .finally(() => setLocalLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    const t = window.setTimeout(() => void load(), 0);
-    return () => window.clearTimeout(t);
-  }, [load]);
+  const reload = useCallback(async () => {
+    setError("");
+    try {
+      await refreshAgreements();
+    } catch (e: unknown) {
+      setError((e as Error).message || "Failed to refresh agreements.");
+    }
+  }, [refreshAgreements]);
 
   const patchFilter = useCallback(
     (patch: Partial<RegistryFilters>) =>
@@ -173,7 +202,8 @@ export function useRegistryData() {
     patchFilter,
     processed,
     stats,
-    reload: load,
+    reload,
+    removeAgreement,
     PAGE_SIZE,
   };
 }

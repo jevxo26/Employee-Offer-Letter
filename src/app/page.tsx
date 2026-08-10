@@ -5,6 +5,7 @@ import { AnimatePresence } from "motion/react";
 import { Mail, RefreshCw, CreditCard, FileText, LayoutDashboard } from "lucide-react";
 import { useAppOrchestrator } from "@/hooks/useAppOrchestrator";
 import { SAMPLE_SECOND_PARTY } from "@/shared/constants/defaults";
+import { DataCacheProvider, useDataCache } from "@/context/DataCacheContext";
 
 import JevxoLogo from "@/shared/layout/JevxoLogo";
 import Hero from "@/shared/layout/Hero";
@@ -23,6 +24,15 @@ import IdCardWorkspace from "@/features/id-card/components/IdCardWorkspace";
 import AdminDashboard from "@/features/admin/components/AdminDashboard";
 
 export default function Home() {
+  return (
+    <DataCacheProvider>
+      <HomeInner />
+    </DataCacheProvider>
+  );
+}
+
+function HomeInner() {
+  const { prefetch } = useDataCache();
   const {
     appState,
     setAppState,
@@ -238,7 +248,12 @@ export default function Home() {
           {appState === "login" && (
             <Login
               key="login"
-              onLoginSuccess={() => setAppState("docTypeSelect")}
+              onLoginSuccess={() => {
+                // Kick off background prefetch immediately — no await so UI
+                // transitions to docTypeSelect without waiting.
+                void prefetch();
+                setAppState("docTypeSelect");
+              }}
               onBackToHome={() => setAppState("home")}
             />
           )}

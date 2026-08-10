@@ -132,7 +132,7 @@ export default function InternCertificatePreview({
             <p style={{ fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif", fontSize: '13pt', fontWeight: 400, letterSpacing: '0.25em' }} className="uppercase text-blue-600 text-center">
               OFFICIAL RECOGNITION
             </p>
-            <h1 style={{ fontFamily: "var(--font-cinzel), 'Cinzel', serif", fontSize: '33pt', fontWeight: 700, letterSpacing: '0.05em' }} className="uppercase text-slate-900 text-center my-2">
+            <h1 style={{ fontFamily: "var(--font-cinzel), 'Cinzel', serif", fontSize: '30pt', fontWeight: 700, letterSpacing: '0.05em' }} className="uppercase text-slate-900 text-center my-2">
               CERTIFICATE OF INTERNSHIP
             </h1>
           </div>

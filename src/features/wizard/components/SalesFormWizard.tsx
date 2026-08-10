@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { motion } from "motion/react";
 import { Check, ChevronLeft, ChevronRight, FileText, Loader2 } from "lucide-react";
 import { Step5 } from "@/features/wizard/steps/partner/WizardSteps";
@@ -10,17 +10,7 @@ import {
   SalesAgreementType,
   SecondParty,
 } from "@/types";
-
-// ─── CSP option shape returned by /api/offers/csp-list ───────────────────────
-interface CspOption {
-  salesPartnerId: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  address: string;
-  salesRefId: string;
-  territory: string;
-}
+import { useDataCache, CspOption } from "@/context/DataCacheContext";
 
 const labels = [
   "1. Agreement",
@@ -132,19 +122,10 @@ export default function SalesFormWizard(props: Props) {
   } = props;
   const isCSP = agreementType === "countrySales";
 
-  // ── CSP list for SAG step 2 ────────────────────────────────────────────────
-  const [cspOptions, setCspOptions] = useState<CspOption[]>([]);
-  const [cspLoading, setCspLoading] = useState(false);
-
-  useEffect(() => {
-    if (isCSP || activeStep !== 2) return;
-    setCspLoading(true);
-    fetch("/api/offers/csp-list")
-      .then((r) => r.json())
-      .then((data) => setCspOptions(data.cspList || []))
-      .catch(() => setCspOptions([]))
-      .finally(() => setCspLoading(false));
-  }, [isCSP, activeStep]);
+  // ── CSP list for SAG step 2 — read from cache (prefetched at login) ────────
+  const { cache } = useDataCache();
+  const cspOptions: CspOption[] = cache.cspList ?? [];
+  const cspLoading = cache.cspList === null;
 
   const selectedCspId = docSettings.salesPartner?.partnerId || "";
 
@@ -359,7 +340,7 @@ export default function SalesFormWizard(props: Props) {
         {isCSP && (
           <SliderControl label="Initial Term" value={docSettings.initialTerm ?? 1} suffix=" Year(s)" min={1} max={10} onChange={(value) => setSettings({ initialTerm: value })} />
         )}
-            <SliderControl label="Notice Period" value={Number(docSettings.noticePeriodSales) || 30} suffix=" Days" min={1} max={90} onChange={(value) => setSettings({ noticePeriodSales: String(value) })} />
+        <SliderControl label="Notice Period" value={Number(docSettings.noticePeriodSales) || 30} suffix=" Days" min={1} max={90} onChange={(value) => setSettings({ noticePeriodSales: String(value) })} />
       </div>
     ) : (
       <Step5 firstParty={firstParty} setFirstParty={setFirstParty} onClearError={onClearError} />

@@ -19,6 +19,7 @@ import {
   SalesAgreementType,
   EmployeeCard,
 } from "@/types";
+import { useDataCache } from "@/context/DataCacheContext";
 
 const TOTAL_STEPS = 5;
 
@@ -41,15 +42,20 @@ function getDefaultExpiryDate() {
 }
 
 export function useAppOrchestrator() {
+  const { cache } = useDataCache();
   const [appState, setAppState] = useState<AppState>("home");
   const [docType, setDocType] = useState<string>("both");
-  const [agreementTemplate, setAgreementTemplate] = useState<AgreementTemplate>("partner");
-  const [salesAgreementType, setSalesAgreementType] = useState<SalesAgreementType | undefined>(undefined);
+  const [agreementTemplate, setAgreementTemplate] =
+    useState<AgreementTemplate>("partner");
+  const [salesAgreementType, setSalesAgreementType] = useState<
+    SalesAgreementType | undefined
+  >(undefined);
   const [activeStep, setActiveStep] = useState(1);
   const [isDemo, setIsDemo] = useState(false);
 
   const [firstParty, setFirstParty] = useState<FirstParty>(DEFAULT_FIRST_PARTY);
-  const [secondParty, setSecondParty] = useState<SecondParty>(DEFAULT_SECOND_PARTY);
+  const [secondParty, setSecondParty] =
+    useState<SecondParty>(DEFAULT_SECOND_PARTY);
   const [docSettings, setDocSettings] = useState<DocSettings>({
     date: getDefaultIssueDate(),
     minimumServicePeriod: 3,
@@ -97,12 +103,36 @@ export function useAppOrchestrator() {
     previewRef4,
   ];
 
-  const candidateCardFrontRef = useRef<React.RefObject<HTMLDivElement | null> | null>(null);
-  const candidateCardBackRef = useRef<React.RefObject<HTMLDivElement | null> | null>(null);
+  const candidateCardFrontRef =
+    useRef<React.RefObject<HTMLDivElement | null> | null>(null);
+  const candidateCardBackRef =
+    useRef<React.RefObject<HTMLDivElement | null> | null>(null);
 
-  // Initial fetching of IDs
+  // Initial fetching of IDs — use prefetched cache when available
   useEffect(() => {
-    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("candidateView")) return;
+    if (
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).has("candidateView")
+    )
+      return;
+
+    // Cache hit: apply immediately without a network round-trip
+    if (cache.nextIds) {
+      const { agreementId, partnerId } = cache.nextIds;
+      setDocSettings((p) => ({
+        ...p,
+        refId: agreementId,
+        refIdSerial: agreementId.split("-").pop(),
+      }));
+      setSecondParty((p) => ({
+        ...p,
+        partnerId,
+        partnerIdSerial: partnerId.split("-").pop(),
+      }));
+      return;
+    }
+
+    // Cache miss: fallback fetch (demo mode / direct URL load before login)
     async function fetchNextIds() {
       try {
         const res = await fetch("/api/check-id?action=next");
@@ -124,11 +154,16 @@ export function useAppOrchestrator() {
       }
     }
     fetchNextIds();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cache.nextIds]);
 
   // Pre-load intern IDs
   useEffect(() => {
-    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("candidateView")) return;
+    if (
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).has("candidateView")
+    )
+      return;
     if (agreementTemplate !== "internship") return;
     async function fetchNextInternIds() {
       try {
@@ -136,17 +171,17 @@ export function useAppOrchestrator() {
         if (res.ok) {
           const data = await res.json();
           const internSerial = data.internId?.split("-").pop() || "001";
-          const refSerial    = data.internRefId?.split("-").pop() || "001";
+          const refSerial = data.internRefId?.split("-").pop() || "001";
           setDocSettings((p) => ({
             ...p,
-            internId:           data.internId,
-            internIdSerial:     internSerial,
-            internRefId:        data.internRefId,
-            internRefIdSerial:  refSerial,
+            internId: data.internId,
+            internIdSerial: internSerial,
+            internRefId: data.internRefId,
+            internRefIdSerial: refSerial,
           }));
           setSecondParty((p) => ({
             ...p,
-            partnerId:       data.internId,
+            partnerId: data.internId,
             partnerIdSerial: internSerial,
           }));
         }
@@ -155,12 +190,16 @@ export function useAppOrchestrator() {
       }
     }
     fetchNextInternIds();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agreementTemplate]);
 
   // Pre-load HR Hiring Notice IDs
   useEffect(() => {
-    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("candidateView")) return;
+    if (
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).has("candidateView")
+    )
+      return;
     if (agreementTemplate !== "hrHiringNotice") return;
     async function fetchNextHrIds() {
       try {
@@ -168,13 +207,13 @@ export function useAppOrchestrator() {
         if (res.ok) {
           const data = await res.json();
           const refSerial = data.hrNoticeRefId?.split("-").pop() || "001";
-          const idSerial  = data.hrNoticeId?.split("-").pop()    || "001";
+          const idSerial = data.hrNoticeId?.split("-").pop() || "001";
           setDocSettings((p) => ({
             ...p,
-            hrNoticeRefId:        data.hrNoticeRefId,
-            hrNoticeRefIdSerial:  refSerial,
-            hrNoticeId:           data.hrNoticeId,
-            hrNoticeIdSerial:     idSerial,
+            hrNoticeRefId: data.hrNoticeRefId,
+            hrNoticeRefIdSerial: refSerial,
+            hrNoticeId: data.hrNoticeId,
+            hrNoticeIdSerial: idSerial,
           }));
         }
       } catch (err) {
@@ -182,12 +221,16 @@ export function useAppOrchestrator() {
       }
     }
     fetchNextHrIds();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agreementTemplate]);
 
   // Pre-load Certificate IDs
   useEffect(() => {
-    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("candidateView")) return;
+    if (
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).has("candidateView")
+    )
+      return;
     if (agreementTemplate !== "internCertificate") return;
     async function fetchNextCertIds() {
       try {
@@ -207,14 +250,22 @@ export function useAppOrchestrator() {
       }
     }
     fetchNextCertIds();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agreementTemplate]);
 
   // Pre-load sales IDs
-  useEffect(() => {    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("candidateView")) return;
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).has("candidateView")
+    )
+      return;
     if (!salesAgreementType) return;
 
-    const action = salesAgreementType === "countrySales" ? "nextCountrySales" : "nextSalesAgent";
+    const action =
+      salesAgreementType === "countrySales"
+        ? "nextCountrySales"
+        : "nextSalesAgent";
 
     async function fetchNextSalesIds() {
       try {
@@ -241,7 +292,7 @@ export function useAppOrchestrator() {
       }
     }
     fetchNextSalesIds();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [salesAgreementType]);
 
   useEffect(() => {
@@ -257,12 +308,24 @@ export function useAppOrchestrator() {
         .then((data) => {
           setFirstParty(data.firstParty);
           setSecondParty(data.secondParty);
-          setDocSettings({ ...data.docSettings, ...(data.signedAt ? { partnerSignedDate: new Date(data.signedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) } : {}) });
+          setDocSettings({
+            ...data.docSettings,
+            ...(data.signedAt
+              ? {
+                  partnerSignedDate: new Date(data.signedAt).toLocaleDateString(
+                    "en-US",
+                    { year: "numeric", month: "long", day: "numeric" },
+                  ),
+                }
+              : {}),
+          });
           setAgreementTemplate(
             (data.docSettings?.agreementTemplate as AgreementTemplate) ||
               "partner",
           );
-          const restored = data.docSettings?.salesAgreementType as SalesAgreementType | undefined;
+          const restored = data.docSettings?.salesAgreementType as
+            | SalesAgreementType
+            | undefined;
           setSalesAgreementType(restored || undefined);
           setIsCandidateSigned(
             Boolean(data.partnerSigned || data.status === "FULLY_EXECUTED"),
@@ -289,7 +352,9 @@ export function useAppOrchestrator() {
                   data.docSettings?.agreementTemplate ||
                   "partner",
               );
-              const restoredSales = data.docSettings?.salesAgreementType as SalesAgreementType | undefined;
+              const restoredSales = data.docSettings?.salesAgreementType as
+                | SalesAgreementType
+                | undefined;
               setSalesAgreementType(restoredSales || undefined);
               setIsCandidateSigned(
                 Boolean(data.partnerSigned || data.status === "FULLY_EXECUTED"),
@@ -306,7 +371,15 @@ export function useAppOrchestrator() {
     }
   }, []);
 
-  const handleTemplateSelect = (type: "partner" | "internship" | "countrySales" | "salesAgent" | "hrHiringNotice" | "internCertificate") => {
+  const handleTemplateSelect = (
+    type:
+      | "partner"
+      | "internship"
+      | "countrySales"
+      | "salesAgent"
+      | "hrHiringNotice"
+      | "internCertificate",
+  ) => {
     if (type === "countrySales" || type === "salesAgent") {
       setSalesAgreementType(type);
       setAgreementTemplate("partner");
@@ -314,7 +387,9 @@ export function useAppOrchestrator() {
         ...prev,
         agreementTemplate: "partner",
         salesAgreementType: type,
-        governingJurisdiction: prev.governingJurisdiction || "Hong Kong Special Administrative Region",
+        governingJurisdiction:
+          prev.governingJurisdiction ||
+          "Hong Kong Special Administrative Region",
         paymentCurrency: prev.paymentCurrency || "USD",
         noticePeriodSales: prev.noticePeriodSales || "30",
       }));
@@ -346,9 +421,14 @@ export function useAppOrchestrator() {
         ...prev,
         agreementTemplate: "hrHiringNotice" as AgreementTemplate,
         salesAgreementType: undefined,
-        hrPreparedByName: prev.hrPreparedByName || DEFAULT_FIRST_PARTY.hrName || "Juwel Khan Shanto",
-        hrPreparedByDesignation: prev.hrPreparedByDesignation || "Head of HR Department",
-        hrOrganization: prev.hrOrganization || DEFAULT_FIRST_PARTY.companyName || "JEVXO",
+        hrPreparedByName:
+          prev.hrPreparedByName ||
+          DEFAULT_FIRST_PARTY.hrName ||
+          "Juwel Khan Shanto",
+        hrPreparedByDesignation:
+          prev.hrPreparedByDesignation || "Head of HR Department",
+        hrOrganization:
+          prev.hrOrganization || DEFAULT_FIRST_PARTY.companyName || "JEVXO",
         hrVacancies: prev.hrVacancies ?? 1,
         hrEmploymentType: prev.hrEmploymentType || "Full-Time",
         hrWorkMode: prev.hrWorkMode || "Onsite",
@@ -379,13 +459,14 @@ export function useAppOrchestrator() {
     setEmployeeCard((prev) => ({
       ...prev,
       fullName: secondParty.fullName,
-      position: agreementTemplate === "hrHiringNotice"
-        ? (docSettings.hrPositionName || secondParty.position)
-        : salesAgreementType === "countrySales"
-        ? "Country Sales Partner"
-        : salesAgreementType === "salesAgent"
-        ? "Sales Agent"
-        : secondParty.position,
+      position:
+        agreementTemplate === "hrHiringNotice"
+          ? docSettings.hrPositionName || secondParty.position
+          : salesAgreementType === "countrySales"
+            ? "Country Sales Partner"
+            : salesAgreementType === "salesAgent"
+              ? "Sales Agent"
+              : secondParty.position,
       bloodGroup: secondParty.bloodGroup || "Select",
       ...(agreementTemplate === "internship" && docSettings.internExpiryDate
         ? { expiryDate: docSettings.internExpiryDate }
@@ -394,7 +475,12 @@ export function useAppOrchestrator() {
         ? { expiryDate: docSettings.salesExpiryDate }
         : {}),
       ...(salesAgreementType
-        ? { employeeId: secondParty.salesPartnerId || docSettings.salesPartnerId || prev.employeeId }
+        ? {
+            employeeId:
+              secondParty.salesPartnerId ||
+              docSettings.salesPartnerId ||
+              prev.employeeId,
+          }
         : {}),
     }));
   };
@@ -419,11 +505,18 @@ export function useAppOrchestrator() {
         });
         const pages = previewRefs
           .map((ref) => ref.current)
-          .filter((el): el is HTMLDivElement => el != null && el.style.display !== "none");
+          .filter(
+            (el): el is HTMLDivElement =>
+              el != null && el.style.display !== "none",
+          );
         if (pages.length) {
           for (let i = 0; i < pages.length; i++) {
             const canvas = await html2canvas(pages[i] as HTMLElement, {
-              scale: 2, useCORS: true, logging: false, allowTaint: false, backgroundColor: "#ffffff",
+              scale: 2,
+              useCORS: true,
+              logging: false,
+              allowTaint: false,
+              backgroundColor: "#ffffff",
             });
             pdf.addImage(
               canvas.toDataURL("image/jpeg", 0.82),
@@ -433,7 +526,7 @@ export function useAppOrchestrator() {
               isCertificate ? 297 : 210,
               isCertificate ? 210 : 297,
               undefined,
-              "FAST"
+              "FAST",
             );
             if (i < pages.length - 1) pdf.addPage();
           }
@@ -449,7 +542,12 @@ export function useAppOrchestrator() {
     }
 
     const tempId = Math.random().toString(36).substring(2, 11);
-    const stateToSave = { firstParty, secondParty, docSettings, agreementTemplate };
+    const stateToSave = {
+      firstParty,
+      secondParty,
+      docSettings,
+      agreementTemplate,
+    };
     localStorage.setItem("jevxo_offer_" + tempId, JSON.stringify(stateToSave));
     const cardPDFdata = options?.cardPDFdata || "";
 
@@ -506,64 +604,112 @@ export function useAppOrchestrator() {
   const validateStep = () => {
     const p = secondParty;
     const isInternship = agreementTemplate === "internship";
-    const isHrHiring   = agreementTemplate === "hrHiringNotice";
+    const isHrHiring = agreementTemplate === "hrHiringNotice";
     const isCertificate = agreementTemplate === "internCertificate";
     const isSalesAgreement = Boolean(salesAgreementType);
 
     if (isCertificate) {
       if (activeStep === 1) {
-        if (!docSettings.certOriginalAgreementId) return "Please select an Intern from the lookup list.";
+        if (!docSettings.certOriginalAgreementId)
+          return "Please select an Intern from the lookup list.";
         if (!p.fullName.trim()) return "Intern Name is required.";
         if (!p.position.trim()) return "Internship Position is required.";
         if (!p.department?.trim()) return "Department is required.";
-        if (!docSettings.certStartDate?.trim()) return "Internship Start Date is required.";
-        if (!docSettings.certEndDate?.trim()) return "Internship End Date is required.";
-        if (!docSettings.certPerformanceGrade?.trim()) return "Performance Rating is required.";
+        if (!docSettings.certStartDate?.trim())
+          return "Internship Start Date is required.";
+        if (!docSettings.certEndDate?.trim())
+          return "Internship End Date is required.";
+        if (!docSettings.certPerformanceGrade?.trim())
+          return "Performance Rating is required.";
       } else if (activeStep === 2) {
-        if (!firstParty.signatureImg) return "Founder & CEO signature is required to authorize the certificate.";
+        if (!firstParty.signatureImg)
+          return "Founder & CEO signature is required to authorize the certificate.";
       }
       return "";
     }
 
     if (isHrHiring) {
-      const validEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+      const validEmail = (email: string) =>
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
       if (activeStep === 1) {
-        if (!docSettings.hrRecipientRole?.trim()) return "Recipient role is required.";
-        if (docSettings.hrRecipientRole === "Other" && !docSettings.hrRecipientRoleCustom?.trim()) return "Please specify the recipient role.";
-        if (!docSettings.hrRecipientName?.trim()) return "Recipient name is required.";
-        if (!docSettings.hrRecipientEmail?.trim()) return "Recipient email is required.";
-        if (!validEmail(docSettings.hrRecipientEmail)) return "Please enter a valid recipient email address.";
-        if (!docSettings.hrNoticeTitle?.trim()) return "Notice title is required.";
+        if (!docSettings.hrRecipientRole?.trim())
+          return "Recipient role is required.";
+        if (
+          docSettings.hrRecipientRole === "Other" &&
+          !docSettings.hrRecipientRoleCustom?.trim()
+        )
+          return "Please specify the recipient role.";
+        if (!docSettings.hrRecipientName?.trim())
+          return "Recipient name is required.";
+        if (!docSettings.hrRecipientEmail?.trim())
+          return "Recipient email is required.";
+        if (!validEmail(docSettings.hrRecipientEmail))
+          return "Please enter a valid recipient email address.";
+        if (!docSettings.hrNoticeTitle?.trim())
+          return "Notice title is required.";
         if (!docSettings.hrSubject?.trim()) return "Subject line is required.";
         if (!docSettings.date?.trim()) return "Notice date is required.";
       } else if (activeStep === 2) {
-        if (!docSettings.hrPositionName?.trim()) return "Position name is required.";
+        if (!docSettings.hrPositionName?.trim())
+          return "Position name is required.";
         if (!docSettings.hrDepartment?.trim()) return "Department is required.";
-        if (!docSettings.hrEmploymentType?.trim()) return "Employment type is required.";
+        if (!docSettings.hrEmploymentType?.trim())
+          return "Employment type is required.";
         if (!docSettings.hrWorkMode?.trim()) return "Work mode is required.";
-        if (!docSettings.hrRequiredSkills?.length) return "Please add at least one required skill.";
+        if (!docSettings.hrRequiredSkills?.length)
+          return "Please add at least one required skill.";
       } else if (activeStep === 3) {
-        if (!firstParty.signatureImg) return "HR signature is required to issue the notice.";
-        if (!docSettings.hrPreparedByName?.trim()) return "Prepared-by name is required.";
-        if (!docSettings.hrPreparedByDesignation?.trim()) return "Designation is required.";
+        if (!firstParty.signatureImg)
+          return "HR signature is required to issue the notice.";
+        if (!docSettings.hrPreparedByName?.trim())
+          return "Prepared-by name is required.";
+        if (!docSettings.hrPreparedByDesignation?.trim())
+          return "Designation is required.";
       }
       return "";
     }
 
-    if (isSalesAgreement) {      const isCSP = salesAgreementType === "countrySales";
+    if (isSalesAgreement) {
+      const isCSP = salesAgreementType === "countrySales";
       const partner = docSettings.salesPartner;
-      const validEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+      const validEmail = (email: string) =>
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
       if (activeStep === 1) {
-        if (!docSettings.salesRefId?.trim() || !docSettings.date.trim()) return "Agreement reference and date are required.";
+        if (!docSettings.salesRefId?.trim() || !docSettings.date.trim())
+          return "Agreement reference and date are required.";
       } else if (activeStep === 2) {
-        if (!p.fullName.trim() || !validEmail(p.email) || !p.mobileNumber.trim()) return isCSP ? "Partner name, valid email, and phone are required." : "Sales Agent name, valid email, and phone are required.";
-        if (isCSP && !p.presentAddress.trim()) return "Partner address is required.";
-        if (!isCSP && (!partner?.fullName.trim() || !validEmail(partner.email) || !partner.phone.trim() || !partner?.partnerId?.trim())) return "Please select a Country Sales Partner from the dropdown.";
+        if (
+          !p.fullName.trim() ||
+          !validEmail(p.email) ||
+          !p.mobileNumber.trim()
+        )
+          return isCSP
+            ? "Partner name, valid email, and phone are required."
+            : "Sales Agent name, valid email, and phone are required.";
+        if (isCSP && !p.presentAddress.trim())
+          return "Partner address is required.";
+        if (
+          !isCSP &&
+          (!partner?.fullName.trim() ||
+            !validEmail(partner.email) ||
+            !partner.phone.trim() ||
+            !partner?.partnerId?.trim())
+        )
+          return "Please select a Country Sales Partner from the dropdown.";
       } else if (activeStep === 3) {
-        if (!docSettings.territory?.trim() || !docSettings.governingJurisdiction?.trim()) return "Territory and governing jurisdiction are required.";
+        if (
+          !docSettings.territory?.trim() ||
+          !docSettings.governingJurisdiction?.trim()
+        )
+          return "Territory and governing jurisdiction are required.";
       } else if (activeStep === 4) {
-        if (!docSettings.paymentCurrency?.trim() || !docSettings.noticePeriodSales?.trim()) return "Payment currency and notice period are required.";
-      } else if (activeStep === 5 && !firstParty.signatureImg) return "The Founder approval signature is required.";
+        if (
+          !docSettings.paymentCurrency?.trim() ||
+          !docSettings.noticePeriodSales?.trim()
+        )
+          return "Payment currency and notice period are required.";
+      } else if (activeStep === 5 && !firstParty.signatureImg)
+        return "The Founder approval signature is required.";
       return "";
     }
 
@@ -574,16 +720,22 @@ export function useAppOrchestrator() {
         if (!p.position.trim()) return "Internship position is required.";
         if (!p.email.trim()) return "Email address is required.";
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(p.email.trim())) return "Please enter a valid email address.";
+        if (!emailRegex.test(p.email.trim()))
+          return "Please enter a valid email address.";
         if (!p.mobileNumber.trim()) return "Phone number is required.";
       } else if (activeStep === 2) {
         if (!docSettings.date.trim()) return "Offer date is required.";
-        if (!docSettings.internshipDuration?.trim()) return "Internship duration is required.";
-        if (docSettings.isPaid === undefined) return "Please select paid or unpaid.";
-        if (!docSettings.internIdSerial?.trim()) return "Intern ID serial is required.";
-        if (!docSettings.internRefIdSerial?.trim()) return "Reference ID serial is required.";
+        if (!docSettings.internshipDuration?.trim())
+          return "Internship duration is required.";
+        if (docSettings.isPaid === undefined)
+          return "Please select paid or unpaid.";
+        if (!docSettings.internIdSerial?.trim())
+          return "Intern ID serial is required.";
+        if (!docSettings.internRefIdSerial?.trim())
+          return "Reference ID serial is required.";
       } else if (activeStep === 3) {
-        if (!firstParty.signatureImg) return "Founder/CEO signature is required to issue the offer letter.";
+        if (!firstParty.signatureImg)
+          return "Founder/CEO signature is required to issue the offer letter.";
       }
       return "";
     }
@@ -625,7 +777,13 @@ export function useAppOrchestrator() {
     return "";
   };
 
-  const ACTIVE_TOTAL_STEPS = agreementTemplate === "internCertificate" ? 2 : (agreementTemplate === "internship" || agreementTemplate === "hrHiringNotice") ? 3 : TOTAL_STEPS;
+  const ACTIVE_TOTAL_STEPS =
+    agreementTemplate === "internCertificate"
+      ? 2
+      : agreementTemplate === "internship" ||
+          agreementTemplate === "hrHiringNotice"
+        ? 3
+        : TOTAL_STEPS;
 
   const handleNext = () => {
     const error = validateStep();
@@ -700,8 +858,11 @@ export function useAppOrchestrator() {
 
         // HR notice in candidate portal: just download — no signing flow needed
         if (agreementTemplate === "hrHiringNotice") {
-          const noticeName = docSettings.hrNoticeTitle?.trim() || "HR Hiring Notice";
-          pdf.save(`${noticeName} - ${docSettings.hrNoticeRefId || "JEVXO"}.pdf`);
+          const noticeName =
+            docSettings.hrNoticeTitle?.trim() || "HR Hiring Notice";
+          pdf.save(
+            `${noticeName} - ${docSettings.hrNoticeRefId || "JEVXO"}.pdf`,
+          );
           document.documentElement.classList.remove("a4-exporting");
           setIsExporting(false);
           return;
@@ -725,8 +886,12 @@ export function useAppOrchestrator() {
 
         if (data?.isPendingCSP) {
           setIsCandidateSigned(true);
-          toast.success("CSP signature saved! Please send the agreement to the Sales Agent.");
-          setCandidateLink(`${window.location.origin}${window.location.pathname}?candidateView=${offerId}`);
+          toast.success(
+            "CSP signature saved! Please send the agreement to the Sales Agent.",
+          );
+          setCandidateLink(
+            `${window.location.origin}${window.location.pathname}?candidateView=${offerId}`,
+          );
           setSalesAgentModalOpen(true);
           document.documentElement.classList.remove("a4-exporting");
           setIsExporting(false);
@@ -769,7 +934,9 @@ export function useAppOrchestrator() {
           const noticeName = docSettings.hrNoticeTitle
             ? docSettings.hrNoticeTitle.trim()
             : "HR Hiring Notice";
-          pdf.save(`${noticeName} - ${docSettings.hrNoticeRefId || "JEVXO"}.pdf`);
+          pdf.save(
+            `${noticeName} - ${docSettings.hrNoticeRefId || "JEVXO"}.pdf`,
+          );
         } else if (isCertificate) {
           const internName = secondParty.fullName
             ? secondParty.fullName.trim()
@@ -806,7 +973,13 @@ export function useAppOrchestrator() {
       setAppState("docTypeSelect");
     } else if (appState === "workspace") {
       setAppState("form");
-      const lastStep = agreementTemplate === "internCertificate" ? 2 : (agreementTemplate === "internship" || agreementTemplate === "hrHiringNotice") ? 3 : 5;
+      const lastStep =
+        agreementTemplate === "internCertificate"
+          ? 2
+          : agreementTemplate === "internship" ||
+              agreementTemplate === "hrHiringNotice"
+            ? 3
+            : 5;
       setActiveStep(lastStep);
     } else if (appState === "idCard") {
       setAppState("docTypeSelect");

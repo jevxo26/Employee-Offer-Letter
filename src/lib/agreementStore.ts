@@ -45,15 +45,18 @@ export async function generateAgreementIds() {
 
 export async function generateInternIds() {
   const currentYearStr = new Date().getFullYear().toString().slice(-2);
-  const refPrefix  = `JVX-INT-REF-${currentYearStr}-`;
+  const refPrefix = `JVX-INT-REF-${currentYearStr}-`;
   const internPrefix = `JVX-INT-${currentYearStr}-`;
 
   const mongoIds = await tryMongo(async () => {
     // Fetch ALL intern agreements for the current year (not just the last inserted)
     // and find the true maximum sequence to avoid gaps / out-of-order issues.
-    const internDocs = await Agreement.find({
-      agreementId: new RegExp(`^JVX-INT-REF-${currentYearStr}-`),
-    }, "agreementId");
+    const internDocs = await Agreement.find(
+      {
+        agreementId: new RegExp(`^JVX-INT-REF-${currentYearStr}-`),
+      },
+      "agreementId",
+    );
 
     let maxSequence = 0;
     for (const doc of internDocs) {
@@ -64,7 +67,7 @@ export async function generateInternIds() {
 
     const seq = (maxSequence + 1).toString().padStart(3, "0");
     return {
-      internId:    `${internPrefix}${seq}`,
+      internId: `${internPrefix}${seq}`,
       internRefId: `${refPrefix}${seq}`,
     };
   });
@@ -78,7 +81,10 @@ export async function generateInternIds() {
   const fileList = await fileStore.fileListAgreements();
   let maxSeq = 0;
   for (const a of fileList) {
-    if (typeof a.agreementId === "string" && a.agreementId.startsWith(refPrefix)) {
+    if (
+      typeof a.agreementId === "string" &&
+      a.agreementId.startsWith(refPrefix)
+    ) {
       const parts = (a.agreementId as string).split("-");
       const seq = parseInt(parts[parts.length - 1], 10);
       if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
@@ -86,7 +92,7 @@ export async function generateInternIds() {
   }
   const seq = (maxSeq + 1).toString().padStart(3, "0");
   return {
-    internId:    `${internPrefix}${seq}`,
+    internId: `${internPrefix}${seq}`,
     internRefId: `${refPrefix}${seq}`,
     storage: "file" as const,
   };
@@ -94,13 +100,16 @@ export async function generateInternIds() {
 
 export async function generateCountrySalesPartnerIds() {
   const currentYearStr = new Date().getFullYear().toString().slice(-2);
-  const refPrefix     = `JVX-CSP-REF-${currentYearStr}-`;
+  const refPrefix = `JVX-CSP-REF-${currentYearStr}-`;
   const partnerPrefix = `JVX-CSP-${currentYearStr}-`;
 
   const mongoIds = await tryMongo(async () => {
-    const docs = await Agreement.find({
-      agreementId: new RegExp(`^JVX-CSP-REF-${currentYearStr}-`),
-    }, "agreementId");
+    const docs = await Agreement.find(
+      {
+        agreementId: new RegExp(`^JVX-CSP-REF-${currentYearStr}-`),
+      },
+      "agreementId",
+    );
 
     let maxSequence = 0;
     for (const doc of docs) {
@@ -111,7 +120,7 @@ export async function generateCountrySalesPartnerIds() {
 
     const seq = (maxSequence + 1).toString().padStart(3, "0");
     return {
-      salesRefId:     `${refPrefix}${seq}`,
+      salesRefId: `${refPrefix}${seq}`,
       salesPartnerId: `${partnerPrefix}${seq}`,
     };
   });
@@ -121,7 +130,10 @@ export async function generateCountrySalesPartnerIds() {
   const fileList = await fileStore.fileListAgreements();
   let maxSeq = 0;
   for (const a of fileList) {
-    if (typeof a.agreementId === "string" && a.agreementId.startsWith(refPrefix)) {
+    if (
+      typeof a.agreementId === "string" &&
+      a.agreementId.startsWith(refPrefix)
+    ) {
       const parts = (a.agreementId as string).split("-");
       const seq = parseInt(parts[parts.length - 1], 10);
       if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
@@ -129,7 +141,7 @@ export async function generateCountrySalesPartnerIds() {
   }
   const seq = (maxSeq + 1).toString().padStart(3, "0");
   return {
-    salesRefId:     `${refPrefix}${seq}`,
+    salesRefId: `${refPrefix}${seq}`,
     salesPartnerId: `${partnerPrefix}${seq}`,
     storage: "file" as const,
   };
@@ -137,13 +149,16 @@ export async function generateCountrySalesPartnerIds() {
 
 export async function generateHrHiringIds() {
   const currentYearStr = new Date().getFullYear().toString().slice(-2);
-  const refPrefix     = `JVX-HR-REF-${currentYearStr}-`;
-  const noticePrefix  = `JVX-HR-${currentYearStr}-`;
+  const refPrefix = `JVX-HR-REF-${currentYearStr}-`;
+  const noticePrefix = `JVX-HR-${currentYearStr}-`;
 
   const mongoIds = await tryMongo(async () => {
-    const docs = await Agreement.find({
-      agreementId: new RegExp(`^JVX-HR-REF-${currentYearStr}-`),
-    }, "agreementId");
+    const docs = await Agreement.find(
+      {
+        agreementId: new RegExp(`^JVX-HR-REF-${currentYearStr}-`),
+      },
+      "agreementId",
+    );
 
     let maxSequence = 0;
     for (const doc of docs) {
@@ -155,7 +170,7 @@ export async function generateHrHiringIds() {
     const seq = (maxSequence + 1).toString().padStart(3, "0");
     return {
       hrNoticeRefId: `${refPrefix}${seq}`,
-      hrNoticeId:    `${noticePrefix}${seq}`,
+      hrNoticeId: `${noticePrefix}${seq}`,
     };
   });
 
@@ -164,7 +179,10 @@ export async function generateHrHiringIds() {
   const fileList = await fileStore.fileListAgreements();
   let maxSeq = 0;
   for (const a of fileList) {
-    if (typeof a.agreementId === "string" && a.agreementId.startsWith(refPrefix)) {
+    if (
+      typeof a.agreementId === "string" &&
+      a.agreementId.startsWith(refPrefix)
+    ) {
       const parts = (a.agreementId as string).split("-");
       const seq = parseInt(parts[parts.length - 1], 10);
       if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
@@ -173,19 +191,23 @@ export async function generateHrHiringIds() {
   const seq = (maxSeq + 1).toString().padStart(3, "0");
   return {
     hrNoticeRefId: `${refPrefix}${seq}`,
-    hrNoticeId:    `${noticePrefix}${seq}`,
+    hrNoticeId: `${noticePrefix}${seq}`,
     storage: "file" as const,
   };
 }
 
-export async function generateSalesAgentIds() {  const currentYearStr = new Date().getFullYear().toString().slice(-2);
-  const refPrefix     = `JVX-SAG-REF-${currentYearStr}-`;
+export async function generateSalesAgentIds() {
+  const currentYearStr = new Date().getFullYear().toString().slice(-2);
+  const refPrefix = `JVX-SAG-REF-${currentYearStr}-`;
   const partnerPrefix = `JVX-SAG-${currentYearStr}-`;
 
   const mongoIds = await tryMongo(async () => {
-    const docs = await Agreement.find({
-      agreementId: new RegExp(`^JVX-SAG-REF-${currentYearStr}-`),
-    }, "agreementId");
+    const docs = await Agreement.find(
+      {
+        agreementId: new RegExp(`^JVX-SAG-REF-${currentYearStr}-`),
+      },
+      "agreementId",
+    );
 
     let maxSequence = 0;
     for (const doc of docs) {
@@ -196,7 +218,7 @@ export async function generateSalesAgentIds() {  const currentYearStr = new Date
 
     const seq = (maxSequence + 1).toString().padStart(3, "0");
     return {
-      salesRefId:     `${refPrefix}${seq}`,
+      salesRefId: `${refPrefix}${seq}`,
       salesPartnerId: `${partnerPrefix}${seq}`,
     };
   });
@@ -206,7 +228,10 @@ export async function generateSalesAgentIds() {  const currentYearStr = new Date
   const fileList = await fileStore.fileListAgreements();
   let maxSeq = 0;
   for (const a of fileList) {
-    if (typeof a.agreementId === "string" && a.agreementId.startsWith(refPrefix)) {
+    if (
+      typeof a.agreementId === "string" &&
+      a.agreementId.startsWith(refPrefix)
+    ) {
       const parts = (a.agreementId as string).split("-");
       const seq = parseInt(parts[parts.length - 1], 10);
       if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
@@ -214,7 +239,7 @@ export async function generateSalesAgentIds() {  const currentYearStr = new Date
   }
   const seq = (maxSeq + 1).toString().padStart(3, "0");
   return {
-    salesRefId:     `${refPrefix}${seq}`,
+    salesRefId: `${refPrefix}${seq}`,
     salesPartnerId: `${partnerPrefix}${seq}`,
     storage: "file" as const,
   };
@@ -222,13 +247,16 @@ export async function generateSalesAgentIds() {  const currentYearStr = new Date
 
 export async function generateCertificateIds() {
   const currentYearStr = new Date().getFullYear().toString().slice(-2);
-  const refPrefix  = `JVX-CRT-REF-${currentYearStr}-`;
+  const refPrefix = `JVX-CRT-REF-${currentYearStr}-`;
   const certPrefix = `JVX-CRT-${currentYearStr}-`;
 
   const mongoIds = await tryMongo(async () => {
-    const certDocs = await Agreement.find({
-      agreementId: new RegExp(`^JVX-CRT-REF-${currentYearStr}-`),
-    }, "agreementId");
+    const certDocs = await Agreement.find(
+      {
+        agreementId: new RegExp(`^JVX-CRT-REF-${currentYearStr}-`),
+      },
+      "agreementId",
+    );
 
     let maxSequence = 0;
     for (const doc of certDocs) {
@@ -239,7 +267,7 @@ export async function generateCertificateIds() {
 
     const seq = (maxSequence + 1).toString().padStart(3, "0");
     return {
-      certId:    `${certPrefix}${seq}`,
+      certId: `${certPrefix}${seq}`,
       certRefId: `${refPrefix}${seq}`,
     };
   });
@@ -249,7 +277,10 @@ export async function generateCertificateIds() {
   const fileList = await fileStore.fileListAgreements();
   let maxSeq = 0;
   for (const a of fileList) {
-    if (typeof a.agreementId === "string" && a.agreementId.startsWith(refPrefix)) {
+    if (
+      typeof a.agreementId === "string" &&
+      a.agreementId.startsWith(refPrefix)
+    ) {
       const parts = (a.agreementId as string).split("-");
       const seq = parseInt(parts[parts.length - 1], 10);
       if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
@@ -257,7 +288,7 @@ export async function generateCertificateIds() {
   }
   const seq = (maxSeq + 1).toString().padStart(3, "0");
   return {
-    certId:    `${certPrefix}${seq}`,
+    certId: `${certPrefix}${seq}`,
     certRefId: `${refPrefix}${seq}`,
     storage: "file" as const,
   };
@@ -302,7 +333,9 @@ export async function listAgreements() {
   if (mongoList) return mongoList;
 
   // File store fallback — only reached when MongoDB is genuinely unavailable
-  console.warn("[listAgreements] MongoDB unavailable — serving local file store.");
+  console.warn(
+    "[listAgreements] MongoDB unavailable — serving local file store.",
+  );
   const fileList = await fileStore.fileListAgreements();
   return fileList.map(
     ({ letterPDFdata: _letter, cardPDFdata: _card, ...rest }) => rest,
@@ -332,35 +365,45 @@ export function toAgreementSummary(agreement: Record<string, unknown>) {
   // salesAgreementType may be stored at the top level OR inside docSettings
   const salesAgreementType =
     (agreement.salesAgreementType as string | undefined) ||
-    (agreement.docSettings as Record<string, unknown> | undefined)
-      ?.salesAgreementType as string | undefined ||
+    ((agreement.docSettings as Record<string, unknown> | undefined)
+      ?.salesAgreementType as string | undefined) ||
     undefined;
+
+  const ds = agreement.docSettings as Record<string, unknown> | undefined;
+  const sp = agreement.secondParty as Record<string, string> | undefined;
+  const isHrHiring =
+    ds?.agreementTemplate === "hrHiringNotice" ||
+    agreement.docType === "HR Hiring Notice";
 
   return {
     agreementId: agreement.agreementId,
     partnerId: agreement.partnerId,
     docType: agreement.docType || "appointment",
     agreementTemplate:
-      (agreement.docSettings as Record<string, string> | undefined)
-        ?.agreementTemplate || undefined,
+      (ds as Record<string, string> | undefined)?.agreementTemplate ||
+      undefined,
     salesAgreementType,
     status: agreement.status,
     founderSigned: agreement.founderSigned,
     partnerSigned: agreement.partnerSigned,
     signedAt: agreement.signedAt,
     createdAt: agreement.createdAt,
-    partnerName:
-      (agreement.secondParty as Record<string, string> | undefined)?.fullName ||
-      "",
-    partnerEmail:
-      (agreement.secondParty as Record<string, string> | undefined)?.email ||
-      "",
+    partnerName: isHrHiring
+      ? (ds?.hrRecipientName as string) || sp?.fullName || ""
+      : sp?.fullName || "",
+    partnerEmail: isHrHiring
+      ? (ds?.hrRecipientEmail as string) || sp?.email || ""
+      : sp?.email || "",
     companyName:
       (agreement.firstParty as Record<string, string> | undefined)
         ?.companyName || "",
-    position:
-      (agreement.secondParty as Record<string, string> | undefined)?.position ||
-      "",
+    position: sp?.position || "",
+    hrRecipientName: isHrHiring
+      ? (ds?.hrRecipientName as string) || ""
+      : undefined,
+    hrRecipientEmail: isHrHiring
+      ? (ds?.hrRecipientEmail as string) || ""
+      : undefined,
   };
 }
 

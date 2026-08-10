@@ -25,8 +25,15 @@ import PreviewModal from "./PreviewModal";
 
 // ─── Shared badge components ──────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: string }) {
-  if (status === "FULLY_EXECUTED") {
+function StatusBadge({ status, agreementTemplate, docType }: {
+  status: string;
+  agreementTemplate?: string;
+  docType?: string;
+}) {
+  const isHrHiring =
+    agreementTemplate === "hrHiringNotice" || docType === "HR Hiring Notice";
+
+  if (isHrHiring || status === "FULLY_EXECUTED") {
     return (
       <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
         <CheckCircle2 className="w-3 h-3" /> Executed
@@ -49,21 +56,25 @@ function DocTypeBadge({
   salesAgreementType?: string;
   agreementTemplate?: string;
 }) {
-  // Resolve by salesAgreementType first (most reliable), then fallback to docType string
   const isCSP =
     salesAgreementType === "countrySales" ||
     docType === "Country Sales Partner Agreement & ID Card";
   const isSA =
     salesAgreementType === "salesAgent" ||
     docType === "Sales Agent Agreement & ID Card";
+  const isCert =
+    agreementTemplate === "internCertificate" ||
+    docType === "Intern Certificate";
   const isIntern =
     !isCSP &&
     !isSA &&
+    !isCert &&
     (docType?.toLowerCase().includes("intern") ||
       docType === "Intern Offerletter & ID Card");
   const isHrHiring =
     !isCSP &&
     !isSA &&
+    !isCert &&
     !isIntern &&
     (agreementTemplate === "hrHiringNotice" || docType === "HR Hiring Notice");
 
@@ -79,15 +90,21 @@ function DocTypeBadge({
         Sales Agent
       </span>
     );
+  if (isCert)
+    return (
+      <span className="inline-block text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-100">
+        Internship Certificate
+      </span>
+    );
   if (isIntern)
     return (
       <span className="inline-block text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100">
-        Internship
+        Internship Offer Letter
       </span>
     );
   if (isHrHiring)
     return (
-      <span className="inline-block text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-100">
+      <span className="inline-block text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-pink-50 text-pink-700 border border-pink-100">
         HR Hiring Notice
       </span>
     );
@@ -182,7 +199,7 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ onBack }: AdminDashboardProps) {
-  const { loading, error, filters, patchFilter, processed, stats, reload, PAGE_SIZE } =
+  const { loading, error, filters, patchFilter, processed, stats, reload, removeAgreement, PAGE_SIZE } =
     useRegistryData();
 
   const [resendingId, setResendingId] = useState<string | null>(null);
@@ -261,7 +278,9 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
         text: "Document deleted successfully.",
         confirmButtonColor: "#2563EB",
       });
-      reload();
+      // Instantly remove from UI, then sync cache in background
+      removeAgreement(agreementId);
+      void reload();
     } catch (e: unknown) {
       await Swal.fire({
         icon: "error",
@@ -281,7 +300,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0 }}
-        className="flex-1 px-4 md:px-8 py-8 max-w-6xl mx-auto w-full"
+        className="flex-1 px-4 md:px-6 py-8 max-w-7xl mx-auto w-full"
       >
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
@@ -304,9 +323,9 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
           <button
             onClick={reload}
             disabled={loading}
-            className="self-start flex items-center gap-2 px-4 py-2.5 bg-white border border-[#DBEAFE] hover:border-[#2563EB] rounded-xl text-xs font-bold text-[#2563EB] cursor-pointer"
+            className="group self-start flex items-center gap-2 px-4 py-2.5 bg-white border border-[#DBEAFE] hover:border-[#2563EB] rounded-xl text-xs font-bold text-[#2563EB] cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-3.5 h-3.5 transition-transform duration-500 ${loading ? "animate-spin" : "group-hover:rotate-180"}`} />
             Refresh
           </button>
         </div>
@@ -377,9 +396,9 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                   {processed.list.map((a) => (
                     <tr
                       key={a.agreementId}
-                      className="border-b border-[#DBEAFE]/60 hover:bg-[#F8FAFC]"
+                      className="border-b border-[#DBEAFE]/60 hover:bg-[#F8FAFC] text-center"
                     >
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 text-left">
                         <div className="font-mono font-bold text-[#0F172A] text-xs">
                           {a.agreementId}
                         </div>
@@ -393,14 +412,18 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                       </td>
                       <td className="px-4 py-3">
                         <div className="font-semibold text-[#0F172A]">
-                          {a.partnerName}
+                          {a.hrRecipientName || a.partnerName}
                         </div>
                         <div className="text-[11px] text-[#64748B]">
-                          {a.partnerEmail}
+                          {a.hrRecipientEmail || a.partnerEmail}
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <StatusBadge status={a.status} />
+                        <StatusBadge
+                          status={a.status}
+                          agreementTemplate={a.agreementTemplate}
+                          docType={a.docType}
+                        />
                       </td>
                       <td className="px-4 py-3 text-xs text-[#64748B]">
                         {a.createdAt

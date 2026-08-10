@@ -30,13 +30,13 @@ export default function Hero({ onStart, onDemo }: HeroProps) {
       <div className="absolute top-1/4 left-1/4 w-[350px] h-[350px] bg-[#2563EB]/5 rounded-full blur-3xl" />
       <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#06B6D4]/5 rounded-full blur-3xl" />
 
-      <div className="max-w-4xl text-center relative z-10 px-4 space-y-8 py-12">
+      <div className="max-w-4xl text-center relative z-10 px-4 space-y-4 py-8 md:py-10">
         <div className="inline-flex items-center gap-2 bg-[#EFF6FF] border border-[#DBEAFE] px-3.5 py-1.5 rounded-full text-[#1E3A8A] font-semibold text-xs uppercase tracking-wider shadow-sm">
           <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
           Official JEVXO Document Engine
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-[#0F172A] leading-tight font-sans">
             <span className="font-serif italic text-[#334155] font-normal">
               Automate Your
@@ -54,7 +54,7 @@ export default function Hero({ onStart, onDemo }: HeroProps) {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
           <button
             onClick={onStart}
             className="w-full sm:w-auto px-8 py-4 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold rounded-2xl shadow-lg shadow-[#2563EB]/10 hover:shadow-[#2563EB]/20 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2 group text-base cursor-pointer"
@@ -71,7 +71,7 @@ export default function Hero({ onStart, onDemo }: HeroProps) {
         </div>
 
         {/* Feature cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-12 text-left">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-5 text-left">
           {[
             {
               icon: FolderCheck,

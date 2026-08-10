@@ -24,8 +24,9 @@ const STATUS_OPTS: { value: StatusFilter; label: string }[] = [
 const DOCTYPE_OPTS: { value: DocTypeFilter; label: string }[] = [
   { value: "all", label: "All Types" },
   { value: "partner", label: "Partner" },
-  { value: "internship", label: "Internship" },
-  { value: "countrySales", label: "CSP" },
+  { value: "internship", label: "Internship Offer Letter" },
+  { value: "internCertificate", label: "Internship Certificate" },
+  { value: "countrySales", label: "Country Sales Partner" },
   { value: "salesAgent", label: "Sales Agent" },
   { value: "hrHiringNotice", label: "HR Hiring Notice" },
 ];
@@ -97,11 +98,10 @@ export default function RegistryToolbar({ filters, onChange }: Props) {
               <button
                 key={f.value}
                 onClick={() => toggleSort(f.value as SortField)}
-                className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold border transition cursor-pointer ${
-                  active
+                className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold border transition cursor-pointer ${active
                     ? "bg-[#2563EB] text-white border-[#2563EB]"
                     : "bg-[#F8FAFC] text-[#64748B] border-[#DBEAFE] hover:border-[#2563EB]"
-                }`}
+                  }`}
               >
                 <ArrowUpDown className="w-3 h-3" />
                 {f.label}
