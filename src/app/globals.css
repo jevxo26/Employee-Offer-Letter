@@ -1,9 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  
+  --font-cinzel: var(--font-cinzel), serif;
+  --font-montserrat: var(--font-montserrat), sans-serif;
+  --font-opensans: var(--font-opensans), sans-serif;
+  --font-playfair: var(--font-playfair), serif;
+  --font-ebgaramond: var(--font-ebgaramond), serif;
   
   /* JEVXO Centered Corporate Blue Palette */
   --color-primary: #2563EB;

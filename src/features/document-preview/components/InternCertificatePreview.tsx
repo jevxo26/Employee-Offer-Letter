@@ -3,60 +3,8 @@
 import React from "react";
 import { FirstParty, SecondParty, DocSettings } from "@/types";
 import JevxoLogo from "@/shared/layout/JevxoLogo";
-
-interface GradientTextCanvasProps {
-  text: string;
-}
-
-function GradientTextCanvas({ text }: GradientTextCanvasProps) {
-  const canvasRef = React.useRef<HTMLCanvasElement>(null);
-
-  React.useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const draw = () => {
-      const scale = 3;
-      const baseWidth = 800;
-      const baseHeight = 50;
-
-      canvas.width = baseWidth * scale;
-      canvas.height = baseHeight * scale;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.scale(scale, scale);
-
-      // Create linear gradient matching CSS stops
-      const gradient = ctx.createLinearGradient(200, 0, 600, 0);
-      gradient.addColorStop(0, "#2563EB");
-      gradient.addColorStop(1, "#7C3AED");
-
-      ctx.fillStyle = gradient;
-      ctx.font = "900 30px 'Inter', sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
-      ctx.fillText(text, baseWidth / 2, baseHeight / 2);
-    };
-
-    draw();
-
-    if (typeof document !== "undefined" && (document as any).fonts) {
-      (document as any).fonts.ready.then(draw);
-    }
-  }, [text]);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{ width: 800, height: 50 }}
-      className="mx-auto block select-none pointer-events-none"
-    />
-  );
-}
+import { buildVerifyUrl } from "@/lib/verifyUrl";
+import QRCode from "react-qr-code";
 
 interface InternCertificatePreviewProps {
   firstParty: FirstParty;
@@ -91,6 +39,8 @@ export default function InternCertificatePreview({
     }),
   };
 
+  const verifyUrl = buildVerifyUrl(d.certId);
+
   return (
     <div
       id="certificate-preview-container"
@@ -103,6 +53,7 @@ export default function InternCertificatePreview({
         fontFamily: "'Inter', sans-serif",
       }}
     >
+      {/* Vector Background and Corner Accents */}
       {/* ── Vector Background and Corner Accents ── */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none z-0"
@@ -112,7 +63,7 @@ export default function InternCertificatePreview({
       >
         <defs>
           <pattern id="cert-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-            <circle cx="3" cy="3" r="1.5" fill="#64748B" opacity="0.25" />
+            <circle cx="3" cy="3" r="1.5" fill="#64748B" opacity="0.123" />
           </pattern>
           <linearGradient id="corner-grad-top" x1="0" y1="0" x2="350" y2="350" gradientUnits="userSpaceOnUse">
             <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.65" />
@@ -157,67 +108,86 @@ export default function InternCertificatePreview({
         {/* Top: Header branding & IDs */}
         <div className="flex justify-between items-start">
           <div className="flex flex-col">
-              <JevxoLogo />
-            <div className="relative ml-1.75 md:ml-2.25 lg:ml-3">
-              <div className="w-7 md:w-9.5 lg:w-12 h-0.5 md:h-0.75 absolute top-1.5 md:top-2 lg:top-2.5 bg-linear-to-l from-blue-400 to-violet-400" />
-              <p className="ml-8 md:ml-11 lg:ml-15 text-[9px] md:text-xs lg:text-sm"><strong> Build your Empire </strong></p>
+           <JevxoLogo/>
+            <div className="relative">
+              <div className="w-7 md:w-9.5 lg:w-12 h-0.5 md:h-0.75 absolute top-1.5 md:top-2 lg:top-2.5 lg:left-3 md:left-2.5 left-2 bg-linear-to-l from-blue-400 to-violet-400" />
+              <p className="ml-10 md:ml-12 lg:ml-16 text-[9px] md:text-xs lg:text-sm italic font-normal text-slate-500" style={{ fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif", fontWeight: "700" }}>
+                Build your Empire
+              </p>
             </div>
           </div>
-          <div className="text-right font-mono text-[13px] font-semibold text-slate-400 space-y-0.5">
-            <p>Intern ID: <span className="text-slate-600 font-bold">{d.internId}</span></p>
-            <p>Certificate ID: <span className="text-slate-600 font-bold">{d.certId}</span></p>
+          <div className="text-right space-y-0.5">
+            <p style={{ fontFamily: "var(--font-opensans), 'Open Sans', sans-serif", fontSize: '10pt', fontWeight: 600 }} className="text-slate-400 uppercase tracking-wider">
+              Intern ID: <span style={{ fontWeight: 400 }} className="text-slate-600 font-normal">{d.internId}</span>
+            </p>
+            <p style={{ fontFamily: "var(--font-opensans), 'Open Sans', sans-serif", fontSize: '10pt', fontWeight: 600 }} className="text-slate-400 uppercase tracking-wider">
+              Certificate ID: <span style={{ fontWeight: 400 }} className="text-slate-600 font-normal">{d.certId}</span>
+            </p>
           </div>
         </div>
 
         {/* Center: Main Certificate Text block */}
-        <div className="flex-1 flex flex-col justify-center items-center text-center space-y-6 max-w-4xl mx-auto my-4">
+        <div className="flex-1 flex flex-col justify-center items-center text-center max-w-4xl mx-auto my-2">
           <div className="space-y-1">
-            <span className="text-xs font-black tracking-[0.25em] text-[#6366F1] uppercase">Official Recognition</span>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-[#0F172A] tracking-tight uppercase">
-              Certificate of Internship
-            </h2>
+            <p style={{ fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif", fontSize: '13pt', fontWeight: 400, letterSpacing: '0.25em' }} className="uppercase text-blue-600 text-center">
+              OFFICIAL RECOGNITION
+            </p>
+            <h1 style={{ fontFamily: "var(--font-cinzel), 'Cinzel', serif", fontSize: '33pt', fontWeight: 700, letterSpacing: '0.05em' }} className="uppercase text-slate-900 text-center my-2">
+              CERTIFICATE OF INTERNSHIP
+            </h1>
           </div>
 
-          <p className="text-sm italic text-slate-500">This certificate is proudly presented to</p>
+          <p style={{ fontFamily: "var(--font-ebgaramond), 'EB Garamond', serif", fontSize: '16pt', fontStyle: 'italic' }} className="text-slate-600 text-center">
+            This certificate is proudly presented to
+          </p>
 
           {/* Prominent Intern Name */}
-          <div className="space-y-2 select-none pointer-events-none">
-            <GradientTextCanvas text={d.internName} />
+          <div className="space-y-2">
+            <h2 style={{ fontFamily: "var(--font-playfair), 'Playfair Display', serif", fontSize: '44pt', fontWeight: 500 }} className="text-blue-950 text-center ">
+              {d.internName || "Juwel Khan Shanto"}
+            </h2>
             <div className="w-48 h-0.5 bg-slate-200 mx-auto" />
           </div>
 
           {/* completion phrased text */}
-          <p className="text-center text-slate-600 text-[15px] leading-relaxed max-w-3xl mx-auto my-3 font-sans">
-            In recognition of their successful completion of the professional internship program at{" "}
-            <strong className="text-slate-800 font-bold">JEVXO</strong>. Throughout this tenure, they have actively contributed to key departmental projects, showcased exemplary technical competence, and consistently demonstrated outstanding dedication, teamwork, and professional excellence. We deeply appreciate their valuable contributions and wish them the very best in all their future career endeavors.
+          <p style={{ fontFamily: "var(--font-ebgaramond), 'EB Garamond', serif", fontSize: '15pt', lineHeight: '1.6', textAlign: 'justify' }} className="text-slate-700 max-w-3xl mx-auto my-4">
+            In recognition of their successful completion of the professional internship at JEVXO. During this tenure, they demonstrated exemplary technical competence, dedication, and professional excellence. We highly appreciate their valuable contributions and wish them the very best in their future career.
           </p>
 
           {/* details grid */}
-          <div className="flex justify-between items-center mt-5 px-10 py-3.5 bg-slate-50/60 border border-slate-100/80 rounded-2xl text-center w-full max-w-3xl">
+          <div className="flex justify-between items-center mt-4 px-10 py-3.5 bg-slate-50/60 border border-slate-100/80 rounded-2xl text-center w-full max-w-3xl">
             <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Position</p>
-              <p className="text-sm font-extrabold text-slate-800 mt-1">{d.position}</p>
+              <p style={{ fontFamily: "var(--font-opensans), 'Open Sans', sans-serif", fontSize: '10pt', fontWeight: 600 }} className="text-slate-400 uppercase tracking-wider">Position</p>
+              <p style={{ fontFamily: "var(--font-opensans), 'Open Sans', sans-serif", fontSize: '11pt', fontWeight: 400 }} className="text-slate-800 mt-1">{d.position}</p>
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Department</p>
-              <p className="text-sm font-extrabold text-slate-800 mt-1">{d.department}</p>
+              <p style={{ fontFamily: "var(--font-opensans), 'Open Sans', sans-serif", fontSize: '10pt', fontWeight: 600 }} className="text-slate-400 uppercase tracking-wider">Department</p>
+              <p style={{ fontFamily: "var(--font-opensans), 'Open Sans', sans-serif", fontSize: '11pt', fontWeight: 400 }} className="text-slate-800 mt-1">{d.department}</p>
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Duration</p>
-              <p className="text-sm font-extrabold text-slate-800 mt-1">{d.startDate} - {d.endDate}</p>
+              <p style={{ fontFamily: "var(--font-opensans), 'Open Sans', sans-serif", fontSize: '10pt', fontWeight: 600 }} className="text-slate-400 uppercase tracking-wider">Duration</p>
+              <p style={{ fontFamily: "var(--font-opensans), 'Open Sans', sans-serif", fontSize: '11pt', fontWeight: 400 }} className="text-slate-800 mt-1">{d.startDate} - {d.endDate}</p>
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rating / Grade</p>
-              <p className="text-sm font-extrabold text-indigo-600 mt-1">{d.performanceGrade}</p>
+              <p style={{ fontFamily: "var(--font-opensans), 'Open Sans', sans-serif", fontSize: '10pt', fontWeight: 600 }} className="text-slate-400 uppercase tracking-wider">Rating / Grade</p>
+              <p style={{ fontFamily: "var(--font-opensans), 'Open Sans', sans-serif", fontSize: '11pt', fontWeight: 800 }} className="text-[#6366F1] mt-1 font-semibold">{d.performanceGrade}</p>
             </div>
           </div>
         </div>
 
         {/* Bottom: Signature Block */}
-        <div className="flex justify-between items-end pt-6">
+        <div className="flex justify-between items-end pt-5">
           <div className="text-left space-y-1">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Date of Issue</p>
-            <p className="text-[13px] font-extrabold text-slate-800">{d.issueDate}</p>
+            <p style={{ fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif", fontSize: '10pt', fontWeight: 600 }} className="text-slate-400 uppercase tracking-wider">Date of Issue</p>
+            <p style={{ fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif", fontSize: '10.5pt', fontWeight: 400 }} className="text-slate-800">{d.issueDate}</p>
+          </div>
+
+          {/* Centered verification QR Code */}
+          <div className="flex flex-col items-center space-y-1 select-none pointer-events-none pb-1">
+            <div className="bg-white p-1 border border-slate-200/80 rounded shadow-xs shrink-0">
+              <QRCode value={verifyUrl} size={46} level="M" />
+            </div>
+            <p className="text-[7.5px] font-mono font-bold tracking-widest text-slate-400 uppercase">Verify Doc</p>
           </div>
 
           <div className="text-right flex flex-col items-center">
@@ -235,10 +205,10 @@ export default function InternCertificatePreview({
                 </div>
               )}
             </div>
-            <p className="text-sm font-extrabold text-slate-800 border-t border-slate-200 pt-1 w-48 text-center">
+            <p style={{ fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif", fontSize: '13pt', fontWeight: 800 }} className="text-slate-800 border-t border-slate-300 pt-1 w-48 text-center">
               {d.ceoName}
             </p>
-            <p className="text-xs text-slate-500 font-semibold tracking-wider text-center w-48">
+            <p style={{ fontFamily: "var(--font-ebgaramond), 'EB Garamond', serif", fontSize: '12pt', fontWeight: 600 }} className="text-slate-500 tracking-wider text-center w-48">
               {d.ceoRole}, {d.companyName}
             </p>
           </div>
