@@ -96,9 +96,9 @@ export default function InternCertificatePreview({
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/x-logo0bg.png"
+          src="/logo-watermark.png"
           alt="Jevxo Watermark"
-          className="w-[500px] h-[500px] object-contain opacity-[0.1]"
+          className="w-[333px] h-[333px] object-contain opacity-[0.1] select-none pointer-events-none"
         />
       </div>
 
@@ -109,12 +109,6 @@ export default function InternCertificatePreview({
         <div className="flex justify-between items-start">
           <div className="flex flex-col">
            <JevxoLogo/>
-            <div className="relative">
-              <div className="w-7 md:w-9.5 lg:w-12 h-0.5 md:h-0.75 absolute top-1.5 md:top-2 lg:top-2.5 lg:left-3 md:left-2.5 left-2 bg-linear-to-l from-blue-400 to-violet-400" />
-              <p className="ml-10 md:ml-12 lg:ml-16 text-[9px] md:text-xs lg:text-sm italic font-normal text-slate-500" style={{ fontFamily: "var(--font-montserrat), 'Montserrat', sans-serif", fontWeight: "700" }}>
-                Build your Empire
-              </p>
-            </div>
           </div>
           <div className="text-right space-y-0.5">
             <p style={{ fontFamily: "var(--font-opensans), 'Open Sans', sans-serif", fontSize: '10pt', fontWeight: 600 }} className="text-slate-400 uppercase tracking-wider">
@@ -146,7 +140,7 @@ export default function InternCertificatePreview({
             <h2 style={{ fontFamily: "var(--font-playfair), 'Playfair Display', serif", fontSize: '44pt', fontWeight: 500 }} className="text-blue-950 text-center ">
               {d.internName || "Juwel Khan Shanto"}
             </h2>
-            <div className="w-48 h-0.5 bg-slate-200 mx-auto" />
+            {/* <div className="w-48 h-0.5 bg-slate-200 mx-auto" /> */}
           </div>
 
           {/* completion phrased text */}

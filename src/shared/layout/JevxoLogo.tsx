@@ -1,5 +1,5 @@
 import Image from "next/image";
-import logo from "../../../assets/logo0bg.png";
+import logo from "../../../public/mainLogo.png";
 
 const JevxoLogo = () => {
   return (
